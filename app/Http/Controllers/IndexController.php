@@ -10,7 +10,7 @@ class IndexController extends Controller
     //
     public function show() {
         return Inertia::render('Home', [
-            'title' => 'Hello Title',
+            'storeName' => 'Store Name',
         ]);
     }
 }

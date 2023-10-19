@@ -1,6 +1,7 @@
 import { createApp, h } from 'vue'
 import { createInertiaApp } from '@inertiajs/vue3'
 import "./bootstrap";
+import VueApexCharts from 'vue3-apexcharts';
 
 createInertiaApp({
     resolve: name => {
@@ -13,6 +14,9 @@ createInertiaApp({
             .mixin({
                 methods: {
                     route,
+                },
+                components: {
+                    'apexchart': VueApexCharts,
                 }
             })
             .mount(el)
