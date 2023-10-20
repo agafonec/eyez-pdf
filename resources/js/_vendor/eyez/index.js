@@ -1,3 +1,4 @@
+// ICONS
 import PdfLogo from './icons/pdf-logo/pdf-logo.vue'
 import IconCalendar from './icons/icon-calendar/icon-calendar.vue'
 import IconPeople from './icons/icon-people/icon-people.vue'
@@ -8,6 +9,9 @@ import IconBook from './icons/icon-book/icon-book.vue'
 import IconBags from './icons/icon-bags/icon-bags.vue'
 import IconWarning from './icons/icon-warning/icon-warning.vue'
 
+import StatBox from './stat-box/stat-box.vue'
+import ChartStatBox from './chart-stat-box/chart-stat-box.vue'
+
 export {
     PdfLogo,
     IconCalendar,
@@ -17,5 +21,7 @@ export {
     IconSale,
     IconBook,
     IconBags,
-    IconWarning
+    IconWarning,
+    StatBox,
+    ChartStatBox
 }
