@@ -44,7 +44,7 @@ export default {
             type: Object,
             default: {
                 current: {
-                    title: 'טרקטורון',
+                    title: 'לא זמין',
                     value: 1234
                 },
                 previous: {
@@ -57,7 +57,7 @@ export default {
     computed: {
         percent() {
             const difference = Math.abs(this.stat.current.value - this.stat.previous.value)
-            return ( (difference / this.stat.current.value  ) * 100).toFixed(1) + '%'
+            return ( (difference / this.stat.previous.value  ) * 100).toFixed(1) + '%'
         }
     }
 }

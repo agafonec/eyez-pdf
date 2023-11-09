@@ -13,10 +13,16 @@ class IndexController extends Controller
     protected OpretailApi $currentReport;
     protected OpretailApi $previousReport;
 
-    public function __construct()
+    public function __construct(Request $request)
     {
-        $startTime = '2023-10-18 00:00:00';
-        $endTime = '2023-10-18 23:59:59';
+        if ($date = $request->input('date')) {
+            $startTime = Carbon::parse($date)->startOfDay();
+            $endTime =  Carbon::parse($date)->endOfDay();
+        } else {
+            $startTime = Carbon::now()->startOfDay();
+            $endTime = Carbon::now()->endOfDay();
+        }
+
         $this->currentReport = new OpretailApi($startTime, $endTime, 11025);
 
         $newDateStart = Carbon::parse($startTime)->subDays(1);
@@ -25,10 +31,6 @@ class IndexController extends Controller
     }
 
     public function show() {
-
-        \Log::info('Opretail data', ['opretail' => $this->currentReport]);
-        \Log::info('Previous Opretail data', ['opretail' => $this->previousReport]);
-
         return Inertia::render('Home', [
             'storeName' => 'Astral',
             'storeData' => $this->currentReport,
