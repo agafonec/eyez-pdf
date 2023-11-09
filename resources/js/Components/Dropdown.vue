@@ -36,6 +36,8 @@ const alignmentClasses = computed(() => {
         return 'ltr:origin-top-left rtl:origin-top-right start-0';
     } else if (props.align === 'right') {
         return 'ltr:origin-top-right rtl:origin-top-left end-0';
+    } else if (props.align === 'center') {
+        return 'end-1/2 -translate-x-1/2 text-center';
     } else {
         return 'origin-top';
     }

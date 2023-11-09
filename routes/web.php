@@ -25,11 +25,15 @@ use Inertia\Inertia;
 //    ]);
 //});
 
-//Route::get('/dashboard', function () {
-//    return Inertia::render('Dashboard');
-//})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('/dashboard_default', function () {
+    return Inertia::render('Dashboard');
+})->middleware(['auth', 'verified'])->name('dashboard');
 
 Route::middleware('auth')->group(function () {
+    Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function($router) {
+        $router->get('/')->uses('IndexController@show')->name('home');
+    });
+
     Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function($router) {
         $router->get('/dashboard')->uses('IndexController@show')->name('home.show');
     });

@@ -3,15 +3,34 @@
     <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
         <div class="bg-gradient-to-r from-green-200 to-green-500 text-white flex items-center justify-between shadow-head p-8 rounded-[10px]">
             <pdf-logo />
-            <div class="text-3xl font-semibold uppercase ">{{ storeName }}</div>
+            <div class="text-3xl font-semibold uppercase">
+                <Dropdown align="center">
+                    <template #trigger>
+                        <span class="inline-flex rounded-md">
+                            <button
+                                type="button"
+                                class="inline-flex items-center bg-transparent
+                                text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
+                            >
+                                {{ storeNameC }}
+                            </button>
+                        </span>
+                    </template>
+
+                    <template #content>
+                        <DropdownLink :href="route('home.show', {store: storeName})" align="center"> {{ storeName }} </DropdownLink>
+                        <DropdownLink :href="route('home.show', {store: 'Other Store Name'})" align="center"> Other Store Name </DropdownLink>
+                    </template>
+                </Dropdown>
+            </div>
             <div class="flex items-center text-white">
                 <span>{{ dateRange }}</span>
                 <icon-calendar class="mr-4" color="#ffffff"/>
             </div>
         </div>
         <div class="p-5">
-            <div class="bg-white p-4 rounded-[10px] flex justify-center">
-                <div class="bg-green-100 max-w-md w-full py-10 rounded-[10px] relative flex justify-center">
+            <div class="bg-white p-4 rounded-[10px] flex gap-10">
+                <div class="bg-green-100 w-1/3 py-10 rounded-[10px] relative flex justify-center">
                     <div class="flex items-center">
                         <icon-people class="text-green-400"/>
                         <span class="text-3xl mr-2.5">היום:</span>
@@ -25,6 +44,23 @@
                         </div>
                         <span class="text-green-300 text-sm absolute top-2 left-2">חנות AVG: {{ avarage(storeData.walkInCount, prevStoreData.walkInCount) }}</span>
                     </div>
+                </div>
+                <div class="flex items-center w-2/3">
+                    <stat-box variant="big" icon-circle-class="bg-lime-200">
+                        <template #icon>
+                            <icon-people width="32" height="32" class="text-lime-400"/>
+                        </template>
+                    </stat-box>
+                    <stat-box variant="big" icon-circle-class="bg-amber-200">
+                        <template #icon>
+                            <icon-people width="32" height="32" class="text-amber-400"/>
+                        </template>
+                    </stat-box>
+                    <stat-box variant="big" icon-circle-class="bg-green-50">
+                        <template #icon>
+                            <icon-people width="32" height="32" class="text-green-500"/>
+                        </template>
+                    </stat-box>
                 </div>
             </div>
 
@@ -105,6 +141,8 @@ import {
     ChartStatBox
 } from '@/_vendor/eyez/index'
 import moment from "moment";
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 
 let donutSettings = {
     chart: {
@@ -177,7 +215,9 @@ export default {
         IconBags,
         IconWarning,
         StatBox,
-        ChartStatBox
+        ChartStatBox,
+        Dropdown,
+        DropdownLink
     },
     props: {
         storeName: {
@@ -279,7 +319,6 @@ export default {
                     }
                 ]
             }
-
         }
     },
     methods: {
@@ -304,6 +343,11 @@ export default {
         }
     },
     computed: {
+        storeNameC() {
+            const urlParams = new URLSearchParams(window.location.search);
+
+            return urlParams.has('store') ? urlParams.get('store') : this.storeName
+        },
         dateRange() {
             if ( moment(this.storeData?.dateTo).isSame(moment(this.storeData?.dateFrom), 'day') ) {
                 return moment(this.storeData?.dateTo).format('YYYY-MM-DD')
