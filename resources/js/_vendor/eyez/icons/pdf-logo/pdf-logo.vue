@@ -1,6 +1,6 @@
 <template>
-    <svg :width="width" viewBox="0 0 225 81" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-        <rect width="225" height="81" fill="url(#pattern0)"/>
+    <svg v-bind="{width, height}" viewBox="0 0 225 81" fill="none" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+        <rect v-bind="{width, height}" fill="url(#pattern0)"/>
         <defs>
             <pattern id="pattern0" patternContentUnits="objectBoundingBox" width="1" height="1">
                 <use xlink:href="#image0_14_5" transform="matrix(0.00460829 0 0 0.0128008 0 -0.0120328)"/>
@@ -17,6 +17,10 @@ export default {
         width: {
             type: [Number, String],
             default: 225,
+        },
+        height: {
+            type: [Number, String],
+            default: 81,
         }
     }
 }
