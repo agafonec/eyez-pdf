@@ -2,7 +2,7 @@
 
     <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
         <div class="bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
-            <pdf-logo class="w-[100px] md:w-[225px] h-[36px] md:h-[81px]" />
+            <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
             <div class="text-3xl font-semibold uppercase">
                 <Dropdown align="center">
                     <template #trigger>
@@ -359,6 +359,7 @@ export default {
         }
     },
     methods: {
+
         percent(current, previous) {
             const difference = Math.abs(current - previous)
             return ( (difference / previous ) * 100).toFixed(1) + '%'
