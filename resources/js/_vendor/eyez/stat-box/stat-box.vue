@@ -1,8 +1,8 @@
 <template>
     <div v-if="variant === 'small'" class="flex items-center w-full relative">
-        <div :class="['text-sm md:text-base absolute end-0 top-0.5 flex items-center', `${stat.current.value > stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
+        <div :class="['text-sm md:text-base absolute end-0 top-0.5 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
             <span class="font-medium leading-none">{{ percent }}</span>
-            <icon-arrow-up v-if="stat.current.value > stat.previous.value" calss="text-green-300"/>
+            <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
             <icon-arrow-down v-else class="text-red-300"/>
         </div>
 
@@ -30,9 +30,9 @@
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.current.title }}</div>
                 <div class="text-base md:text-2xl text-gray-900 leading-tight flex">
                     <div>{{ stat.current.value }}</div>
-                    <div :class="['text-sm md:text-base mr-2 flex items-center', `${stat.current.value > stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
+                    <div :class="['text-sm md:text-base mr-2 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
                         <span class="font-medium leading-none">{{ percent }}</span>
-                        <icon-arrow-up v-if="stat.current.value > stat.previous.value" calss="text-green-300"/>
+                        <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
                         <icon-arrow-down v-else class="text-red-300"/>
                     </div>
                 </div>
@@ -72,11 +72,11 @@ export default {
             default: {
                 current: {
                     title: 'לא זמין',
-                    value: 1234
+                    value: 0
                 },
                 previous: {
                     title: '11/05/2023',
-                    value: 1956
+                    value: 0
                 }
             }
         }
@@ -84,7 +84,7 @@ export default {
     computed: {
         percent() {
             const difference = Math.abs(this.stat.current.value - this.stat.previous.value)
-            return Math.round( (difference / this.stat.previous.value  ) * 100) + '%'
+            return this.stat.previous.value === 0 ? '100%' : Math.round( (difference / this.stat.previous.value  ) * 100) + '%'
         }
     }
 }

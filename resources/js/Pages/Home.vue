@@ -24,7 +24,7 @@
                 </Dropdown>
             </div>
             <div class="end-4 top-4 md:top-0 md:end-0 absolute flex items-center text-white md:relative ">
-                <div class="hidden md:block">{{ dateRange }}</div>
+                <div class="hidden md:block" v-html="dateRange()"></div>
                 <icon-calendar class="mr-4" color="#ffffff"/>
             </div>
         </div>
@@ -104,10 +104,16 @@
                                             :class="['max-md:w-full max-md:bg-gray-50 max-md:p-4 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
                             />
                         </div>
-                        <apexchart class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0"
-                                   type="line"
-                                   :options="lineChart.chartOptions"
-                                   :series="lineChart.series"></apexchart>
+
+                        <div  class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0">
+                            <div class="">blue is current date</div>
+                            <div class="">red is previous</div>
+                            <apexchart
+                                type="line"
+                                :options="lineChart.chartOptions"
+                                :series="lineChart.series"></apexchart>
+                        </div>
+
                     </div>
                 </div>
                 <div class="md:col-span-7 bg-white p-4 rounded-[10px] relative">
@@ -122,7 +128,7 @@
                             <div>נוער <span>16 - 40</span> שנים</div>
                             <div class="text-xs text-black font-semibold md:hidden mt-2">
                                 <span>יְוֹם:</span>
-                                <span>{{ dateRange }}</span>
+                                <span v-html="dateRange()"></span>
                             </div>
                         </div>
 
@@ -133,7 +139,7 @@
                     </div>
                     <div class="max-md:hidden bg-gray-50 px-4 py-2 rounded-md font-semibold absolute left-5 bottom-5">
                         <span>יְוֹם:</span>
-                        <span>{{ dateRange }}</span>
+                        <span  v-html="dateRange()"></span>
                     </div>
                 </div>
             </div>
@@ -320,7 +326,18 @@ export default {
                         },
                     },
                     legend: {
-                        show: false ,
+                        show: true ,
+                        fontFamily: 'Inter, Arial',
+                        fontWeight: 500,
+                        markers: {
+                            width: 10,
+                            height: 10,
+                            strokeWidth: 0,
+                            strokeColor: '#fff',
+                            radius: 2,
+                            offsetX: 5,
+                            offsetY: 0
+                        },
                     },
                     responsive: [
                         {
@@ -347,7 +364,7 @@ export default {
                 },
                 series: [
                     {
-                        name: this.dateRange,
+                        name: this.dateRange(),
                         data: this.lineChartArray(this.storeData.hourlyWalkIn),
                     },
                     {
@@ -359,6 +376,14 @@ export default {
         }
     },
     methods: {
+        dateRange() {
+            console.log('Date Range', moment(this.storeData?.dateTo).format('YYYY-MM-DD'))
+            if ( moment(this.storeData?.dateTo).isSame(moment(this.storeData?.dateFrom), 'day') ) {
+                return moment(this.storeData?.dateTo).format('YYYY-MM-DD').toString()
+            } else {
+                return moment(this.storeData?.dateFrom).format('YYYY-MM-DD') + ' - ' + moment(this.storeData?.dateTo).format('YYYY-MM-DD')
+            }
+        },
         percent(current, previous) {
             const difference = Math.abs(current - previous)
             return ( (difference / previous ) * 100).toFixed(1) + '%'
@@ -384,13 +409,6 @@ export default {
             const urlParams = new URLSearchParams(window.location.search);
 
             return urlParams.has('store') ? urlParams.get('store') : this.storeName
-        },
-        dateRange() {
-            if ( moment(this.storeData?.dateTo).isSame(moment(this.storeData?.dateFrom), 'day') ) {
-                return moment(this.storeData?.dateTo).format('YYYY-MM-DD')
-            } else {
-                return moment(this.storeData?.dateFrom).format('YYYY-MM-DD') + ' - ' + moment(this.storeData?.dateTo).format('YYYY-MM-DD')
-            }
         },
         lineChartHistory() {
             const prevStore = this.prevStoreData.hourlyWalkIn;
