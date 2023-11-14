@@ -4,6 +4,7 @@ import DeleteUserForm from './Partials/DeleteUserForm.vue';
 import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import { Head } from '@inertiajs/vue3';
+import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
 
 defineProps({
     mustVerifyEmail: {
@@ -25,16 +26,17 @@ defineProps({
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto md:px-6 lg:px-8 space-y-6">
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg grid grid-cols-2 gap-5">
                     <UpdateProfileInformationForm
                         :must-verify-email="mustVerifyEmail"
                         :status="status"
                         class="max-w-xl"
                     />
+                    <UpdatePasswordForm class="max-w-xl" />
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <UpdatePasswordForm class="max-w-xl" />
+                    <OpretailnformationForm />
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">

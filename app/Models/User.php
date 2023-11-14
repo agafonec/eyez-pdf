@@ -47,7 +47,7 @@ class User extends Authenticatable
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
-    public function opretalCredentials()
+    public function opretailCredentials()
     {
         return $this->hasOne(Opretail::class);
     }
