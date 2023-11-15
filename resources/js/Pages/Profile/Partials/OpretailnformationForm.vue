@@ -7,7 +7,7 @@
         </p>
     </header>
 
-    <form class="mt-6 space-y-6 max-w-xl">
+    <div class="mt-6 space-y-6 max-w-xl">
         <div>
             <InputLabel for="username" value="Opretail Username" />
 
@@ -31,7 +31,6 @@
                 type="password"
                 class="mt-1 block w-full"
                 v-model="form.password"
-                required
             />
 
             <InputError class="mt-2" :message="form.errors?.password" />
@@ -45,7 +44,6 @@
                 type="text"
                 class="mt-1 block w-full"
                 v-model="form.secret_key"
-                required
             />
 
             <InputError class="mt-2" :message="form.errors?.secret_key" />
@@ -58,7 +56,6 @@
                 type="text"
                 class="mt-1 block w-full"
                 v-model="form._akey"
-                required
             />
 
             <InputError class="mt-2" :message="form.errors?._akey" />
@@ -71,7 +68,6 @@
                 type="text"
                 class="mt-1 block w-full"
                 v-model="form._aid"
-                required
             />
 
             <InputError class="mt-2" :message="form.errors?._aid" />
@@ -84,7 +80,6 @@
                 type="text"
                 class="mt-1 block w-full"
                 v-model="form.enterpriseId"
-                required
             />
 
             <InputError class="mt-2" :message="form.errors?.enterpriseId" />
@@ -97,7 +92,6 @@
                 type="text"
                 class="mt-1 block w-full"
                 v-model="form.orgId"
-                required
             />
 
             <InputError class="mt-2" :message="form.errors?.orgId" />
@@ -115,7 +109,7 @@
                 <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
             </Transition>
         </div>
-    </form>
+    </div>
 </template>
 
 <script>
@@ -123,7 +117,7 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { Link, useForm, usePage } from '@inertiajs/vue3';
+import { Link } from '@inertiajs/vue3';
 export default {
     name: "OpretailnformationForm",
     components: {
@@ -134,7 +128,7 @@ export default {
         Link
     },
     props: {
-        form: {
+        opretail: {
             type: Object,
             default: {
                 username: '',
@@ -147,9 +141,26 @@ export default {
             }
         }
     },
+    data() {
+        return {
+            form: this.opretail
+        }
+    },
     methods: {
         submitForm() {
+            console.log('form submitted')
             axios.post(route('profile.opretail.update'), this.form)
+            .then(response => {
+                let errors = response.data.errors
+                console.log(errors)
+                if (errors) {
+                    errors = Object.keys(errors).reduce((acc, key) => {
+                        acc[key] = errors[key][0];
+                        return acc;
+                    }, {});
+                    this.form.errors = errors
+                }
+            })
         }
     }
 }

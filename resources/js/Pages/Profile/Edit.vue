@@ -1,21 +1,3 @@
-<script setup>
-import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
-import DeleteUserForm from './Partials/DeleteUserForm.vue';
-import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
-import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
-import { Head } from '@inertiajs/vue3';
-import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
-
-defineProps({
-    mustVerifyEmail: {
-        type: Boolean,
-    },
-    status: {
-        type: String,
-    },
-});
-</script>
-
 <template>
     <Head title="Profile" />
 
@@ -32,11 +14,11 @@ defineProps({
                         :status="status"
                         class="max-w-xl"
                     />
-                    <UpdatePasswordForm class="max-w-xl" />
+                    <UpdatePasswordForm class="max-w-xl"/>
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <OpretailnformationForm />
+                    <OpretailnformationForm  :opretail="opretail"/>
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
@@ -46,3 +28,35 @@ defineProps({
         </div>
     </AuthenticatedLayout>
 </template>
+
+<script>
+import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
+import DeleteUserForm from './Partials/DeleteUserForm.vue';
+import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
+import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
+import { Head } from '@inertiajs/vue3';
+import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
+
+export default {
+    name: "Edit",
+    components: {
+        AuthenticatedLayout,
+        DeleteUserForm,
+        UpdatePasswordForm,
+        UpdateProfileInformationForm,
+        Head,
+        OpretailnformationForm
+    },
+    props: {
+        mustVerifyEmail: {
+            type: Boolean,
+        },
+        status: {
+            type: String,
+        },
+        opretail: {
+            type: Object
+        }
+    }
+}
+</script>

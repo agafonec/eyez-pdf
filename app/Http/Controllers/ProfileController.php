@@ -23,6 +23,7 @@ class ProfileController extends Controller
         return Inertia::render('Profile/Edit', [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'opretail' => $this->user()?->opretailCredentials,
         ]);
     }
 
@@ -50,15 +51,9 @@ class ProfileController extends Controller
     {
         $user = Auth::user();
 
-        \Log::info('opretail update', [
-            'user_id' => $user->id,
-            'request' => $request->toArray()
-        ]);
-
         $validator = $this->validateOpretail($request);
 
         if ($validator->fails()) {
-            \Log::info('validator errors', ['errors' => $validator->errors()]);
             return ['errors' => $validator->errors()];
         }
         if ($opretail = Opretail::where('user_id', $user->id)->first()) {

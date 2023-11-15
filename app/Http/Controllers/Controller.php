@@ -9,4 +9,12 @@ use Illuminate\Routing\Controller as BaseController;
 class Controller extends BaseController
 {
     use AuthorizesRequests, ValidatesRequests;
+
+    /**
+     * @return \Illuminate\Contracts\Auth\Authenticatable|mixed|null
+     */
+    public function user()
+    {
+        return auth()->user() ?? request()->user() ?? null;
+    }
 }
