@@ -2,7 +2,7 @@
 
     <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
         <div class="bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
-            <pdf-logo class="w-[100px] md:w-[225px] h-[36px] md:h-[81px]" />
+            <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
             <div class="text-3xl font-semibold uppercase">
                 <Dropdown align="center">
                     <template #trigger>
@@ -106,8 +106,6 @@
                         </div>
 
                         <div  class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0">
-                            <div class="">blue is current date</div>
-                            <div class="">red is previous</div>
                             <apexchart
                                 type="line"
                                 :options="lineChart.chartOptions"
