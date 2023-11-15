@@ -242,6 +242,9 @@ export default {
         storeName: {
             type: String
         },
+        reportType: {
+            type: String
+        },
         storeData: {
             type: [Object, Array]
         },
@@ -251,6 +254,7 @@ export default {
     },
     data() {
         return {
+            lineChartLegend: [],
             pieChartAge: {
                 series: Object.values(this.storeData.ageData),
                 chartOptions: {
@@ -375,7 +379,6 @@ export default {
     },
     methods: {
         dateRange() {
-            console.log('Date Range', moment(this.storeData?.dateTo).format('YYYY-MM-DD'))
             if ( moment(this.storeData?.dateTo).isSame(moment(this.storeData?.dateFrom), 'day') ) {
                 return moment(this.storeData?.dateTo).format('YYYY-MM-DD').toString()
             } else {
@@ -390,16 +393,28 @@ export default {
             return Math.floor( (current + previous) / 2 )
         },
         lineChartCategories() {
-            return this.storeData.hourlyWalkIn.map((obj) => obj.time).concat(
-                this.prevStoreData.hourlyWalkIn.map((obj) => obj.time).filter((item) => {
-                    return this.storeData.hourlyWalkIn.findIndex((obj) => obj.time === item) === -1
-                })
-            )
+            if (this.reportType === 'days') {
+                return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
+            } else {
+                return this.storeData.hourlyWalkIn.map((obj) => obj.time).concat(
+                    this.prevStoreData.hourlyWalkIn.map((obj) => obj.time).filter((item) => {
+                        return this.storeData.hourlyWalkIn.findIndex((obj) => obj.time === item) === -1
+                    })
+                )
+            }
         },
         lineChartArray(main) {
-            return this.lineChartCategories().map(time => {
-                return main.find(obj => obj.time === time)?.passengerFlow || 0;
-            })
+            if (this.reportType === 'days') {
+                return this.lineChartCategories().map(time => {
+                    return main.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                        return accumulator + currentValue.passengerFlow;
+                    }, 0);
+                })
+            } else {
+                return this.lineChartCategories().map(time => {
+                    return main.find(obj => obj.time === time)?.passengerFlow || 0;
+                })
+            }
         }
     },
     computed: {
@@ -409,12 +424,29 @@ export default {
             return urlParams.has('store') ? urlParams.get('store') : this.storeName
         },
         lineChartHistory() {
-            const prevStore = this.prevStoreData.hourlyWalkIn;
-            // this.lineChartCategories().map(time => {
-            //     return main.find(obj => obj.time === time)?.passengerFlow;
-            // })
-            return this.storeData.hourlyWalkIn.map((obj) => {
-                let prevData = prevStore.find((prevObj) => obj.time == prevObj.time)
+            const prevStoreData = this.prevStoreData.hourlyWalkIn;
+            const currentStoreData = this.storeData.hourlyWalkIn;
+
+            if (this.reportType === 'days') {
+                return this.lineChartCategories().map(time => {
+                    return {
+                        current: {
+                            title: time,
+                            value: currentStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                                return accumulator + currentValue.passengerFlow;
+                            }, 0)
+                        },
+                        previous: {
+                            title: 'יום אחרון',
+                            value: prevStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                                return accumulator + currentValue.passengerFlow;
+                            }, 0)
+                        }
+                    }
+                })
+            } else {
+                return currentStoreData.map((obj) => {
+                    let prevData = prevStoreData.find((prevObj) => obj.time == prevObj.time)
                     // console.log(prevData, obj)
                     return {
                         current: {
@@ -426,7 +458,8 @@ export default {
                             value: prevData?.passengerFlow || 0
                         }
                     }
-            })
+                })
+            }
         }
     }
 }

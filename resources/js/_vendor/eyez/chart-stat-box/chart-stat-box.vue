@@ -48,7 +48,7 @@ export default {
     computed: {
         percent() {
             const difference = Math.abs(this.stat.current.value - this.stat.previous.value)
-            return ( (difference / this.stat.current.value  ) * 100).toFixed(0) + '%'
+            return  this.stat.current.value === 0 ? '100%' : ( (difference / this.stat.current.value  ) * 100).toFixed(0) + '%'
         }
     }
 }

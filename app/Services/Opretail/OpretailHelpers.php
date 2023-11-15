@@ -52,18 +52,26 @@ trait OpretailHelpers
         return $return;
     }
 
-    public static function mapHourlyWalkIn(Array $data)
+    public static function mapHourlyWalkIn(Array $data, $splitType = 'hours')
     {
         if (!$data) die('No gender data has been received.');
 
-        $return = [];
+        \Log::info('Split type', ['reportType' => $splitType]);
 
         foreach ($data as $single) {
             if ($single['passengerFlow'] > 0) {
-                $return[] = [
-                    "time" => date('H:i', strtotime($single['time'])),
-                    "passengerFlow" => $single['passengerFlow'],
-                ];
+                if ($splitType === 'days') {
+                    $return[] = [
+                        "time" => date('H:i', strtotime($single['time'])),
+                        "passengerFlow" => $single['passengerFlow'],
+                    ];
+                } else {
+                    $return[] = [
+                        "time" => date('H:i', strtotime($single['time'])),
+                        "passengerFlow" => $single['passengerFlow'],
+                    ];
+                }
+
             }
         }
 

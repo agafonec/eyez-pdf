@@ -14,25 +14,27 @@ class OpretailApi
     protected String $password = 'Re040491!!';
     protected String $token = '';
     protected String $secret = '47K0vzVtNArvOIRBFoYhyeUubYn3xcln';
-    public String $dateFrom = '';
-    public String $dateTo = '';
-    protected int $storeId = 0;
     protected array $config = [
         "_sm" => 'md5',
         "_version" => 'v1',
     ];
 
-    public function __construct($dateFrom, $dateTo, $storeId)
+    public function __construct(
+        public string $dateFrom,
+        public string $dateTo,
+        public int $storeId,
+        public string $reportType,
+        $summary = false)
     {
-        $this->dateFrom = $dateFrom;
-        $this->dateTo = $dateTo;
-        $this->storeId = $storeId;
+        \Log::info('Date range',['dateFrom' => $this->dateFrom, 'dateTo' => $this->dateTo]);
 
         $this->getToken();
 
-        $this->getWalkInCount();
-        $this->getAgeGenderData();
-        $this->getStoreData();
+        if (!$summary) {
+            $this->getWalkInCount();
+            $this->getAgeGenderData();
+            $this->getStoreData();
+        }
     }
 
     /**
@@ -94,7 +96,6 @@ class OpretailApi
 
         if ( isset($params['iposJson']) ) {
             $new_params['iposJson'] = json_encode($params['iposJson']);
-//                $new_params['iposJson'] = json_encode($params['iposJson']);
         } else {
             $new_params = array_merge($new_params, $params);
         }
@@ -180,7 +181,8 @@ class OpretailApi
 
         if ($response->successful()) {
             $storeData = $response->json('data');
-            $this->hourlyWalkIn = $this->mapHourlyWalkIn($storeData[0]['dataList']);
+            $this->hourlyWalkIn = $this->mapHourlyWalkIn($storeData[0]['dataList'], $this->reportType);
+            \Log::info('Store Data', ['response' => $this->hourlyWalkIn]);
 
             return $response->json();
         } else {
@@ -211,7 +213,6 @@ class OpretailApi
 
 
         if ($response->successful()) {
-
             $this->genderData = $this->mapGender($response->json('data.genderDistribution'));
             $this->ageData = $this->mapAge($response->json('data.ageDistribution'));
 
@@ -238,7 +239,6 @@ class OpretailApi
         $params = $this->getRqParams('open.ovopark.pos.reportSales', $data, "GET");
 
 
-        \Log::info('request params', ['request' => $params]);
         $response = Http::withHeaders(["authenticator" =>$this->token])
             ->accept('application/x-www-form-urlencoded')
             ->get($this->host . '?' . http_build_query((array)$params));
