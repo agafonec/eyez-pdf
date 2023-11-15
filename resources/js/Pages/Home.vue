@@ -106,8 +106,6 @@
                         </div>
 
                         <div  class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0">
-                            <div class="">blue is current date</div>
-                            <div class="">red is previous</div>
                             <apexchart
                                 type="line"
                                 :options="lineChart.chartOptions"
