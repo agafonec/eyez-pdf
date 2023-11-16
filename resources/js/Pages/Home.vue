@@ -3,7 +3,7 @@
         <div class="bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
             <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
             <div class="text-3xl font-semibold uppercase">
-                <Dropdown align="center" @change="storeChange">
+                <Dropdown align="center">
                     <template #trigger>
                         <span class="inline-flex rounded-md">
                             <button
@@ -11,7 +11,7 @@
                                 class="inline-flex items-center bg-transparent
                                 text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                             >
-                                {{ storeName }}
+                                {{ currentStore.name }}
                             </button>
                         </span>
                     </template>
@@ -21,9 +21,28 @@
                     </template>
                 </Dropdown>
             </div>
-            <div class="end-4 top-4 md:top-0 md:end-0 absolute flex items-center text-white md:relative ">
-                <div class="hidden md:block" v-html="dateRange()"></div>
-                <icon-calendar class="mr-4" color="#ffffff"/>
+            <div class="end-4 top-4 md:top-0 md:end-0 absolute md:relative ">
+                <date-picker style="direction: ltr" v-model.range="pickerRange" mode="date" :popover="false" @update:modelValue="onDateRangeChange">
+                    <template #default="{ togglePopover, inputValue, inputEvents }">
+                        <div
+                            class="flex justify-start overflow-hidden"
+                        >
+                            <button
+                                class="flex items-center text-white"
+                                @click="() => togglePopover()"
+                            >
+                                <div class="hidden md:block" v-html="dateRangeText()"></div>
+                                <icon-calendar class="mr-4" color="#ffffff"/>
+                            </button>
+                            <input
+                                :value="inputValue"
+                                v-on="inputEvents"
+                                class="flex-grow px-2 py-1 bg-white dark:bg-gray-700 opacity-0 w-0"
+                            />
+                        </div>
+                    </template>
+                </date-picker>
+
             </div>
         </div>
         <div class="py-5 md:p-5">
@@ -124,7 +143,7 @@
                             <div>נוער <span>16 - 40</span> שנים</div>
                             <div class="text-xs text-black font-semibold md:hidden mt-2">
                                 <span>יְוֹם:</span>
-                                <span v-html="dateRange()"></span>
+                                <span v-html="dateRangeText()"></span>
                             </div>
                         </div>
 
@@ -135,7 +154,7 @@
                     </div>
                     <div class="max-md:hidden bg-gray-50 px-4 py-2 rounded-md font-semibold absolute left-5 bottom-5">
                         <span>יְוֹם:</span>
-                        <span  v-html="dateRange()"></span>
+                        <span  v-html="dateRangeText()"></span>
                     </div>
                 </div>
             </div>
@@ -160,6 +179,7 @@ import {
 import moment from "moment";
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import { DatePicker } from 'v-calendar';
 
 let donutSettings = {
     chart: {
@@ -234,7 +254,8 @@ export default {
         StatBox,
         ChartStatBox,
         Dropdown,
-        DropdownLink
+        DropdownLink,
+        DatePicker
     },
     props: {
         reportType: {
@@ -249,8 +270,8 @@ export default {
         stores: {
             type: [Object, Array]
         },
-        storeName: {
-            type: String
+        currentStore: {
+            type: [Object, Array]
         },
         prevStoreData: {
             type: [Object, Array]
@@ -258,6 +279,10 @@ export default {
     },
     data() {
         return {
+            pickerRange: {
+                start: this.storeData ? this.storeData?.dateFrom : new Date(),
+                end: this.storeData ? this.storeData?.dateTo : new Date()
+            },
             lineChartLegend: [],
             pieChartAge: {
                 series: Object.values(this.storeData.ageData),
@@ -370,7 +395,7 @@ export default {
                 },
                 series: [
                     {
-                        name: this.dateRange(),
+                        name: this.dateRangeText(),
                         data: this.lineChartArray(this.storeData.hourlyWalkIn),
                     },
                     {
@@ -382,10 +407,16 @@ export default {
         }
     },
     methods: {
-        storeChange() {
+        onDateRangeChange(dateRange) {
+            console.log(dateRange);
 
+            this.$inertia.visit(route('home.show', {
+                storeId: this.currentStore.dep_id,
+                dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
+                dateTo: moment(dateRange.end).format('YYYY-MM-DD')
+            }))
         },
-        dateRange() {
+        dateRangeText() {
             let dateTo = moment(this.storeData?.dateTo).format('YYYY-MM-DD')
             let dateFrom = moment(this.storeData?.dateFrom).format('YYYY-MM-DD')
             if ( moment(dateFrom).isSame(moment(dateTo).subtract(1, 'hour'), 'day') ) {

@@ -77,12 +77,11 @@ class IndexController extends Controller
 
         $store = $request->has('storeId')
             ? Store::where('dep_id', $request->query('storeId'))->first()
-            : $this->user()->opretailCredentials()->stores->last();
+            : $this->user()->opretailCredentials->stores->last();
 
-        \Log::info('Request', ['request' => $request->query('storeId'), 'store' => $store ]);
         $this->getReportData($request, $store);
         return Inertia::render('Home', [
-            'storeName' => $store->name,
+            'currentStore' => $store,
             'reportType' => $this->reportType,
             'storeData' => $this->currentReport,
             'prevStoreData' => $this->previousReport,
