@@ -1,5 +1,4 @@
 <template>
-
     <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
         <div class="bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
             <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
@@ -12,20 +11,38 @@
                                 class="inline-flex items-center bg-transparent
                                 text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                             >
-                                {{ storeNameC }}
+                                {{ currentStore.name }}
                             </button>
                         </span>
                     </template>
 
                     <template #content>
-                        <DropdownLink :href="route('home.show', {store: storeName})" align="center"> {{ storeName }} </DropdownLink>
-                        <DropdownLink :href="route('home.show', {store: 'Other Store Name'})" align="center"> Other Store Name </DropdownLink>
+                        <DropdownLink v-for="store in stores" :href="route('home.show', {storeId: store.dep_id})" align="center"> {{ store.name }} </DropdownLink>
                     </template>
                 </Dropdown>
             </div>
-            <div class="end-4 top-4 md:top-0 md:end-0 absolute flex items-center text-white md:relative ">
-                <div class="hidden md:block" v-html="dateRange()"></div>
-                <icon-calendar class="mr-4" color="#ffffff"/>
+            <div class="end-4 top-4 md:top-0 md:end-0 absolute md:relative ">
+                <date-picker style="direction: ltr" v-model.range="pickerRange" mode="date" :popover="false" @update:modelValue="onDateRangeChange">
+                    <template #default="{ togglePopover, inputValue, inputEvents }">
+                        <div
+                            class="flex justify-start overflow-hidden"
+                        >
+                            <button
+                                class="flex items-center text-white"
+                                @click="() => togglePopover()"
+                            >
+                                <div class="hidden md:block" v-html="dateRangeText()"></div>
+                                <icon-calendar class="mr-4" color="#ffffff"/>
+                            </button>
+                            <input
+                                :value="inputValue"
+                                v-on="inputEvents"
+                                class="flex-grow px-2 py-1 bg-white dark:bg-gray-700 opacity-0 w-0"
+                            />
+                        </div>
+                    </template>
+                </date-picker>
+
             </div>
         </div>
         <div class="py-5 md:p-5">
@@ -52,18 +69,18 @@
                         <span class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">חנות AVG: {{ avarage(storeData.walkInCount, prevStoreData.walkInCount) }}</span>
                     </div>
                 </div>
-                <div class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
-                    <stat-box variant="big" icon-circle-class="bg-lime-200">
+                <div v-if="summary" class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
+                    <stat-box variant="big" :stat="summary.week" icon-circle-class="bg-lime-200">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                         </template>
                     </stat-box>
-                    <stat-box variant="big" icon-circle-class="bg-amber-200">
+                    <stat-box variant="big" :stat="summary.month" icon-circle-class="bg-amber-200">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                         </template>
                     </stat-box>
-                    <stat-box class="mx-auto md:mx-0 mt-4 md:mt-0" variant="big" icon-circle-class="bg-green-50">
+                    <stat-box variant="big"  :stat="summary.year" icon-circle-class="bg-green-50"  class="mx-auto md:mx-0 mt-4 md:mt-0">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                         </template>
@@ -126,7 +143,7 @@
                             <div>נוער <span>16 - 40</span> שנים</div>
                             <div class="text-xs text-black font-semibold md:hidden mt-2">
                                 <span>יְוֹם:</span>
-                                <span v-html="dateRange()"></span>
+                                <span v-html="dateRangeText()"></span>
                             </div>
                         </div>
 
@@ -137,7 +154,7 @@
                     </div>
                     <div class="max-md:hidden bg-gray-50 px-4 py-2 rounded-md font-semibold absolute left-5 bottom-5">
                         <span>יְוֹם:</span>
-                        <span  v-html="dateRange()"></span>
+                        <span  v-html="dateRangeText()"></span>
                     </div>
                 </div>
             </div>
@@ -162,6 +179,7 @@ import {
 import moment from "moment";
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
+import { DatePicker } from 'v-calendar';
 
 let donutSettings = {
     chart: {
@@ -236,13 +254,23 @@ export default {
         StatBox,
         ChartStatBox,
         Dropdown,
-        DropdownLink
+        DropdownLink,
+        DatePicker
     },
     props: {
-        storeName: {
+        reportType: {
             type: String
         },
         storeData: {
+            type: [Object, Array]
+        },
+        summary: {
+            type: [Object, Array]
+        },
+        stores: {
+            type: [Object, Array]
+        },
+        currentStore: {
             type: [Object, Array]
         },
         prevStoreData: {
@@ -251,6 +279,11 @@ export default {
     },
     data() {
         return {
+            pickerRange: {
+                start: this.storeData ? this.storeData?.dateFrom : new Date(),
+                end: this.storeData ? this.storeData?.dateTo : new Date()
+            },
+            lineChartLegend: [],
             pieChartAge: {
                 series: Object.values(this.storeData.ageData),
                 chartOptions: {
@@ -362,7 +395,7 @@ export default {
                 },
                 series: [
                     {
-                        name: this.dateRange(),
+                        name: this.dateRangeText(),
                         data: this.lineChartArray(this.storeData.hourlyWalkIn),
                     },
                     {
@@ -374,12 +407,22 @@ export default {
         }
     },
     methods: {
-        dateRange() {
-            console.log('Date Range', moment(this.storeData?.dateTo).format('YYYY-MM-DD'))
-            if ( moment(this.storeData?.dateTo).isSame(moment(this.storeData?.dateFrom), 'day') ) {
-                return moment(this.storeData?.dateTo).format('YYYY-MM-DD').toString()
+        onDateRangeChange(dateRange) {
+            console.log(dateRange);
+
+            this.$inertia.visit(route('home.show', {
+                storeId: this.currentStore.dep_id,
+                dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
+                dateTo: moment(dateRange.end).format('YYYY-MM-DD')
+            }))
+        },
+        dateRangeText() {
+            let dateTo = moment(this.storeData?.dateTo).format('YYYY-MM-DD')
+            let dateFrom = moment(this.storeData?.dateFrom).format('YYYY-MM-DD')
+            if ( moment(dateFrom).isSame(moment(dateTo).subtract(1, 'hour'), 'day') ) {
+                return moment(dateFrom).format('YYYY-MM-DD').toString()
             } else {
-                return moment(this.storeData?.dateFrom).format('YYYY-MM-DD') + ' - ' + moment(this.storeData?.dateTo).format('YYYY-MM-DD')
+                return`${dateFrom} - ${dateTo}`
             }
         },
         percent(current, previous) {
@@ -390,31 +433,55 @@ export default {
             return Math.floor( (current + previous) / 2 )
         },
         lineChartCategories() {
-            return this.storeData.hourlyWalkIn.map((obj) => obj.time).concat(
-                this.prevStoreData.hourlyWalkIn.map((obj) => obj.time).filter((item) => {
-                    return this.storeData.hourlyWalkIn.findIndex((obj) => obj.time === item) === -1
-                })
-            )
+            if (this.reportType === 'days') {
+                return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
+            } else {
+                return this.storeData.hourlyWalkIn.map((obj) => obj.time).concat(
+                    this.prevStoreData.hourlyWalkIn.map((obj) => obj.time).filter((item) => {
+                        return this.storeData.hourlyWalkIn.findIndex((obj) => obj.time === item) === -1
+                    })
+                ).sort()
+            }
         },
         lineChartArray(main) {
-            return this.lineChartCategories().map(time => {
-                return main.find(obj => obj.time === time)?.passengerFlow || 0;
-            })
+            if (this.reportType === 'days') {
+                return this.lineChartCategories().map(time => {
+                    return main.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                        return accumulator + currentValue.passengerFlow;
+                    }, 0);
+                })
+            } else {
+                return this.lineChartCategories().map(time => {
+                    return main.find(obj => obj.time === time)?.passengerFlow || 0;
+                })
+            }
         }
     },
     computed: {
-        storeNameC() {
-            const urlParams = new URLSearchParams(window.location.search);
-
-            return urlParams.has('store') ? urlParams.get('store') : this.storeName
-        },
         lineChartHistory() {
-            const prevStore = this.prevStoreData.hourlyWalkIn;
-            // this.lineChartCategories().map(time => {
-            //     return main.find(obj => obj.time === time)?.passengerFlow;
-            // })
-            return this.storeData.hourlyWalkIn.map((obj) => {
-                let prevData = prevStore.find((prevObj) => obj.time == prevObj.time)
+            const prevStoreData = this.prevStoreData.hourlyWalkIn;
+            const currentStoreData = this.storeData.hourlyWalkIn;
+
+            if (this.reportType === 'days') {
+                return this.lineChartCategories().map(time => {
+                    return {
+                        current: {
+                            title: time,
+                            value: currentStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                                return accumulator + currentValue.passengerFlow;
+                            }, 0)
+                        },
+                        previous: {
+                            title: 'יום אחרון',
+                            value: prevStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                                return accumulator + currentValue.passengerFlow;
+                            }, 0)
+                        }
+                    }
+                })
+            } else {
+                return currentStoreData.map((obj) => {
+                    let prevData = prevStoreData.find((prevObj) => obj.time == prevObj.time)
                     // console.log(prevData, obj)
                     return {
                         current: {
@@ -426,7 +493,8 @@ export default {
                             value: prevData?.passengerFlow || 0
                         }
                     }
-            })
+                })
+            }
         }
     }
 }
