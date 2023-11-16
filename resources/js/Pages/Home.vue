@@ -1,10 +1,9 @@
 <template>
-
     <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
         <div class="bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
             <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
             <div class="text-3xl font-semibold uppercase">
-                <Dropdown align="center">
+                <Dropdown align="center" @change="storeChange">
                     <template #trigger>
                         <span class="inline-flex rounded-md">
                             <button
@@ -12,14 +11,13 @@
                                 class="inline-flex items-center bg-transparent
                                 text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                             >
-                                {{ storeNameC }}
+                                {{ storeName }}
                             </button>
                         </span>
                     </template>
 
                     <template #content>
-                        <DropdownLink :href="route('home.show', {store: storeName})" align="center"> {{ storeName }} </DropdownLink>
-                        <DropdownLink :href="route('home.show', {store: 'Other Store Name'})" align="center"> Other Store Name </DropdownLink>
+                        <DropdownLink v-for="store in stores" :href="route('home.show', {storeId: store.dep_id})" align="center"> {{ store.name }} </DropdownLink>
                     </template>
                 </Dropdown>
             </div>
@@ -52,19 +50,18 @@
                         <span class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">חנות AVG: {{ avarage(storeData.walkInCount, prevStoreData.walkInCount) }}</span>
                     </div>
                 </div>
-                <div class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
-                    {{ storeData }}
-                    <stat-box variant="big" icon-circle-class="bg-lime-200">
+                <div v-if="summary" class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
+                    <stat-box variant="big" :stat="summary.week" icon-circle-class="bg-lime-200">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                         </template>
                     </stat-box>
-                    <stat-box variant="big" icon-circle-class="bg-amber-200">
+                    <stat-box variant="big" :stat="summary.month" icon-circle-class="bg-amber-200">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                         </template>
                     </stat-box>
-                    <stat-box class="mx-auto md:mx-0 mt-4 md:mt-0" variant="big" icon-circle-class="bg-green-50">
+                    <stat-box variant="big"  :stat="summary.year" icon-circle-class="bg-green-50"  class="mx-auto md:mx-0 mt-4 md:mt-0">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                         </template>
@@ -240,14 +237,20 @@ export default {
         DropdownLink
     },
     props: {
-        storeName: {
-            type: String
-        },
         reportType: {
             type: String
         },
         storeData: {
             type: [Object, Array]
+        },
+        summary: {
+            type: [Object, Array]
+        },
+        stores: {
+            type: [Object, Array]
+        },
+        storeName: {
+            type: String
         },
         prevStoreData: {
             type: [Object, Array]
@@ -379,11 +382,16 @@ export default {
         }
     },
     methods: {
+        storeChange() {
+
+        },
         dateRange() {
-            if ( moment(this.storeData?.dateTo).isSame(moment(this.storeData?.dateFrom), 'day') ) {
-                return moment(this.storeData?.dateTo).format('YYYY-MM-DD').toString()
+            let dateTo = moment(this.storeData?.dateTo).format('YYYY-MM-DD')
+            let dateFrom = moment(this.storeData?.dateFrom).format('YYYY-MM-DD')
+            if ( moment(dateFrom).isSame(moment(dateTo).subtract(1, 'hour'), 'day') ) {
+                return moment(dateFrom).format('YYYY-MM-DD').toString()
             } else {
-                return moment(this.storeData?.dateFrom).format('YYYY-MM-DD') + ' - ' + moment(this.storeData?.dateTo).format('YYYY-MM-DD')
+                return`${dateFrom} - ${dateTo}`
             }
         },
         percent(current, previous) {
@@ -401,7 +409,7 @@ export default {
                     this.prevStoreData.hourlyWalkIn.map((obj) => obj.time).filter((item) => {
                         return this.storeData.hourlyWalkIn.findIndex((obj) => obj.time === item) === -1
                     })
-                )
+                ).sort()
             }
         },
         lineChartArray(main) {
@@ -419,11 +427,6 @@ export default {
         }
     },
     computed: {
-        storeNameC() {
-            const urlParams = new URLSearchParams(window.location.search);
-
-            return urlParams.has('store') ? urlParams.get('store') : this.storeName
-        },
         lineChartHistory() {
             const prevStoreData = this.prevStoreData.hourlyWalkIn;
             const currentStoreData = this.storeData.hourlyWalkIn;

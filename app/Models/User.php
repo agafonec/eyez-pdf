@@ -51,4 +51,12 @@ class User extends Authenticatable
     {
         return $this->hasOne(Opretail::class);
     }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function stores()
+    {
+        return $this->hasMany('\App\Models\Store', 'user_id', 'id');
+    }
 }

@@ -43,6 +43,67 @@ class OpretailApi
         return $this;
     }
 
+    public function getSummary($store)
+    {
+        $this->storeId = $store->dep_id;
+
+        $summary = [
+//                "today" => $this->getWalkInCount(Carbon::now()->startOfDay(), Carbon::now()->endOfDay()),
+            "week" => [
+                "current" => [
+                    "title" => "This Week",
+                    "value" => $this->getWalkInCount(
+                        Carbon::now()->startOfWeek()->startOfDay(),
+                        Carbon::now()->endOfDay()
+                    )
+                ],
+                "previous" => [
+                    "title" => 'Last Week',
+                    "value" => $this->getWalkInCount(
+                        Carbon::now()->startOfWeek()->subWeeks(1)->startOfDay(),
+                        Carbon::now()->subWeek()->endOfDay()
+                    ),
+                ]
+            ],
+            "month" => [
+                "current" => [
+                    "title" => 'This Month',
+                    "value" => $this->getWalkInCount(
+                        Carbon::now()->startOfMonth()->startOfDay(),
+                        Carbon::now()->endOfDay()
+                    )
+                ],
+                "previous" => [
+                    "title" => 'Last Month',
+                    "value" => $this->getWalkInCount(
+                        Carbon::now()->startOfMonth()->subMonth()->startOfDay(),
+                        Carbon::now()->subMonth()->endOfDay()
+                    )
+                ]
+            ],
+            "year" => [
+                "current" => [
+                    "title" => 'This Year',
+                    "value" => $this->getWalkInCount(
+                        Carbon::now()->startOfYear()->startOfDay(),
+                        Carbon::now()->endOfDay()
+                    )
+                ],
+                "previous" => [
+                    "title" => 'Last Year',
+                    "value" => $this->getWalkInCount(
+                        Carbon::now()->startOfYear()->startOfDay(),
+                        Carbon::now()->subYear()->endOfDay()
+                    )
+                ],
+            ],
+        ];
+
+        $store->cache('summary', $summary, 60);
+
+        return $summary;
+    }
+
     /**
      * @param $secret
      * @param $ret
@@ -125,6 +186,10 @@ class OpretailApi
      */
     function generateToken($credentials)
     {
+        if ($token = $this->opretailCredentials->cached('token')) {
+            return $this->token = $token;
+        }
+
         $rqParams = $this->getRqParams('open.shopweb.security.mobileLogin', [
             'userName' => $credentials->username,
             'password' => $credentials->password,
@@ -144,7 +209,8 @@ class OpretailApi
             }
 
             $this->token = $response->json('data.token');
-            return $response->json();
+            $this->opretailCredentials->cache('token', $this->token, 60);
+            return $this->token;
         } else {
             \Log::info('Login opretail error', ['error' => $response->status()] );
 
@@ -162,7 +228,6 @@ class OpretailApi
             "startTime" => date('Y-m-d H:i:s', strtotime($dateFrom ?? $this->dateFrom)),
             "endTime" => date('Y-m-d H:i:s', strtotime($dateTo ?? $this->dateTo))
         ];
-
 
         $params = $this->getRqParams('open.shopweb.passengerFlow.getPassengerIndicatorData', $data, "POST");
 
@@ -249,7 +314,6 @@ class OpretailApi
 
 
         if ($response->successful()) {
-            \Log::info('Map gender', ['data' => $data, 'response' => $response->json()]);
             $this->genderData = $this->mapGender($response->json('data.genderDistribution'));
             $this->ageData = $this->mapAge($response->json('data.ageDistribution'));
 

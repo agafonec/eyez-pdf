@@ -44,4 +44,17 @@ class Store extends Model
 
         return $this;
     }
+
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed
+     */
+    public function cached($key, $default = null)
+    {
+        try {
+            return cache("{$this->dep_id}.$key", $default);
+        } catch (\Exception $e) {
+        }
+    }
 }
