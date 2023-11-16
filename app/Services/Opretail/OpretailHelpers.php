@@ -56,8 +56,6 @@ trait OpretailHelpers
     {
         if (!$data) die('No gender data has been received.');
 
-        \Log::info('Split type', ['reportType' => $splitType]);
-
         foreach ($data as $single) {
             if ($single['passengerFlow'] > 0) {
                 if ($splitType === 'days') {

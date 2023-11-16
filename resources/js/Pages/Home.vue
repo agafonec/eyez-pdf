@@ -53,6 +53,7 @@
                     </div>
                 </div>
                 <div class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
+                    {{ storeData }}
                     <stat-box variant="big" icon-circle-class="bg-lime-200">
                         <template #icon>
                             <icon-people width="32" height="32" class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>

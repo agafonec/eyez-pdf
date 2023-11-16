@@ -9,16 +9,14 @@
 
     <div class="mt-6 space-y-6 max-w-xl">
         <div>
-            <InputLabel for="username" value="Opretail Username" />
+            <InputLabel for="o_username" value="Opretail Username" />
 
             <TextInput
-                id="username"
+                id="o_username"
                 type="text"
                 class="mt-1 block w-full"
                 v-model="form.username"
                 required
-                autofocus
-                autocomplete="username"
             />
 
             <InputError class="mt-2" :message="form.errors?.username" />
@@ -109,6 +107,9 @@
                 <p v-if="form.recentlySuccessful" class="text-sm text-gray-600">Saved.</p>
             </Transition>
         </div>
+
+        <p>{{ form.errors }}</p>
+
     </div>
 </template>
 
@@ -143,7 +144,7 @@ export default {
     },
     data() {
         return {
-            form: this.opretail
+            form: this.opretail,
         }
     },
     methods: {
@@ -152,12 +153,9 @@ export default {
             axios.post(route('profile.opretail.update'), this.form)
             .then(response => {
                 let errors = response.data.errors
-                console.log(errors)
+                console.log(errors);
+                delete this.form.errors;
                 if (errors) {
-                    errors = Object.keys(errors).reduce((acc, key) => {
-                        acc[key] = errors[key][0];
-                        return acc;
-                    }, {});
                     this.form.errors = errors
                 }
             })

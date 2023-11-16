@@ -4,6 +4,8 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Opretail;
+use App\Models\Store;
+use App\Services\Opretail\OpretailApi;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
@@ -20,11 +22,16 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        return Inertia::render('Profile/Edit', [
+        $profile = [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
-            'opretail' => $this->user()?->opretailCredentials,
-        ]);
+        ];
+        if ($this->user()?->opretailCredentials) {
+            $profile['opretail'] = $this->user()?->opretailCredentials;
+        } else {
+            $profile['opretail']['errors'] = $this->validateOpretail([])->errors();
+        }
+        return Inertia::render('Profile/Edit', $profile);
     }
 
     /**
@@ -49,26 +56,45 @@ class ProfileController extends Controller
      */
     public function opretailUpdate(Request $request)
     {
-        $user = Auth::user();
-
         $validator = $this->validateOpretail($request);
 
         if ($validator->fails()) {
             return ['errors' => $validator->errors()];
         }
-        if ($opretail = Opretail::where('user_id', $user->id)->first()) {
+        if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
             $opretail->update($request->toArray());
         } else {
             $opretail = Opretail::create($request->toArray());
         }
+
+        $opretailApi = new OpretailApi($this->user()->opretailCredentials);
+        if ($opretailApi->getToken() === 'error') {
+            return ['errors' => 'Bad token generated. please check the credentials.'];
+        }
+
+        $stores = $opretailApi->getStores();
+
+        if (!array_key_exists( 'errors', $stores)) {
+            foreach ($stores as $store) {
+                Store::firstOrCreate(
+                    ['dep_id' => $store['id']],
+                    [
+                        'name' => $store['name'],
+                        'store_id' => $store['shopId'],
+                        'organize_id' => $store['organizeId']
+                    ]
+                );
+            }
+        }
+
         return $opretail;
     }
 
     /**
-     * @param Request $request
+     * @param Request|array $request
      * @return \Illuminate\Validation\Validator
      */
-    private function validateOpretail(Request $request)
+    private function validateOpretail(Request|array $request)
     {
         // Define validation rules
         $rules = [
@@ -82,8 +108,9 @@ class ProfileController extends Controller
             // Add more validation rules as needed
         ];
 
+        $toValidate = is_array($request) ? $request : $request->all();
         // Validate the request data
-        return Validator::make($request->all(), $rules);
+        return Validator::make($toValidate, $rules);
     }
 
     /**

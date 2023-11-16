@@ -3,7 +3,9 @@
 namespace App\Http\Controllers;
 
 use Carbon\Carbon;
+use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Services\Opretail\OpretailApi;
 
@@ -13,9 +15,20 @@ class IndexController extends Controller
     protected OpretailApi $previousReport;
     public string $reportType;
 
-    public function __construct(Request $request)
+    public function __construct()
+    {
+    }
+
+    /**
+     * @param Request $request
+     */
+    protected function getReportData(Request $request)
     {
         $this->reportType = 'hours';
+        $opretail = $this->user()->opretailCredentials;
+        $store = $opretail->stores->last();
+
+        \Log::info('store', ['store' => $store]);
         if ($date = $request->input('date')) {
             $startTime = Carbon::parse($date)->startOfDay();
             $endTime = Carbon::parse($date)->endOfDay();
@@ -35,15 +48,44 @@ class IndexController extends Controller
             $endTime = Carbon::now()->endOfDay();
         }
 
-        $this->currentReport = new OpretailApi($startTime, $endTime, 11025, $this->reportType);
+        $currentReport = new OpretailApi($opretail);
+        $this->currentReport = $currentReport->getReport(
+            $store,
+            $startTime,
+            $endTime,
+            $this->reportType
+        );
+//        $this->currentReport->summary = [
+//            "today" => (new OpretailApi(Carbon::now()->startOfDay(), Carbon::now()->endOfDay(), 11025, $this->reportType))->getWalkInCount(),
+//            "lastMonth" => (new OpretailApi(Carbon::now()->subMonths(1)->startOfDay(), Carbon::now()->endOfDay(), 11025, $this->reportType))->getWalkInCount(),
+//            "lastYear" => (new OpretailApi(Carbon::now()->subYears(1)->startOfDay(), Carbon::now()->endOfDay(), 11025, $this->reportType))->getWalkInCount(),
+//        ];
 
         $newDateStart = Carbon::parse($startTime)->subDays(1);
         $newDateEnd = Carbon::parse($endTime)->subDays(1);
-        $this->previousReport = new OpretailApi($newDateStart->startOfDay(), $newDateEnd->endOfDay(), 11025, $this->reportType);
+
+        $previousReport = new OpretailApi($opretail);
+        $this->previousReport = $previousReport->getReport(
+            $store,
+            $newDateStart->startOfDay(),
+            $newDateEnd->endOfDay(),
+            $this->reportType
+        );
+
+//        $this->previousReport->summary = [
+//            "today" => (new OpretailApi(Carbon::now()->startOfDay(), Carbon::now()->endOfDay(), 11025, $this->reportType))->getWalkInCount(),
+//            "lastMonth" => (new OpretailApi(Carbon::now()->subMonths(1)->startOfDay(), Carbon::now()->endOfDay(), 11025, $this->reportType))->getWalkInCount(),
+//            "lastYear" => (new OpretailApi(Carbon::now()->subYears(1)->startOfDay(), Carbon::now()->endOfDay(), 11025, $this->reportType))->getWalkInCount(),
+//        ];
     }
 
-    public function show() {
+    public function show(Request $request)
+    {
+        if (!$this->user()->opretailCredentials) {
+            return redirect('profile');
+        }
 
+        $this->getReportData($request);
         return Inertia::render('Home', [
             'storeName' => 'Astral',
             'reportType' => $this->reportType,
