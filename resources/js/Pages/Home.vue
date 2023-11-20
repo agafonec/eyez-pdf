@@ -427,7 +427,7 @@ export default {
         },
         percent(current, previous) {
             const difference = Math.abs(current - previous)
-            return ( (difference / previous ) * 100).toFixed(1) + '%'
+            return previous === 0 ? '100%' :( (difference / previous ) * 100).toFixed(1) + '%'
         },
         avarage(current, previous) {
             return Math.floor( (current + previous) / 2 )

@@ -47,20 +47,21 @@ class OpretailApi
     {
         $this->storeId = $store->dep_id;
 
+        \Log::info('start of the week', ['date' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay()]);
         $summary = [
 //                "today" => $this->getWalkInCount(Carbon::now()->startOfDay(), Carbon::now()->endOfDay()),
             "week" => [
                 "current" => [
                     "title" => "This Week",
                     "value" => $this->getWalkInCount(
-                        Carbon::now()->startOfWeek()->startOfDay(),
+                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay(),
                         Carbon::now()->endOfDay()
                     )
                 ],
                 "previous" => [
                     "title" => 'Last Week',
                     "value" => $this->getWalkInCount(
-                        Carbon::now()->startOfWeek()->subWeeks(1)->startOfDay(),
+                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->startOfDay(),
                         Carbon::now()->subWeek()->endOfDay()
                     ),
                 ]
