@@ -21,7 +21,12 @@ class Opretail extends Model
         '_akey',
         '_aid',
         'enterpriseId',
-        'orgId'
+        'orgId',
+        'workdays',
+    ];
+
+    protected $casts = [
+        'workdays' => 'array',
     ];
 
     /**
@@ -48,7 +53,7 @@ class Opretail extends Model
      */
     public function cache($key, $value, $minutes = 30)
     {
-        $cache_key = "{$this->user_id}.$key";
+        $cache_key = "opretail.{$this->user_id}.$key";
 
         try {
             cache()->forget($cache_key);
@@ -68,7 +73,7 @@ class Opretail extends Model
     public function cached($key, $default = null)
     {
         try {
-            return cache("{$this->user_id}.$key", $default);
+            return cache("opretail.{$this->user_id}.$key", $default);
         } catch (\Exception $e) {
         }
     }

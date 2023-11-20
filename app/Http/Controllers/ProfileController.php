@@ -113,6 +113,23 @@ class ProfileController extends Controller
         return Validator::make($toValidate, $rules);
     }
 
+    public function updateWorkdays(Request $request)
+    {
+        if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
+            $opretail->workdays = $request->json('workdays');
+            $opretail->save();
+            return [
+                'errors' => false,
+                'message' => 'Settings successfully saved.'
+            ];
+        } else {
+            return [
+                'errors' => true,
+                'message' => 'You have to connect opretail account first.'
+            ];
+        }
+    }
+
     /**
      * Delete the user's account.
      */

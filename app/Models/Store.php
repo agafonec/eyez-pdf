@@ -33,7 +33,7 @@ class Store extends Model
 
     public function cache($key, $value, $minutes = 30)
     {
-        $cache_key = "{$this->dep_id}.$key";
+        $cache_key = "store.{$this->dep_id}.$key";
 
         try {
             cache()->forget($cache_key);
@@ -53,8 +53,22 @@ class Store extends Model
     public function cached($key, $default = null)
     {
         try {
-            return cache("{$this->dep_id}.$key", $default);
+            return cache("store.{$this->dep_id}.$key", $default);
         } catch (\Exception $e) {
         }
+    }
+
+    /**
+     * @param $key
+     * @return $this
+     */
+    public function forgetCached($key)
+    {
+        try {
+            cache()->forget("store.{$this->dep_id}.$key");
+        } catch (\Exception $e) {
+        }
+
+        return $this;
     }
 }

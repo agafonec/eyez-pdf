@@ -22,6 +22,10 @@
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <WorkingDays :workdays="opretail.workdays"/>
+                </div>
+
+                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <DeleteUserForm class="max-w-xl" />
                 </div>
             </div>
@@ -36,6 +40,7 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import { Head } from '@inertiajs/vue3';
 import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
+import WorkingDays from "./Partials/WorkingDays.vue";
 
 export default {
     name: "Edit",
@@ -45,7 +50,8 @@ export default {
         UpdatePasswordForm,
         UpdateProfileInformationForm,
         Head,
-        OpretailnformationForm
+        OpretailnformationForm,
+        WorkingDays
     },
     props: {
         mustVerifyEmail: {
