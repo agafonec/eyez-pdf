@@ -56,20 +56,13 @@ trait OpretailHelpers
     {
         if (!$data) die('No gender data has been received.');
 
+        $return = [];
         foreach ($data as $single) {
             if ($single['passengerFlow'] > 0) {
-                if ($splitType === 'days') {
-                    $return[] = [
-                        "time" => date('H:i', strtotime($single['time'])),
-                        "passengerFlow" => $single['passengerFlow'],
-                    ];
-                } else {
-                    $return[] = [
-                        "time" => date('H:i', strtotime($single['time'])),
-                        "passengerFlow" => $single['passengerFlow'],
-                    ];
-                }
-
+                $return[] = [
+                    "time" => date('H:i', strtotime($single['time'])),
+                    "passengerFlow" => $single['passengerFlow'],
+                ];
             }
         }
 
