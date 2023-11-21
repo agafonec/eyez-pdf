@@ -47,7 +47,6 @@ class OpretailApi
     {
         $this->storeId = $store->dep_id;
 
-        \Log::info('start of the week', ['date' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay()]);
         $summary = [
 //                "today" => $this->getWalkInCount(Carbon::now()->startOfDay(), Carbon::now()->endOfDay()),
             "week" => [

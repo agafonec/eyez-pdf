@@ -149,7 +149,6 @@ export default {
     },
     methods: {
         submitForm() {
-            console.log('form submitted')
             axios.post(route('profile.opretail.update'), this.form)
             .then(response => {
                 let errors = response.data.errors

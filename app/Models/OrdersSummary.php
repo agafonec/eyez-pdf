@@ -10,14 +10,17 @@ class OrdersSummary extends Model
     use HasFactory;
 
     protected $fillable = [
+        'store_id',
         'summary_date',
         'orders_count',
         'orders_total',
         'walk_in_count',
-        'walk_in_rate',
-        'last_updated'
+        'walk_in_rate'
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function store()
     {
         return $this->belongsTo(Store::class);

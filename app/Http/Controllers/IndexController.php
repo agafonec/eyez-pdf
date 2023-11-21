@@ -67,6 +67,40 @@ class IndexController extends Controller
         );
 
         $this->summary = $store->cached('summary') ?? $currentReport->getSummary($store);
+        $this->avgWalkIn = $this->avgWalkIn($currentReport);
+    }
+
+    private function avgWalkIn(OpretailApi $opretailApi)
+    {
+        $opretail = $this->user()?->opretailCredentials;
+        if ($avg = $opretail->cached('avgWalkIn')) {
+            return $avg;
+        }
+
+        $walkInCount = $opretailApi->getWalkInCount(
+            Carbon::now()->subDays(31)->startOfDay(),
+            Carbon::now()->subDays(1)->endOfDay()
+        );
+
+        if ($workdays = $opretail?->workdays) {
+            // Set the end date as today
+            $endDate = Carbon::today();
+            $count = 0;
+            for ($i = 1; $i < 31; $i++) {
+                $currentDate = $endDate->copy()->subDays($i);
+
+                if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+                    $count++;
+                }
+            }
+
+            $avg = $walkInCount / $count;
+        } else {
+
+            $avg = $walkInCount / 30;
+        }
+        $opretail->cache('avgWalkIn', $avg, 60);
+        return $avg;
     }
 
     public function show(Request $request)
@@ -86,7 +120,21 @@ class IndexController extends Controller
             'storeData' => $this->currentReport,
             'prevStoreData' => $this->previousReport,
             'summary' => $this->summary,
+            'avgWalkIn' => $this->avgWalkIn,
             'stores' => $this->user()->stores
         ]);
+    }
+
+    public function clearStoreCache(Request $request)
+    {
+        $store = $request->has('storeId')
+            ? Store::where('dep_id', $request->json('storeId'))->first()
+            : $this->user()->opretailCredentials->stores->last();
+        $opretail = $this->user()?->opretailCredentials;
+
+        $store->forgetCached('summary');
+        $opretail->forgetCached('avgWalkIn');
+
+        return ['message' => 'Cache successfully cleaned. Reloading the page..'];
     }
 }

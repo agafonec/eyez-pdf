@@ -32,6 +32,7 @@ Route::get('/dashboard_default', function () {
 Route::middleware('auth')->group(function () {
     Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function($router) {
         $router->get('/')->uses('IndexController@show')->name('home');
+        $router->post('/clear-summary')->uses('IndexController@clearStoreCache')->name('summary.clear-cache');
     });
 
     Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function($router) {
@@ -43,6 +44,8 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/profile_opretail', [ProfileController::class, 'opretailUpdate'])->name('profile.opretail.update');
+    Route::post('/profile_workdays', [ProfileController::class, 'updateWorkdays'])->name('profile.workdays.update');
+    Route::post('/profile_generate_token', [ProfileController::class, 'generateApiToken'])->name('profile.generate-api-token');
 });
 
 require __DIR__.'/auth.php';

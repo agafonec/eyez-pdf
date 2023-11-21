@@ -1,8 +1,11 @@
 <template>
     <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-        <div class="bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
+        <div class="text-center">
+            <PrimaryButton @click="cleareSummaryCache" class="mb-2 mx-auto">Refresh cache</PrimaryButton>
+        </div>
+        <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
             <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
-            <div class="text-3xl font-semibold uppercase">
+            <div class="text-3xl font-semibold uppercase md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
                 <Dropdown align="center">
                     <template #trigger>
                         <span class="inline-flex rounded-md">
@@ -66,7 +69,7 @@
                                 <icon-arrow-up class="text-white sm:text-green-300 w-3 h-5 sm:w-2 sm:h-3.5"/>
                             </div>
                         </div>
-                        <span class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">חנות AVG: {{ avarage(storeData.walkInCount, prevStoreData.walkInCount) }}</span>
+                        <span class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">חנות AVG: {{ avgWalkIn }}</span>
                     </div>
                 </div>
                 <div v-if="summary" class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
@@ -180,6 +183,7 @@ import moment from "moment";
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import { DatePicker } from 'v-calendar';
+import PrimaryButton from '@/Components/PrimaryButton.vue';
 
 let donutSettings = {
     chart: {
@@ -255,7 +259,8 @@ export default {
         ChartStatBox,
         Dropdown,
         DropdownLink,
-        DatePicker
+        DatePicker,
+        PrimaryButton
     },
     props: {
         reportType: {
@@ -269,6 +274,9 @@ export default {
         },
         stores: {
             type: [Object, Array]
+        },
+        avgWalkIn: {
+            type: Number,
         },
         currentStore: {
             type: [Object, Array]
@@ -407,6 +415,16 @@ export default {
         }
     },
     methods: {
+        cleareSummaryCache() {
+            axios.post(route('summary.clear-cache'), {
+                storeId: this.currentStore.dep_id,
+            })
+            .then(response => {
+                alert(response.data.message);
+
+                window.location.reload();
+            })
+        },
         onDateRangeChange(dateRange) {
             console.log(dateRange);
 
@@ -428,9 +446,6 @@ export default {
         percent(current, previous) {
             const difference = Math.abs(current - previous)
             return previous === 0 ? '100%' :( (difference / previous ) * 100).toFixed(1) + '%'
-        },
-        avarage(current, previous) {
-            return Math.floor( (current + previous) / 2 )
         },
         lineChartCategories() {
             if (this.reportType === 'days') {
