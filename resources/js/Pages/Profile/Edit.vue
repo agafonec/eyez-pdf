@@ -26,6 +26,10 @@
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <ApiToken :api-token="eyezApiToken"/>
+                </div>
+
+                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <DeleteUserForm class="max-w-xl" />
                 </div>
             </div>
@@ -41,6 +45,7 @@ import UpdateProfileInformationForm from './Partials/UpdateProfileInformationFor
 import { Head } from '@inertiajs/vue3';
 import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
 import WorkingDays from "./Partials/WorkingDays.vue";
+import ApiToken from "./Partials/ApiToken.vue";
 
 export default {
     name: "Edit",
@@ -51,7 +56,8 @@ export default {
         UpdateProfileInformationForm,
         Head,
         OpretailnformationForm,
-        WorkingDays
+        WorkingDays,
+        ApiToken
     },
     props: {
         mustVerifyEmail: {
@@ -62,6 +68,9 @@ export default {
         },
         opretail: {
             type: Object
+        },
+        eyezApiToken: {
+            type: String
         }
     }
 }

@@ -45,6 +45,7 @@ Route::middleware('auth')->group(function () {
 
     Route::post('/profile_opretail', [ProfileController::class, 'opretailUpdate'])->name('profile.opretail.update');
     Route::post('/profile_workdays', [ProfileController::class, 'updateWorkdays'])->name('profile.workdays.update');
+    Route::post('/profile_generate_token', [ProfileController::class, 'generateApiToken'])->name('profile.generate-api-token');
 });
 
 require __DIR__.'/auth.php';

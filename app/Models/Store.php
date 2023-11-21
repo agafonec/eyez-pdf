@@ -26,9 +26,19 @@ class Store extends Model
         return $this->belongsTo(Opretail::class);
     }
 
+    public function getID()
+    {
+        return $this->id;
+    }
+
     public function ordersSummary()
     {
         return $this->hasMany(OrdersSummary::class);
+    }
+
+    public function orders()
+    {
+        return $this->hasMany(Order::class);
     }
 
     public function cache($key, $value, $minutes = 30)

@@ -11,14 +11,13 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('orders_summaries', function (Blueprint $table) {
+        Schema::create('orders', function (Blueprint $table) {
             $table->id();
             $table->bigInteger('store_id');
-            $table->timestamp('summary_date')->default(now());
-            $table->bigInteger('orders_count')->default(0);
-            $table->float('orders_total')->default(0);
-            $table->integer('walk_in_count')->default(0);
-            $table->integer('walk_in_rate')->default(0);
+            $table->string('order_id');
+            $table->timestamp('order_date')->default(now());
+            $table->integer('items_count')->nullable();
+            $table->float('order_total')->default(0);
             $table->timestamps();
         });
     }
@@ -28,6 +27,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('orders_summaries');
+        Schema::dropIfExists('orders');
     }
 };

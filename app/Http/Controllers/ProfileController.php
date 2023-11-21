@@ -22,15 +22,18 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
+        \Log::info($this->user()?->eyez_api_key);
         $profile = [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
             'status' => session('status'),
+            'eyezApiToken' => $this->user()?->eyez_api_key ?? ''
         ];
         if ($this->user()?->opretailCredentials) {
             $profile['opretail'] = $this->user()?->opretailCredentials;
         } else {
             $profile['opretail']['errors'] = $this->validateOpretail([])->errors();
         }
+
         return Inertia::render('Profile/Edit', $profile);
     }
 
@@ -127,6 +130,25 @@ class ProfileController extends Controller
                 'errors' => true,
                 'message' => 'You have to connect opretail account first.'
             ];
+        }
+    }
+
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function generateApiToken(Request $request)
+    {
+        $this->user()->tokens()->delete();
+
+        if ($token = $this->user()->createToken('eyez_api_key')) {
+            $tokenText = explode('|', $token->plainTextToken)[1];
+
+            $this->user()->eyez_api_key = $tokenText;
+            $this->user()->save();
+            return ['errors' => false, 'message' => 'Token succcesfully generated. refresh the page to see token.'];
+        } else {
+            return ['errors' => true, 'message' => 'Something went wrong during tokene generation'];
         }
     }
 

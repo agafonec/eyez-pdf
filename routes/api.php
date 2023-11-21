@@ -17,3 +17,13 @@ use Illuminate\Support\Facades\Route;
 Route::middleware('auth:sanctum')->get('/user', function (Request $request) {
     return $request->user();
 });
+
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function ($router) {
+        $router->post('/upsertOrderSummary')->uses('EyezApi@upsertOrderSummary')->name('api.upsertOrderSummary');
+        $router->post('/createOrUpdateOrderSummary')->uses('EyezApi@createOrUpdateOrderSummary')->name('api.createOrUpdateOrderSummary');
+        $router->post('/orderCreate')->uses('EyezApi@orderCreate')->name('api.createOrder');
+        $router->post('/orderBulkImport')->uses('EyezApi@orderBulkImport')->name('api.bulkImportOrders');
+    });
+});
