@@ -92,7 +92,7 @@ class IndexController extends Controller
                     "value" => $store->totalItemsSold($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
-                    "title" => 'last period',
+                    "title" => 'תקופה קודמת',
                     "value" => $store->totalItemsSold($newDateStart->startOfDay(), $newDateEnd->endOfDay())
                 ]
             ],
@@ -102,17 +102,17 @@ class IndexController extends Controller
                     "value" => $store->totalSales($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
-                    "title" => 'last period',
+                    "title" => 'תקופה קודמת',
                     "value" => $store->totalSales($newDateStart->startOfDay(), $newDateEnd->endOfDay())
                 ]
             ],
             "atv" => [
                 "current" => [
-                    "title" => 'טרקטורון',
+                    "title" => 'ממוצע עסקה',
                     "value" => $store->getATV($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
-                    "title" => 'last period',
+                    "title" => 'תקופה קודמת',
                     "value" => $store->getATV($newDateStart->startOfDay(), $newDateEnd->endOfDay())
                 ]
             ],
@@ -122,7 +122,7 @@ class IndexController extends Controller
                     "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->currentReport?->walkInCount)
                 ],
                 "previous" => [
-                    "title" => 'last period',
+                    "title" => 'תקופה קודמת',
                     "value" => $store->closeRate($newDateStart->startOfDay(), $newDateEnd->endOfDay(), $this->previousReport?->walkInCount)
                 ]
             ]
