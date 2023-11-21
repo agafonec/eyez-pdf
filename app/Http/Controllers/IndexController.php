@@ -167,7 +167,7 @@ class IndexController extends Controller
     {
         $opretail = $this->user()?->opretailCredentials;
         if ($avg = $opretail->cached('avgWalkIn')) {
-            return $avg;
+            return  round($avg, 0);
         }
 
         $walkInCount = $opretailApi->getWalkInCount(
@@ -193,7 +193,7 @@ class IndexController extends Controller
             $avg = $walkInCount / 30;
         }
         $opretail->cache('avgWalkIn', $avg, 60);
-        return round($avg);
+        return round($avg, 0);
     }
 
     /**

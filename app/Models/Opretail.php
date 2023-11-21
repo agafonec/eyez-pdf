@@ -85,7 +85,7 @@ class Opretail extends Model
     public function forgetCached($key)
     {
         try {
-            cache()->forget("store.{$this->dep_id}.$key");
+            cache()->forget("opretail.{$this->user_id}.$key");
         } catch (\Exception $e) {
         }
 
