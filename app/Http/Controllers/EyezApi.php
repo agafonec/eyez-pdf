@@ -147,7 +147,7 @@ class EyezApi extends Controller
     {
         $rules = [
             'store_id' => 'required|integer',
-            'order_id' => 'required|string',
+            'order_id' => 'required|integer|string',
             'order_date' => 'required|date',
             'items_count' => 'required|integer',
             'order_total' => 'required|numeric'

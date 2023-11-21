@@ -1,6 +1,6 @@
 <template>
     <div v-if="variant === 'small'" class="flex items-center w-full relative">
-        <div :class="['text-sm md:text-base absolute end-0 top-0.5 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
+        <div :class="['text-sm md:text-base absolute end-0 top-1 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
             <span class="font-medium leading-none">{{ percent }}</span>
             <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
             <icon-arrow-down v-else class="text-red-300"/>
@@ -11,11 +11,11 @@
         </div>
         <div class="ms-2 md:ms-4">
             <div v-if="stat.current" class="mb-2">
-                <div class="text-base md:text-xl text-gray-900 leading-tight flex">{{ stat.current.value }}</div>
+                <div class="text-base md:text-xl text-gray-900 leading-tight flex">{{ stat.current.value.toLocaleString() }}{{ appendToValue }}</div>
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.current.title }}</div>
             </div>
             <div v-if="stat.previous">
-                <div class="text-base md:text-xl text-gray-900 leading-tight">{{ stat.previous.value }}</div>
+                <div class="text-base md:text-xl text-gray-900 leading-tight">{{ stat.previous.value.toLocaleString() }}{{ appendToValue }}</div>
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.previous.title }}</div>
             </div>
         </div>
@@ -29,7 +29,7 @@
             <div v-if="stat.current" class="mb-1.5 md:mb-3">
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.current.title }}</div>
                 <div class="text-base md:text-2xl text-gray-900 leading-tight flex">
-                    <div>{{ stat.current.value }}</div>
+                    <div>{{ stat.current.value.toLocaleString() }}{{ appendToValue }}</div>
                     <div :class="['text-sm md:text-base mr-2 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
                         <span class="font-medium leading-none">{{ percent }}</span>
                         <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
@@ -39,7 +39,7 @@
             </div>
             <div v-if="stat.previous">
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.previous.title }}</div>
-                <div class="text-base md:text-2xl text-gray-900 leading-tight">{{ stat.previous.value }}</div>
+                <div class="text-base md:text-2xl text-gray-900 leading-tight">{{ stat.previous.value.toLocaleString() }}{{ appendToValue }}</div>
             </div>
         </div>
     </div>
@@ -66,6 +66,9 @@ export default {
         iconCircleClass: {
             type: String,
             default: 'bg-gray-100',
+        },
+        appendToValue: {
+            type: String,
         },
         stat: {
             type: Object,
