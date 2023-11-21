@@ -28,9 +28,16 @@ class OrderCreateJob implements ShouldQueue
     public function handle(): void
     {
         \Log::info('handle OrderCreate');
-
-        $order = new Order();
-
-        $order->createOrder($this->store, $this->data);
+        Order::firstOrCreate(
+            [
+                "store_id" => $this->store->getID(),
+                "order_id" => $this->data->order_id
+            ],
+            [
+                "order_date" => $this->data->order_date,
+                "items_count" => $this->data->items_count,
+                "order_total" => $this->data->order_total,
+            ]
+        );
     }
 }

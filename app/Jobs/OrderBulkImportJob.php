@@ -31,8 +31,18 @@ class OrderBulkImportJob implements ShouldQueue
         \Log::info('handle OrderBulk import');
 
         foreach ($this->ordersData as $data) {
-            $order = new Order();
-            $order->createOrder($this->store, (object) $data);
+            $data = (object) $data;
+            Order::firstOrCreate(
+                [
+                    "store_id" => $this->store->getID(),
+                    "order_id" => $data->order_id
+                ],
+                [
+                    "order_date" => $data->order_date,
+                    "items_count" => $data->items_count,
+                    "order_total" => $data->order_total,
+                ]
+            );
         }
 
     }
