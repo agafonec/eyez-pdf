@@ -51,14 +51,14 @@ class OpretailApi
 //                "today" => $this->getWalkInCount(Carbon::now()->startOfDay(), Carbon::now()->endOfDay()),
             "week" => [
                 "current" => [
-                    "title" => "This Week",
+                    "title" => "השבוע",
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay(),
                         Carbon::now()->endOfDay()
                     )
                 ],
                 "previous" => [
-                    "title" => 'Last Week',
+                    "title" => 'שבוע שעבר',
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->startOfDay(),
                         Carbon::now()->subWeek()->endOfDay()
@@ -67,14 +67,14 @@ class OpretailApi
             ],
             "month" => [
                 "current" => [
-                    "title" => 'This Month',
+                    "title" => 'החודש',
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfMonth()->startOfDay(),
                         Carbon::now()->endOfDay()
                     )
                 ],
                 "previous" => [
-                    "title" => 'Last Month',
+                    "title" => 'חוד שעבר',
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfMonth()->subMonth()->startOfDay(),
                         Carbon::now()->subMonth()->endOfDay()
@@ -83,14 +83,14 @@ class OpretailApi
             ],
             "year" => [
                 "current" => [
-                    "title" => 'This Year',
+                    "title" => 'השנה',
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfYear()->startOfDay(),
                         Carbon::now()->endOfDay()
                     )
                 ],
                 "previous" => [
-                    "title" => 'Last Year',
+                    "title" => 'שנה שעברה',
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfYear()->startOfDay(),
                         Carbon::now()->subYear()->endOfDay()

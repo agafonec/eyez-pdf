@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 
@@ -14,6 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 class Store extends Model
 {
     use HasFactory;
+
     protected $fillable = [
         'name',
         'dep_id',
@@ -80,5 +82,75 @@ class Store extends Model
         }
 
         return $this;
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return int
+     */
+    public function totalOrders($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        return $this->orders()
+            ->whereBetween('order_date', [$dateFrom, $dateTo])
+            ->count();
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return int|mixed
+     */
+    public function totalSales($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        return round( $this->orders()
+            ->whereBetween('order_date', [$dateFrom, $dateTo])
+            ->sum('order_total'), 0);
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return int|mixed
+     */
+    public function totalItemsSold($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        return $this->orders()
+            ->whereBetween('order_date', [$dateFrom, $dateTo])
+            ->sum('items_count');
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return float|int
+     */
+    public function getATV($dateFrom = null, $dateTo = null)
+    {
+        $totalSales = $this->totalSales($dateFrom, $dateTo);
+        $totalOrders = $this->totalOrders($dateFrom, $dateTo);
+        return $totalOrders ? round($totalSales / $totalOrders, 2) : 0 . '%';
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @param $walkInRate
+     * @return float|int
+     */
+    public function closeRate($dateFrom = null, $dateTo = null, $walkInCount)
+    {
+        $totalOrders = $this->totalOrders($dateFrom, $dateTo);
+
+        return $walkInCount ? round($totalOrders / $walkInCount * 100, 2) : 0;
     }
 }

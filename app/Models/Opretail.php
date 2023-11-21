@@ -77,4 +77,18 @@ class Opretail extends Model
         } catch (\Exception $e) {
         }
     }
+
+    /**
+     * @param $key
+     * @return $this
+     */
+    public function forgetCached($key)
+    {
+        try {
+            cache()->forget("store.{$this->dep_id}.$key");
+        } catch (\Exception $e) {
+        }
+
+        return $this;
+    }
 }

@@ -4,7 +4,7 @@
             <PrimaryButton @click="cleareSummaryCache" class="mb-2 mx-auto">Refresh cache</PrimaryButton>
         </div>
         <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
-            <img src="images/logo.png" class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain" alt="">
+            <pdf-logo  class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain"/>
             <div class="text-3xl font-semibold uppercase md:absolute md:left-1/2 md:top-1/2 md:-translate-x-1/2 md:-translate-y-1/2">
                 <Dropdown align="center">
                     <template #trigger>
@@ -34,7 +34,7 @@
                                 class="flex items-center text-white"
                                 @click="() => togglePopover()"
                             >
-                                <div class="hidden md:block" v-html="dateRangeText()"></div>
+                                <span class="hidden md:block" v-html="dateRangeText()"></span>
                                 <icon-calendar class="mr-4" color="#ffffff"/>
                             </button>
                             <input
@@ -54,8 +54,7 @@
                     <div class="flex items-center flex-col pt-8 sm:pt-0 sm:flex-row">
                         <div class="flex items-center">
                             <icon-people class="text-green-400"/>
-                            <span class="text-3xl mr-2.5">היום:</span>
-                            <span class="text-3xl mr-2.5 text-green-400 font-medium">{{ storeData.walkInCount }}</span>
+                            <span class="text-3xl mr-2.5 text-green-400 font-medium">{{ storeData.walkInCount.toLocaleString() }}</span>
                         </div>
                         <div class="flex items-center max-md:mt-4">
                             <span :class="['font-medium md:ms-6 text-lg', `${storeData.walkInCount < prevStoreData.walkInCount ? 'text-red-300' : 'text-green-300'}` ]">
@@ -69,7 +68,10 @@
                                 <icon-arrow-up class="text-white sm:text-green-300 w-3 h-5 sm:w-2 sm:h-3.5"/>
                             </div>
                         </div>
-                        <span class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">חנות AVG: {{ avgWalkIn }}</span>
+                        <span v-if="avgWalkIn"
+                              class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">
+                            חנות AVG: {{ avgWalkIn }}
+                        </span>
                     </div>
                 </div>
                 <div v-if="summary" class="flex flex-wrap md:flex-nowrap items-center justify-between w-full md:w-2/3">
@@ -95,22 +97,22 @@
                 <div class="md:col-span-5">
                     <div class="grid grid-cols-2 gap-x-5 gap-y-3 relative bg-white p-4 rounded-b-[10px] md:gap-x-10 md:rounded-[10px]">
                         <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
-                        <stat-box icon-circle-class="bg-lime-200">
+                        <stat-box :stat="storeSales.atv" append-to-value="₪" icon-circle-class="bg-lime-200">
                             <template #icon>
                                 <icon-book class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                             </template>
                         </stat-box>
-                        <stat-box icon-circle-class="bg-rose-200">
+                        <stat-box :stat="storeSales.totalSales" append-to-value="₪" icon-circle-class="bg-rose-200">
                             <template #icon>
                                 <icon-sale class="text-rose-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                             </template>
                         </stat-box>
-                        <stat-box icon-circle-class="bg-green-50">
+                        <stat-box :stat="storeSales.itemsSold" icon-circle-class="bg-green-50">
                             <template #icon>
                                 <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                             </template>
                         </stat-box>
-                        <stat-box icon-circle-class="bg-amber-200">
+                        <stat-box :stat="storeSales.closeRate" append-to-value="%" icon-circle-class="bg-amber-200">
                             <template #icon>
                                 <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                             </template>
@@ -141,7 +143,6 @@
                     </div>
                     <div class="max-md:text-xs bg-gray-50 text-gray-200 rounded-md p-5 md:absolute md:right-5 md:bottom-5 grid grid-cols-2 gap-10 align-end">
                         <div class="text-start md:text-center">
-                            <icon-warning class="max-md:hidden mx-auto mb-3"/>
                             <div>בני נוער בגילאי <span>0 - 15</span></div>
                             <div>נוער <span>16 - 40</span> שנים</div>
                             <div class="text-xs text-black font-semibold md:hidden mt-2">
@@ -150,13 +151,13 @@
                             </div>
                         </div>
 
-                        <div class="md:pt-10">
+                        <div>
                             <div>גיל הביניים <span>40 - 60</span> שנים</div>
                             <div>קשיש בן <span>60+</span> - ריק</div>
                         </div>
                     </div>
                     <div class="max-md:hidden bg-gray-50 px-4 py-2 rounded-md font-semibold absolute left-5 bottom-5">
-                        <span>יְוֹם:</span>
+                        <span>תאריך:</span>
                         <span  v-html="dateRangeText()"></span>
                     </div>
                 </div>
@@ -282,6 +283,9 @@ export default {
             type: [Object, Array]
         },
         prevStoreData: {
+            type: [Object, Array]
+        },
+        storeSales: {
             type: [Object, Array]
         }
     },

@@ -15,7 +15,7 @@ trait OpretailHelpers
         foreach ($data as $single) {
             if ($single['gender'] === 0)
                 continue;
-            $gender = $single['gender'] === 1 ? 'Male' : 'Female';
+            $gender = $single['gender'] === 1 ? 'גברים' : 'נשים';
             $return[$gender] = $single['peopleNum'];
         }
 
@@ -35,13 +35,13 @@ trait OpretailHelpers
         foreach ($data as $single) {
             $group = false;
             if ($single['ageDivisionType'] === 0) {
-                $group = 'Teenagers';
+                $group = 'צעירים';
             } else if ($single['ageDivisionType'] === 1) {
-                $group = 'Youth';
+                $group = 'ילדים';
             } else if ($single['ageDivisionType'] === 2) {
-                $group = 'Middle aged';
-            } else if ($single['ageDivisionType'] ===4) {
-                $group = 'Elderly';
+                $group = 'בוגרים';
+            } else if ($single['ageDivisionType'] === 4) {
+                $group = 'מבוגרים';
             }
 
             if ($group) {

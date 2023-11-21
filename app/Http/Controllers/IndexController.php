@@ -4,9 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Store;
 use Carbon\Carbon;
-use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
 use Inertia\Inertia;
 use App\Services\Opretail\OpretailApi;
 
@@ -15,9 +13,41 @@ class IndexController extends Controller
     protected OpretailApi $currentReport;
     protected OpretailApi $previousReport;
     public string $reportType;
+    public array|null $summary;
+    public float|null $avgWalkIn;
+    public array $storeSalesReport;
 
     public function __construct()
     {
+        $this->summary = null;
+        $this->avgWalkIn = null;
+    }
+
+    /**
+     * @param Request $request
+     * @return \Illuminate\Contracts\Foundation\Application|\Illuminate\Foundation\Application|\Illuminate\Http\RedirectResponse|\Illuminate\Routing\Redirector|\Inertia\Response
+     */
+    public function show(Request $request)
+    {
+        if (!$this->user()->opretailCredentials) {
+            return redirect('profile');
+        }
+
+        $store = $request->has('storeId')
+            ? Store::where('dep_id', $request->query('storeId'))->first()
+            : $this->user()->opretailCredentials->stores->last();
+
+        $this->getReportData($request, $store);
+        return Inertia::render('Home', [
+            'currentStore' => $store,
+            'reportType' => $this->reportType,
+            'storeData' => $this->currentReport,
+            'prevStoreData' => $this->previousReport,
+            'summary' => $this->summary,
+            'avgWalkIn' => $this->avgWalkIn,
+            'stores' => $this->user()->stores,
+            'storeSales' => $this->storeSalesReport
+        ]);
     }
 
     /**
@@ -28,35 +58,19 @@ class IndexController extends Controller
         $this->reportType = 'hours';
         $opretail = $this->user()->opretailCredentials;
 
-        if ($date = $request->input('date')) {
-            $startTime = Carbon::parse($date)->startOfDay();
-            $endTime = Carbon::parse($date)->endOfDay();
-        } else if ($request->has('dateTo') && $request->has('dateTo')) {
-            $dateFrom = $request->input('dateFrom');
-            $dateTo = $request->input('dateTo');
-
-            $startTime = Carbon::parse($dateFrom);
-            $endTime = Carbon::parse($dateTo);
-
-            $this->reportType = $startTime->diffInDays($endTime) > 0 ? 'days' : 'hours';
-
-            $startTime = $startTime->startOfDay();
-            $endTime = $endTime->endOfDay();
-        } else {
-            $startTime = Carbon::now()->startOfDay();
-            $endTime = Carbon::now()->endOfDay();
-        }
+        // Transform query date to date from/to parameters.
+        $dateRange = $this->getDateRange($request);
 
         $currentReport = new OpretailApi($opretail);
         $this->currentReport = $currentReport->getReport(
             $store,
-            $startTime,
-            $endTime,
+            $dateRange->start,
+            $dateRange->end,
             $this->reportType
         );
 
-        $newDateStart = Carbon::parse($startTime)->subDays(1);
-        $newDateEnd = Carbon::parse($endTime)->subDays(1);
+        $newDateStart = Carbon::parse($dateRange->start)->subDays($dateRange->diffInDays);
+        $newDateEnd = Carbon::parse($dateRange->end)->subDays($dateRange->diffInDays);
 
         $previousReport = new OpretailApi($opretail);
         $this->previousReport = $previousReport->getReport(
@@ -66,10 +80,89 @@ class IndexController extends Controller
             $this->reportType
         );
 
-        $this->summary = $store->cached('summary') ?? $currentReport->getSummary($store);
-        $this->avgWalkIn = $this->avgWalkIn($currentReport);
+        if ($this->reportType !== 'days') {
+            $this->summary = $store->cached('summary') ?? $currentReport->getSummary($store);
+            $this->avgWalkIn = $this->avgWalkIn($currentReport);
+        }
+
+        $this->storeSalesReport = [
+            "itemsSold" => [
+                "current" => [
+                    "title" => 'סה״כ פריטים',
+                    "value" => $store->totalItemsSold($dateRange->start, $dateRange->end)
+                ],
+                "previous" => [
+                    "title" => 'last period',
+                    "value" => $store->totalItemsSold($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                ]
+            ],
+            "totalSales" => [
+                "current" => [
+                    "title" => 'סה"כ מכירה',
+                    "value" => $store->totalSales($dateRange->start, $dateRange->end)
+                ],
+                "previous" => [
+                    "title" => 'last period',
+                    "value" => $store->totalSales($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                ]
+            ],
+            "atv" => [
+                "current" => [
+                    "title" => 'טרקטורון',
+                    "value" => $store->getATV($dateRange->start, $dateRange->end)
+                ],
+                "previous" => [
+                    "title" => 'last period',
+                    "value" => $store->getATV($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                ]
+            ],
+            "closeRate" => [
+                "current" => [
+                    "title" => 'קונה/רוכש (%)',
+                    "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->currentReport?->walkInCount)
+                ],
+                "previous" => [
+                    "title" => 'last period',
+                    "value" => $store->closeRate($newDateStart->startOfDay(), $newDateEnd->endOfDay(), $this->previousReport?->walkInCount)
+                ]
+            ]
+        ];
     }
 
+    /**
+     * @param Request $request
+     * @return \stdClass
+     */
+    private function getDateRange(Request $request)
+    {
+        $dateRange = new \stdClass();
+        $dateRange->diffInDays = 1;
+        if ($date = $request->input('date')) {
+            $dateRange->start = Carbon::parse($date)->startOfDay();
+            $dateRange->end = Carbon::parse($date)->endOfDay();
+        } else if ($request->has('dateTo') && $request->has('dateTo')) {
+            $dateFrom = $request->input('dateFrom');
+            $dateTo = $request->input('dateTo');
+
+            $startTime = Carbon::parse($dateFrom);
+            $endTime = Carbon::parse($dateTo);
+            $dateRange->diffInDays = $startTime->diffInDays($endTime);
+            $this->reportType = $dateRange->diffInDays > 1 ? 'days' : 'hours';
+
+            $dateRange->start = $startTime->startOfDay();
+            $dateRange->end  = $endTime->endOfDay();
+        } else {
+            $dateRange->start = Carbon::now()->startOfDay();
+            $dateRange->end = Carbon::now()->endOfDay();
+        }
+
+        return $dateRange;
+    }
+
+    /**
+     * @param OpretailApi $opretailApi
+     * @return float
+     */
     private function avgWalkIn(OpretailApi $opretailApi)
     {
         $opretail = $this->user()?->opretailCredentials;
@@ -100,31 +193,13 @@ class IndexController extends Controller
             $avg = $walkInCount / 30;
         }
         $opretail->cache('avgWalkIn', $avg, 60);
-        return $avg;
+        return round($avg);
     }
 
-    public function show(Request $request)
-    {
-        if (!$this->user()->opretailCredentials) {
-            return redirect('profile');
-        }
-
-        $store = $request->has('storeId')
-            ? Store::where('dep_id', $request->query('storeId'))->first()
-            : $this->user()->opretailCredentials->stores->last();
-
-        $this->getReportData($request, $store);
-        return Inertia::render('Home', [
-            'currentStore' => $store,
-            'reportType' => $this->reportType,
-            'storeData' => $this->currentReport,
-            'prevStoreData' => $this->previousReport,
-            'summary' => $this->summary,
-            'avgWalkIn' => $this->avgWalkIn,
-            'stores' => $this->user()->stores
-        ]);
-    }
-
+    /**
+     * @param Request $request
+     * @return string[]
+     */
     public function clearStoreCache(Request $request)
     {
         $store = $request->has('storeId')
