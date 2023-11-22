@@ -153,4 +153,18 @@ class Store extends Model
 
         return $walkInCount ? round($totalOrders / $walkInCount * 100, 2) : 0;
     }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function ordersByDate($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        return $this->orders()
+            ->whereBetween('order_date', [$dateFrom, $dateTo]);
+    }
 }
