@@ -66,7 +66,7 @@
                                 <icon-people class="text-green-400"/>
                                 <span class="text-3xl mr-2.5 text-green-400 font-medium">{{ storeData.walkInCount.toLocaleString() }}</span>
                             </div>
-                            <div class="flex items-center max-md:mt-4">
+                            <div v-if="this.reportType === 'hours'" class="flex items-center max-md:mt-4">
                                 <span :class="['font-medium md:ms-6 text-lg', `${storeData.walkInCount < prevStoreData.walkInCount ? 'text-red-300' : 'text-green-300'}` ]">
                                     {{ percent(storeData.walkInCount, prevStoreData.walkInCount) }}
                                 </span>
