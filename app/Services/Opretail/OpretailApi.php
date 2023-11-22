@@ -74,7 +74,7 @@ class OpretailApi
                     )
                 ],
                 "previous" => [
-                    "title" => 'חוד שעבר',
+                    "title" => 'חודש שעבר',
                     "value" => $this->getWalkInCount(
                         Carbon::now()->startOfMonth()->subMonth()->startOfDay(),
                         Carbon::now()->subMonth()->endOfDay()
