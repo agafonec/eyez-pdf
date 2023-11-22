@@ -1,5 +1,5 @@
 <template>
-    <div v-if="variant === 'small'" :class="['flex items-center md:flex-row w-full relative', `${mobileDirection === 'row' ? 'flex-row': 'flex-col text-center'}`]">
+    <div v-if="variant === 'small'" :class="['flex items-center md:flex-row w-full relative', `${mobileDirection === 'row' ? 'flex-row': 'max-md:flex-col max-md:text-center'}`]">
         <div :class="['text-sm md:text-base absolute end-0 top-1 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
             <span class="font-medium leading-none">{{ percent }}</span>
             <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
