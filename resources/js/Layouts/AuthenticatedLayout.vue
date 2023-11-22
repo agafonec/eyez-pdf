@@ -29,8 +29,8 @@ const showingNavigationDropdown = ref(false);
 
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">
-                                <NavLink :href="route('home')" :active="route().current('home')">
-                                    Statistic
+                                <NavLink :href="route('home.show')" :active="route().current('home.show')">
+                                    נתוני זמן אמת
                                 </NavLink>
                             </div>
                         </div>

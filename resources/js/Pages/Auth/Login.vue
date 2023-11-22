@@ -37,7 +37,7 @@ const submit = () => {
             {{ status }}
         </div>
 
-        <form @submit.prevent="submit">
+        <form style="direction: rtl" @submit.prevent="submit">
             <div>
                 <InputLabel for="email" value="מייל" />
 

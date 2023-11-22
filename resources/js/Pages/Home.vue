@@ -1,5 +1,5 @@
 <template>
-    <Head title="Statistic" />
+    <Head title="נתוני זמן אמת" />
 
     <AuthenticatedLayout>
         <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
@@ -174,7 +174,7 @@
 
                             <div>
                                 <div>גיל הביניים <span>40 - 60</span> שנים</div>
-                                <div>קשיש בן <span>60+</span> - ריק</div>
+                                <div>מבוגרים <span>60+</span> - ריק</div>
                             </div>
                         </div>
                         <div class="max-md:hidden bg-gray-50 px-4 py-2 rounded-md font-semibold absolute left-5 bottom-5">
