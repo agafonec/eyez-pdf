@@ -1,5 +1,5 @@
 <template>
-    <div v-if="variant === 'small'" class="flex items-center w-full relative">
+    <div v-if="variant === 'small'" :class="['flex items-center md:flex-row w-full relative', `${mobileDirection === 'row' ? 'flex-row': 'flex-col text-center'}`]">
         <div :class="['text-sm md:text-base absolute end-0 top-1 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
             <span class="font-medium leading-none">{{ percent }}</span>
             <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
@@ -9,12 +9,12 @@
         <div :class="['rounded-full w-[50px] h-[50px] md:w-[56px] md:h-[56px] flex items-center justify-center', iconCircleClass]">
             <slot name="icon" />
         </div>
-        <div class="ms-2 md:ms-4">
-            <div v-if="stat.current" class="mb-2">
+        <div :class="['md:ms-4', mobileDirection === 'column' ? 'mt-2 md:mt-0 ms-0' : 'ms-2' ]">
+            <div v-if="stat.current" :class="['mb-2', mobileDirection === 'column' ? 'max-md:flex max-md:flex-col-reverse max-md:text-center max-md:items-center' : '']">
                 <div class="text-base md:text-xl text-gray-900 leading-tight flex">{{ stat.current.value.toLocaleString() }}{{ appendToValue }}</div>
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.current.title }}</div>
             </div>
-            <div v-if="stat.previous">
+            <div v-if="stat.previous" :class="[mobileDirection === 'column' ? 'max-md:flex max-md:flex-col-reverse max-md:text-center max-md:items-center' : '']">
                 <div class="text-base md:text-xl text-gray-900 leading-tight">{{ stat.previous.value.toLocaleString() }}{{ appendToValue }}</div>
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.previous.title }}</div>
             </div>
@@ -66,6 +66,10 @@ export default {
         iconCircleClass: {
             type: String,
             default: 'bg-gray-100',
+        },
+        mobileDirection: {
+            type: String,
+            default: 'row'
         },
         appendToValue: {
             type: String,

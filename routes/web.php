@@ -33,11 +33,12 @@ Route::middleware('auth')->group(function () {
     Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function($router) {
         $router->get('/')->uses('IndexController@show')->name('home');
         $router->post('/clear-summary')->uses('IndexController@clearStoreCache')->name('summary.clear-cache');
+
+        $router->get('/dashboard')->uses('IndexController@show')->name('home.show');
+
+        $router->post('/export-report/{store}')->uses('ExportDataController@getReportHistory')->name('report.export');
     });
 
-    Route::group(['prefix' => '/', 'namespace' => 'App\Http\Controllers'], function($router) {
-        $router->get('/dashboard')->uses('IndexController@show')->name('home.show');
-    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

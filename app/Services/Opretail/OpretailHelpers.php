@@ -60,6 +60,7 @@ trait OpretailHelpers
         foreach ($data as $single) {
             if ($single['passengerFlow'] > 0) {
                 $return[] = [
+                    "date" => date('Y-m-d', strtotime($single['time'])),
                     "time" => date('H:i', strtotime($single['time'])),
                     "passengerFlow" => $single['passengerFlow'],
                 ];
