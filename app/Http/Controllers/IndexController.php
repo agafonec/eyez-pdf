@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Store;
+use App\Traits\HasDateMap;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -10,6 +11,7 @@ use App\Services\Opretail\OpretailApi;
 
 class IndexController extends Controller
 {
+    use HasDateMap;
     protected OpretailApi $currentReport;
     protected OpretailApi $previousReport;
     public string $reportType;
@@ -118,7 +120,7 @@ class IndexController extends Controller
             ],
             "closeRate" => [
                 "current" => [
-                    "title" => 'קונה/רוכש (%)',
+                    "title" => 'יחס המרה',
                     "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->currentReport?->walkInCount)
                 ],
                 "previous" => [
@@ -127,36 +129,6 @@ class IndexController extends Controller
                 ]
             ]
         ];
-    }
-
-    /**
-     * @param Request $request
-     * @return \stdClass
-     */
-    private function getDateRange(Request $request)
-    {
-        $dateRange = new \stdClass();
-        $dateRange->diffInDays = 1;
-        if ($date = $request->input('date')) {
-            $dateRange->start = Carbon::parse($date)->startOfDay();
-            $dateRange->end = Carbon::parse($date)->endOfDay();
-        } else if ($request->has('dateTo') && $request->has('dateTo')) {
-            $dateFrom = $request->input('dateFrom');
-            $dateTo = $request->input('dateTo');
-
-            $startTime = Carbon::parse($dateFrom);
-            $endTime = Carbon::parse($dateTo);
-            $dateRange->diffInDays = $startTime->diffInDays($endTime);
-            $this->reportType = $dateRange->diffInDays > 1 ? 'days' : 'hours';
-
-            $dateRange->start = $startTime->startOfDay();
-            $dateRange->end  = $endTime->endOfDay();
-        } else {
-            $dateRange->start = Carbon::now()->startOfDay();
-            $dateRange->end = Carbon::now()->endOfDay();
-        }
-
-        return $dateRange;
     }
 
     /**

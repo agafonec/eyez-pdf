@@ -3,8 +3,14 @@
 
     <AuthenticatedLayout>
         <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-            <div class="text-center">
-                <PrimaryButton @click="cleareSummaryCache" class="mb-2 mx-auto">דחיפה ידנית</PrimaryButton>
+            <div class="text-center flex justify-center mb-2 gap-4">
+                <PrimaryButton @click="cleareSummaryCache" >דחיפה ידנית</PrimaryButton>
+                <json-excel :fetch="fetchExportData"
+                            :stringifyLongNum="true"
+                            :fields="exportHeaders">
+
+                    <PrimaryButton class="">Export to excel</PrimaryButton>
+                </json-excel>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
                 <pdf-logo  class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain"/>
@@ -101,22 +107,33 @@
                     <div class="md:col-span-5">
                         <div class="grid grid-cols-2 gap-x-5 gap-y-3 relative bg-white p-4 rounded-b-[10px] md:gap-x-10 md:rounded-[10px]">
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
-                            <stat-box :stat="storeSales.atv" append-to-value="₪" icon-circle-class="bg-lime-200">
+                            <stat-box :stat="storeSales.atv"
+                                      mobile-direction="column"
+                                      append-to-value="₪" i
+                                      con-circle-class="bg-lime-200">
                                 <template #icon>
                                     <icon-book class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
-                            <stat-box :stat="storeSales.totalSales" append-to-value="₪" icon-circle-class="bg-rose-200">
+                            <stat-box :stat="storeSales.totalSales"
+                                      mobile-direction="column"
+                                      append-to-value="₪"
+                                      icon-circle-class="bg-rose-200">
                                 <template #icon>
                                     <icon-sale class="text-rose-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
-                            <stat-box :stat="storeSales.itemsSold" icon-circle-class="bg-green-50">
+                            <stat-box :stat="storeSales.itemsSold"
+                                      mobile-direction="column"
+                                      icon-circle-class="bg-green-50">
                                 <template #icon>
                                     <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
-                            <stat-box :stat="storeSales.closeRate" append-to-value="%" icon-circle-class="bg-amber-200">
+                            <stat-box :stat="storeSales.closeRate"
+                                      mobile-direction="column"
+                                      append-to-value="%"
+                                      icon-circle-class="bg-amber-200">
                                 <template #icon>
                                     <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
@@ -190,8 +207,10 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import { DatePicker } from 'v-calendar';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import SecondaryButton from '@/Components/SecondaryButton.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import JsonExcel from "vue-json-excel3";
 
 let donutSettings = {
     chart: {
@@ -269,8 +288,10 @@ export default {
         DropdownLink,
         DatePicker,
         PrimaryButton,
+        SecondaryButton,
         AuthenticatedLayout,
-        Head
+        Head,
+        JsonExcel
     },
     props: {
         reportType: {
@@ -299,7 +320,19 @@ export default {
         }
     },
     data() {
+        console.log(this.storeData.hourlyWalkIn);
+
         return {
+            exportHeaders: {
+                "Date": "date",
+                "Time": "time",
+                "Walk-in Count": "walkInCount",
+                "Sales": "salesTotal",
+                "Total Items": "itemsCount",
+                "Order q-ty": "ordersCount",
+                "Close Rate(%)": "closeRate",
+                "ATV": "atv"
+            },
             pickerRange: {
                 start: this.storeData ? this.storeData?.dateFrom : new Date(),
                 end: this.storeData ? this.storeData?.dateTo : new Date()
@@ -428,6 +461,75 @@ export default {
         }
     },
     methods: {
+        async fetchExportData() {
+            let exportData = [];
+
+            await axios.post(route('report.export', {store: this.currentStore.id}), {
+                dateFrom: this.storeData?.dateFrom,
+                dateTo: this.storeData?.dateTo,
+            })
+            .then(response => {
+                let orders = response.data.orders;
+                if (this.reportType === 'days') {
+                    const walkinByDate = this.storeData.hourlyWalkIn.reduce((accumulator, obj) => {
+                        const key = obj.date;
+                        if (!accumulator[key]) {
+                            accumulator[key] = [];
+                        }
+
+                        accumulator[key].push(obj);
+                        return accumulator;
+                    }, {});
+                    Object.keys(walkinByDate).forEach((date) => {
+                        let dailyReport = this.excelMapRows(walkinByDate[date], orders, date);
+
+                        exportData.push(...dailyReport);
+                    })
+                } else {
+                    let selectedDate =  moment(this.storeData?.dateFrom).format('YYYY-MM-DD').toString();
+
+                    exportData = this.excelMapRows(this.storeData.hourlyWalkIn, orders, selectedDate);
+                }
+            })
+
+            return exportData
+        },
+        excelMapRows(dayilyWalkIn, orders, selectedDate) {
+            let exportData = [];
+            dayilyWalkIn.forEach(walkIn => {
+
+                // Finding all orders matching date and time. e.g. all orders between 10:00 and 11:00 will be related to 11:00 in export file.
+                let walkInHour = moment(`${walkIn.date} ${walkIn.time}`).hour()
+                let matchingOrders = orders.filter(order => {
+                    let orderDate = moment(order.order_date).format('YYYY-MM-DD')
+                    let orderTime = moment(order.order_date).hour() + 1;
+
+                    return walkInHour === orderTime && orderDate === walkIn.date
+                })
+
+                let totalSales = matchingOrders.reduce((accumulator, order) => {
+                    return accumulator + order.order_total;
+                }, 0);
+                let itemsCount = matchingOrders.reduce((accumulator, order) => {
+                    return accumulator + order.items_count;
+                }, 0);
+
+                let ordersCount = matchingOrders.length;
+                let excelRow = {
+                    "date": selectedDate,
+                    "time": walkIn.time,
+                    "walkInCount": walkIn.passengerFlow,
+                    "salesTotal": totalSales + '₪',
+                    "itemsCount": itemsCount,
+                    "ordersCount": ordersCount,
+                    "closeRate": (ordersCount > 0 ? parseFloat(ordersCount / walkIn.passengerFlow * 100).toFixed(1) : 0) + '%',
+                    "atv": (ordersCount > 0 ? parseFloat(totalSales / ordersCount).toFixed(1) : 0) + '₪',
+                }
+                exportData.push(excelRow);
+            })
+
+            return exportData;
+        },
         cleareSummaryCache() {
             axios.post(route('summary.clear-cache'), {
                 storeId: this.currentStore.dep_id,
@@ -439,8 +541,6 @@ export default {
             })
         },
         onDateRangeChange(dateRange) {
-            console.log(dateRange);
-
             this.$inertia.visit(route('home.show', {
                 storeId: this.currentStore.dep_id,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
