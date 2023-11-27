@@ -1,15 +1,15 @@
 <template>
     <header>
-        <h2 class="text-lg font-medium text-gray-900">Working days</h2>
+        <h2 class="text-lg font-medium text-gray-900">Off days</h2>
 
         <p class="mt-1 text-sm text-gray-600">
-            Set your working days.
+            Set your off days.
         </p>
     </header>
 
     <div class="flex items-center gap-4">
         <label v-for="(day, index) in days" class="flex items-center">
-            <Checkbox name="remember" @update:checked="updateDays(index)" :value="index" :checked="workDays.includes(index)" />
+            <Checkbox name="off_days" @update:checked="updateDays(index)" :value="index" :checked="workDays.includes(index)" />
 
             <span class="ms-2 text-sm text-gray-600">{{ day }}</span>
         </label>

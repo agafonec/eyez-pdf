@@ -14,6 +14,7 @@
             type="text"
             class="mt-1 block w-full"
             readonly
+            :modelValue="apiToken"
             :value="apiToken"
         />
     </div>

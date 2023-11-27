@@ -108,6 +108,16 @@ class IndexController extends Controller
                     "value" => $store->totalSales($newDateStart->startOfDay(), $newDateEnd->endOfDay())
                 ]
             ],
+            "totalSalesCount" => [
+                "current" => [
+                    "title" => 'כמות הזמנות',
+                    "value" => $store->totalSalesCount($dateRange->start, $dateRange->end)
+                ],
+                "previous" => [
+                    "title" => 'תקופה קודמת',
+                    "value" => $store->totalSalesCount($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                ]
+            ],
             "atv" => [
                 "current" => [
                     "title" => 'ממוצע עסקה',
@@ -143,7 +153,7 @@ class IndexController extends Controller
         }
 
         $walkInCount = $opretailApi->getWalkInCount(
-            Carbon::now()->subDays(31)->startOfDay(),
+            Carbon::now()->subDays(26)->startOfDay(),
             Carbon::now()->subDays(1)->endOfDay()
         );
 
@@ -151,18 +161,16 @@ class IndexController extends Controller
             // Set the end date as today
             $endDate = Carbon::today();
             $count = 0;
-            for ($i = 1; $i < 31; $i++) {
+            for ($i = 1; $i < 26; $i++) {
                 $currentDate = $endDate->copy()->subDays($i);
 
                 if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
                     $count++;
                 }
             }
-
             $avg = $walkInCount / $count;
         } else {
-
-            $avg = $walkInCount / 30;
+            $avg = $walkInCount / 25;
         }
         $opretail->cache('avgWalkIn', $avg, 60);
         return round($avg, 0);

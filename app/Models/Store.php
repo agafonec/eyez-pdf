@@ -117,6 +117,21 @@ class Store extends Model
     /**
      * @param null $dateFrom
      * @param null $dateTo
+     * @return int
+     */
+    public function totalSalesCount($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        return $this->orders()
+            ->whereBetween('order_date', [$dateFrom, $dateTo])
+            ->count();
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
      * @return int|mixed
      */
     public function totalItemsSold($dateFrom = null, $dateTo = null)
@@ -151,7 +166,7 @@ class Store extends Model
     {
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
 
-        return $walkInCount ? round($totalOrders / $walkInCount * 100, 2) : 0;
+        return $walkInCount ? round($totalOrders / $walkInCount * 100, 1) : 0;
     }
 
     /**

@@ -18,14 +18,14 @@
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <OpretailnformationForm  :opretail="opretail"/>
-                </div>
-
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <WorkingDays :workdays="opretail.workdays"/>
                 </div>
 
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                <div v-if="false" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <OpretailnformationForm  :opretail="opretail"/>
+                </div>
+
+                <div v-if="false" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <ApiToken :api-token="eyezApiToken"/>
                 </div>
 
@@ -71,6 +71,10 @@ export default {
         },
         eyezApiToken: {
             type: String
+        },
+        showSuperAdmin: {
+            type: Boolean,
+            default: false,
         }
     }
 }

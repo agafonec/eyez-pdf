@@ -14,7 +14,7 @@
                 <div class="text-base md:text-xl text-gray-900 leading-tight flex">{{ stat.current.value.toLocaleString() }}{{ appendToValue }}</div>
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.current.title }}</div>
             </div>
-            <div v-if="stat.previous" :class="[mobileDirection === 'column' ? 'max-md:flex max-md:flex-col-reverse max-md:text-center max-md:items-center' : '']">
+            <div v-if="stat.previous && showLastPeriod" :class="[mobileDirection === 'column' ? 'max-md:flex max-md:flex-col-reverse max-md:text-center max-md:items-center' : '']">
                 <div class="text-base md:text-xl text-gray-900 leading-tight">{{ stat.previous.value.toLocaleString() }}{{ appendToValue }}</div>
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.previous.title }}</div>
             </div>
@@ -37,7 +37,7 @@
                     </div>
                 </div>
             </div>
-            <div v-if="stat.previous">
+            <div v-if="stat.previous && showLastPeriod">
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.previous.title }}</div>
                 <div class="text-base md:text-2xl text-gray-900 leading-tight">{{ stat.previous.value.toLocaleString() }}{{ appendToValue }}</div>
             </div>
@@ -66,6 +66,10 @@ export default {
         iconCircleClass: {
             type: String,
             default: 'bg-gray-100',
+        },
+        showLastPeriod: {
+            type: Boolean,
+            default: true,
         },
         mobileDirection: {
             type: String,

@@ -4,12 +4,12 @@
     <AuthenticatedLayout>
         <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
             <div class="text-center flex justify-center mb-2 gap-4">
-                <PrimaryButton @click="cleareSummaryCache" >דחיפה ידנית</PrimaryButton>
+                <PrimaryButton @click="cleareSummaryCache" >ריענון</PrimaryButton>
                 <json-excel :fetch="fetchExportData"
                             :stringifyLongNum="true"
                             :fields="exportHeaders">
 
-                    <PrimaryButton class="">Export to excel</PrimaryButton>
+                    <PrimaryButton class="">ייצוא לאקסל</PrimaryButton>
                 </json-excel>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
@@ -23,14 +23,16 @@
                                     class="inline-flex items-center bg-transparent
                                     text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                                 >
-                                    <span>{{ currentStore.name }}</span>
+<!--                                    <span>{{ currentStore.name }}</span>-->
+                                    <span>Eyez Store</span>
                                     <svg class="ms-2 -me-0.5 h-8 w-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
                             </span>
                         </template>
 
                         <template #content>
-                            <DropdownLink v-for="store in stores" :href="route('home.show', {storeId: store.dep_id})" align="center"> {{ store.name }} </DropdownLink>
+<!--                            {{ store.name }}-->
+                            <DropdownLink v-for="(store, index) in stores" :href="route('home.show', {storeId: store.dep_id})" align="center">Eyez Store {{ index }}</DropdownLink>
                         </template>
                     </Dropdown>
                 </div>
@@ -109,7 +111,8 @@
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
                             <stat-box :stat="storeSales.atv"
                                       mobile-direction="column"
-                                      append-to-value="₪" i
+                                      :show-last-period="false"
+                                      append-to-value="₪"
                                       con-circle-class="bg-lime-200">
                                 <template #icon>
                                     <icon-book class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -117,6 +120,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.totalSales"
                                       mobile-direction="column"
+                                      :show-last-period="false"
                                       append-to-value="₪"
                                       icon-circle-class="bg-rose-200">
                                 <template #icon>
@@ -125,6 +129,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.itemsSold"
                                       mobile-direction="column"
+                                      :show-last-period="false"
                                       icon-circle-class="bg-green-50">
                                 <template #icon>
                                     <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -132,7 +137,16 @@
                             </stat-box>
                             <stat-box :stat="storeSales.closeRate"
                                       mobile-direction="column"
+                                      :show-last-period="false"
                                       append-to-value="%"
+                                      icon-circle-class="bg-amber-200">
+                                <template #icon>
+                                    <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                </template>
+                            </stat-box>
+                            <stat-box :stat="storeSales.totalSalesCount"
+                                      mobile-direction="column"
+                                      :show-last-period="false"
                                       icon-circle-class="bg-amber-200">
                                 <template #icon>
                                     <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -141,9 +155,18 @@
                         </div>
 
                         <div class="mt-5">
+
                             <div class="grid grid-cols-2 gap-5 mb-5 bg-white p-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-4 md:gap-x-2 md:gap-y-5">
+                                <label class="flex items-center col-span-2 md:col-span-4">
+                                    <Checkbox name="toggle_past_period"
+                                              v-model:checked="showPastPeriod" />
+
+                                    <span class="ms-2 text-sm text-gray-600">Show Past Period</span>
+                                </label>
+
                                 <chart-stat-box v-for="stat in lineChartHistory"
                                                 :stat="stat"
+                                                :show-past-period="showPastPeriod"
                                                 :class="['max-md:w-full max-md:bg-gray-50 max-md:p-4 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
                                 />
                             </div>
@@ -211,6 +234,7 @@ import SecondaryButton from '@/Components/SecondaryButton.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import JsonExcel from "vue-json-excel3";
+import Checkbox from '@/Components/Checkbox.vue';
 
 let donutSettings = {
     chart: {
@@ -291,7 +315,8 @@ export default {
         SecondaryButton,
         AuthenticatedLayout,
         Head,
-        JsonExcel
+        JsonExcel,
+        Checkbox
     },
     props: {
         reportType: {
@@ -333,6 +358,7 @@ export default {
                 "Close Rate(%)": "closeRate",
                 "ATV": "atv"
             },
+            showPastPeriod: false,
             pickerRange: {
                 start: this.storeData ? this.storeData?.dateFrom : new Date(),
                 end: this.storeData ? this.storeData?.dateTo : new Date()
