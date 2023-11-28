@@ -41,16 +41,13 @@
                         </template>
                     </Dropdown>
                 </div>
-                <div class="end-4 top-4 md:top-0 md:end-0 absolute md:relative ">
+                <div class="hidden end-4 top-4 md:top-0 md:end-0 absolute md:relative md:block">
                     <date-picker style="direction: ltr" v-model.range="pickerRange" mode="date" :popover="false" @update:modelValue="onDateRangeChange">
                         <template #default="{ togglePopover, inputValue, inputEvents }">
-                            <div
-                                class="flex justify-start overflow-hidden"
-                            >
+                            <div class="flex justify-start overflow-hidden" >
                                 <button
                                     class="flex items-center text-white"
-                                    @click="() => togglePopover()"
-                                >
+                                    @click="() => togglePopover()">
                                     <span class="hidden md:block" v-html="dateRangeText()"></span>
                                     <icon-calendar class="mr-4" color="#ffffff"/>
                                 </button>
@@ -62,11 +59,41 @@
                             </div>
                         </template>
                     </date-picker>
-
                 </div>
             </div>
+
+            <div class="md:hidden p-4 bg-white mt-4 rounded-[10px]">
+                <div class="bg-gray-100 rounded-md">
+                    <date-picker style="direction: ltr"
+                                 v-model.range="pickerRange" mode="date"
+                                 :popover="{
+                                  visibility: 'hover-focus',
+                                  placement: 'bottom',
+                                  isInteractive: true,
+                                }"
+                                 align="middle"
+                                 @update:modelValue="onDateRangeChange">
+                        <template #default="{ togglePopover, inputValue, inputEvents }">
+                            <div class="flex justify-center overflow-hidden w-full" >
+                                <button
+                                    class="flex items-center justify-center text-gray-300 w-full py-1.5"
+                                    @click="() => togglePopover()">
+                                    <span v-html="dateRangeText()"></span>
+                                    <icon-calendar class="mr-4"/>
+                                </button>
+                                <input
+                                    :value="inputValue"
+                                    v-on="inputEvents"
+                                    class="flex-grow p-0 bg-white dark:bg-gray-700 opacity-0 w-0"
+                                />
+                            </div>
+                        </template>
+                    </date-picker>
+                </div>
+            </div>
+
             <div class="py-5 md:p-5">
-                <div class="mb-0 md:mb-5 bg-white p-4 rounded-t-[10px] sm:rounded-[10px] flex items-center justify-center flex-col-reverse md:flex-row gap-5 md:gap-10">
+                <div class="mb-0 md:mb-5 bg-white p-4 rounded-t-[10px] sm:rounded-[10px] flex items-center justify-center flex-col md:flex-row gap-5 md:gap-10">
                     <div class="bg-green-100 w-full md:w-1/3 pt-10 pb-4 sm:py-10 rounded-[10px] relative flex justify-center">
                         <div class="flex items-center flex-col pt-8 sm:pt-0 sm:flex-row">
                             <div class="flex items-center">
@@ -114,15 +141,6 @@
                     <div class="md:col-span-5">
                         <div class="grid grid-cols-2 gap-x-5 gap-y-3 relative bg-white p-4 rounded-b-[10px] md:gap-x-10 md:rounded-[10px]">
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
-                            <stat-box :stat="storeSales.atv"
-                                      mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
-                                      append-to-value="₪"
-                                      con-circle-class="bg-lime-200">
-                                <template #icon>
-                                    <icon-book class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
-                                </template>
-                            </stat-box>
                             <stat-box :stat="storeSales.totalSales"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours'"
@@ -130,14 +148,6 @@
                                       icon-circle-class="bg-rose-200">
                                 <template #icon>
                                     <icon-sale class="text-rose-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
-                                </template>
-                            </stat-box>
-                            <stat-box :stat="storeSales.itemsSold"
-                                      mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
-                                      icon-circle-class="bg-green-50">
-                                <template #icon>
-                                    <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
                             <stat-box :stat="storeSales.closeRate"
@@ -155,6 +165,34 @@
                                       icon-circle-class="bg-amber-200">
                                 <template #icon>
                                     <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                </template>
+                            </stat-box>
+                            <stat-box :stat="storeSales.atv"
+                                      mobile-direction="column"
+                                      :show-last-period="reportType === 'hours'"
+                                      append-to-value="₪"
+                                      con-circle-class="bg-lime-200">
+                                <template #icon>
+                                    <icon-book class="text-lime-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                </template>
+                            </stat-box>
+
+                            <stat-box :stat="storeSales.itemsSold"
+                                      mobile-direction="column"
+                                      :show-last-period="reportType === 'hours'"
+                                      icon-circle-class="bg-green-50">
+                                <template #icon>
+                                    <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                </template>
+                            </stat-box>
+
+                            <stat-box :stat="storeSales.productPrice"
+                                      mobile-direction="column"
+                                      :show-last-period="reportType === 'hours'"
+                                      append-to-value="₪"
+                                      icon-circle-class="bg-green-50">
+                                <template #icon>
+                                    <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
                         </div>

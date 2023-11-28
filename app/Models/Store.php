@@ -176,12 +176,12 @@ class Store extends Model
             $totalSales = $this->totalSales($from, $to);
             $totalOrders = $this->totalOrders($from, $to);
 
-            return $totalOrders ? round($totalSales / $totalOrders, 1) : 0;
+            return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
         }
 
         $totalSales = $this->totalSales($dateFrom, $dateTo);
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
-        return $totalOrders ? round($totalSales / $totalOrders, 1) : 0;
+        return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
     }
 
     /**
@@ -197,12 +197,12 @@ class Store extends Model
         if ($average) {
             $totalOrders = $this->totalOrders($dateFrom, $dateTo, true);
 
-            return $walkInCount ? round($totalOrders / $walkInCount * 100, 1) : 0;
+            return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
         }
 
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
 
-        return $walkInCount ? round($totalOrders / $walkInCount * 100, 1) : 0;
+        return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
     }
 
     /**

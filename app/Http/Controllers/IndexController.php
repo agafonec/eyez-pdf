@@ -88,30 +88,45 @@ class IndexController extends Controller
             $this->summary = $store->cached('summary') ?? $currentReport->getSummary($store);
         }
 
+        $itemsSold = $store->totalItemsSold($dateRange->start, $dateRange->end);
+        $avarageItemsSold = $store->totalItemsSold($dateRange->start, $dateRange->end, true);
+
+        $totalSales = $store->totalSales($dateRange->start, $dateRange->end);
+        $avarageTotalSales = $store->totalSales($dateRange->start, $dateRange->end, true);
         $this->storeSalesReport = [
-            "itemsSold" => [
+            "productPrice" => [
                 "current" => [
-                    "title" => 'סה״כ פריטים',
-                    "value" => $store->totalItemsSold($dateRange->start, $dateRange->end)
+                    "title" => 'ממוצע שווי פריט',
+                    "value" => $itemsSold > 0 ? round($totalSales/$itemsSold) : 0
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->totalItemsSold($dateRange->start, $dateRange->end, true)
+                    "value" => $avarageItemsSold > 0 ? round($avarageTotalSales/$avarageItemsSold) : 0
+                ]
+            ],
+            "itemsSold" => [
+                "current" => [
+                    "title" => 'פריטים שנמכרו',
+                    "value" => $itemsSold
+                ],
+                "previous" => [
+                    "title" => 'תקופה קודמת',
+                    "value" => $avarageItemsSold
                 ]
             ],
             "totalSales" => [
                 "current" => [
                     "title" => 'סה"כ מכירה',
-                    "value" => $store->totalSales($dateRange->start, $dateRange->end)
+                    "value" => $totalSales
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->totalSales($dateRange->start, $dateRange->end, true)
+                    "value" => $avarageTotalSales
                 ]
             ],
             "totalSalesCount" => [
                 "current" => [
-                    "title" => 'כמות הזמנות',
+                    "title" => 'עסקאות',
                     "value" => $store->totalOrders($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
@@ -121,7 +136,7 @@ class IndexController extends Controller
             ],
             "atv" => [
                 "current" => [
-                    "title" => 'ממוצע עסקה',
+                    "title" => 'שווי עסקה',
                     "value" => $store->getATV($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
