@@ -120,8 +120,8 @@ class ProfileController extends Controller
     {
         if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
             $settings = $opretail->settings ?? (object)[];
-            $settings->workdays = $request->json('workdays');
-            $settings->ageGroups = $request->json('ageGroups');
+            $settings['workdays'] = $request->json('workdays');
+            $settings['ageGroups'] = $request->json('ageGroups');
 
             $opretail->settings = $settings;
             $opretail->save();
