@@ -18,14 +18,14 @@
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <settings :settings="opretail.settings"/>
+                </div>
+
+                <div v-if="false" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <OpretailnformationForm  :opretail="opretail"/>
                 </div>
 
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <WorkingDays :workdays="opretail.workdays"/>
-                </div>
-
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                <div v-if="false" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <ApiToken :api-token="eyezApiToken"/>
                 </div>
 
@@ -44,7 +44,7 @@ import UpdatePasswordForm from './Partials/UpdatePasswordForm.vue';
 import UpdateProfileInformationForm from './Partials/UpdateProfileInformationForm.vue';
 import { Head } from '@inertiajs/vue3';
 import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
-import WorkingDays from "./Partials/WorkingDays.vue";
+import Settings from "./Partials/Settings.vue";
 import ApiToken from "./Partials/ApiToken.vue";
 
 export default {
@@ -56,7 +56,7 @@ export default {
         UpdateProfileInformationForm,
         Head,
         OpretailnformationForm,
-        WorkingDays,
+        Settings,
         ApiToken
     },
     props: {
@@ -71,6 +71,10 @@ export default {
         },
         eyezApiToken: {
             type: String
+        },
+        showSuperAdmin: {
+            type: Boolean,
+            default: false,
         }
     }
 }

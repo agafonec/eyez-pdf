@@ -35,13 +35,13 @@ trait OpretailHelpers
         foreach ($data as $single) {
             $group = false;
             if ($single['ageDivisionType'] === 0) {
-                $group = 'צעירים';
+                $group = 'earlyYouth';
             } else if ($single['ageDivisionType'] === 1) {
-                $group = 'ילדים';
+                $group = 'youth';
             } else if ($single['ageDivisionType'] === 2) {
-                $group = 'בוגרים';
+                $group = 'middleAge';
             } else if ($single['ageDivisionType'] === 4) {
-                $group = 'מבוגרים';
+                $group = 'elderly';
             }
 
             if ($group) {

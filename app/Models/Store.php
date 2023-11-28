@@ -25,7 +25,7 @@ class Store extends Model
 
     public function opretail()
     {
-        return $this->belongsTo(Opretail::class);
+        return $this->belongsTo(Opretail::class, 'user_id', 'user_id');
     }
 
     public function getID()
@@ -89,14 +89,24 @@ class Store extends Model
      * @param null $dateTo
      * @return int
      */
-    public function totalOrders($dateFrom = null, $dateTo = null)
+    public function totalOrders($dateFrom = null, $dateTo = null, $average = false)
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
 
-        return $this->orders()
-            ->whereBetween('order_date', [$dateFrom, $dateTo])
-            ->count();
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $totalOrders = $this->orders()
+                ->whereBetween('order_date', [$from, $to])
+                ->count();
+            return round($this->getAvarageValue($dateFrom, $totalOrders), 0);
+        } else {
+            return $this->orders()
+                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->count();
+        }
     }
 
     /**
@@ -104,14 +114,25 @@ class Store extends Model
      * @param null $dateTo
      * @return int|mixed
      */
-    public function totalSales($dateFrom = null, $dateTo = null)
+    public function totalSales($dateFrom = null, $dateTo = null, $average = false)
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
 
-        return round( $this->orders()
-            ->whereBetween('order_date', [$dateFrom, $dateTo])
-            ->sum('order_total'), 0);
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $totalSales =$this->orders()
+                ->whereBetween('order_date', [$from, $to])
+                ->sum('order_total');
+
+            return round($this->getAvarageValue($dateFrom, $totalSales), 0);
+        } else {
+            return round($this->orders()
+                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->sum('order_total'), 0);
+        }
     }
 
     /**
@@ -119,14 +140,26 @@ class Store extends Model
      * @param null $dateTo
      * @return int|mixed
      */
-    public function totalItemsSold($dateFrom = null, $dateTo = null)
+    public function totalItemsSold($dateFrom = null, $dateTo = null, $average = false)
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
 
-        return $this->orders()
-            ->whereBetween('order_date', [$dateFrom, $dateTo])
-            ->sum('items_count');
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $itemsCount = $this->orders()
+                ->whereBetween('order_date', [$from, $to])
+                ->sum('items_count');
+
+            return round($this->getAvarageValue($dateFrom, $itemsCount), 0);
+        } else {
+            return $this->orders()
+                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->sum('items_count');
+        }
+
     }
 
     /**
@@ -134,11 +167,21 @@ class Store extends Model
      * @param null $dateTo
      * @return float|int
      */
-    public function getATV($dateFrom = null, $dateTo = null)
+    public function getATV($dateFrom = null, $dateTo = null, $average = false)
     {
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to  = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $totalSales = $this->totalSales($from, $to);
+            $totalOrders = $this->totalOrders($from, $to);
+
+            return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
+        }
+
         $totalSales = $this->totalSales($dateFrom, $dateTo);
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
-        return $totalOrders ? round($totalSales / $totalOrders, 2) : 0 . '%';
+        return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
     }
 
     /**
@@ -147,11 +190,19 @@ class Store extends Model
      * @param $walkInRate
      * @return float|int
      */
-    public function closeRate($dateFrom = null, $dateTo = null, $walkInCount)
+    public function closeRate($dateFrom = null, $dateTo = null, $walkInCount, $average = false)
     {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        if ($average) {
+            $totalOrders = $this->totalOrders($dateFrom, $dateTo, true);
+
+            return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
+        }
+
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
 
-        return $walkInCount ? round($totalOrders / $walkInCount * 100, 2) : 0;
+        return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
     }
 
     /**
@@ -167,4 +218,27 @@ class Store extends Model
         return $this->orders()
             ->whereBetween('order_date', [$dateFrom, $dateTo]);
     }
+
+    public function getAvarageValue($dateFrom, $value)
+    {
+        if (isset($this->opretail?->settings['workdays']) && $workdays = $this->opretail?->settings['workdays']) {
+            // Set the end date as today
+            $endDate = Carbon::parse($dateFrom);
+            $count = 0;
+            for ($i = 1; $i < 26; $i++) {
+                $currentDate = $endDate->copy()->subDays($i);
+
+                if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+                    $count++;
+                }
+            }
+            $avg = $value / $count;
+            \Log::info('avarage', ['avg' => $avg, 'value'=> $value, 'count' => $count]);
+        } else {
+            $avg = $value / 25;
+        }
+
+        return round($avg, 1);
+    }
+
 }

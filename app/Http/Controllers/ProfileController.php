@@ -116,10 +116,14 @@ class ProfileController extends Controller
         return Validator::make($toValidate, $rules);
     }
 
-    public function updateWorkdays(Request $request)
+    public function updateSettings(Request $request)
     {
         if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
-            $opretail->workdays = $request->json('workdays');
+            $settings = $opretail->settings ?? (object)[];
+            $settings->workdays = $request->json('workdays');
+            $settings->ageGroups = $request->json('ageGroups');
+
+            $opretail->settings = $settings;
             $opretail->save();
             return [
                 'errors' => false,

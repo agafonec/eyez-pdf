@@ -22,11 +22,11 @@ class Opretail extends Model
         '_aid',
         'enterpriseId',
         'orgId',
-        'workdays',
+        'settings',
     ];
 
     protected $casts = [
-        'workdays' => 'array',
+        'settings' => 'json',
     ];
 
     /**

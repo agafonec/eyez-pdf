@@ -10,7 +10,7 @@
                 <icon-arrow-down v-else class="text-red-300"/>
             </div>
         </div>
-        <div class="text-gray-200 text-xs leading-tight flex">
+        <div v-if="showPastPeriod" class="text-gray-200 text-xs leading-tight flex">
             <div>{{ stat.previous.title }}</div>
             <div class="mx-1">-</div>
             <div class="font-bold">{{ stat.previous.value }}</div>
@@ -31,6 +31,10 @@ export default {
         IconArrowUp
     },
     props: {
+        showPastPeriod: {
+            type: Boolean,
+            default: false,
+        },
         stat: {
             type: Object,
             default: {
