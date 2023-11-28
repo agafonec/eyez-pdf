@@ -14,7 +14,7 @@
 
                 <json-excel :stringifyLongNum="true"
                             :data="[Object.assign({}, storeData.genderData, storeData.ageData)]">
-                    <PrimaryButton class="">Export Age,genders</PrimaryButton>
+                    <PrimaryButton class="">ייצוא נתונים דמוגרפים</PrimaryButton>
                 </json-excel>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
