@@ -11,6 +11,11 @@
 
                     <PrimaryButton class="">ייצוא לאקסל</PrimaryButton>
                 </json-excel>
+
+                <json-excel :stringifyLongNum="true"
+                            :data="[Object.assign({}, storeData.genderData, storeData.ageData)]">
+                    <PrimaryButton class="">Export Age,genders</PrimaryButton>
+                </json-excel>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
                 <pdf-logo  class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain"/>
@@ -80,7 +85,7 @@
                                     <icon-arrow-up class="text-white sm:text-green-300 w-3 h-5 sm:w-2 sm:h-3.5"/>
                                 </div>
                             </div>
-                            <span v-if="avgWalkIn"
+                            <span v-if="reportType === 'hours'"
                                   class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">
                                 חנות AVG: {{ avgWalkIn }}
                             </span>
@@ -111,7 +116,7 @@
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
                             <stat-box :stat="storeSales.atv"
                                       mobile-direction="column"
-                                      :show-last-period="false"
+                                      :show-last-period="reportType === 'hours'"
                                       append-to-value="₪"
                                       con-circle-class="bg-lime-200">
                                 <template #icon>
@@ -120,7 +125,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.totalSales"
                                       mobile-direction="column"
-                                      :show-last-period="false"
+                                      :show-last-period="reportType === 'hours'"
                                       append-to-value="₪"
                                       icon-circle-class="bg-rose-200">
                                 <template #icon>
@@ -129,7 +134,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.itemsSold"
                                       mobile-direction="column"
-                                      :show-last-period="false"
+                                      :show-last-period="reportType === 'hours'"
                                       icon-circle-class="bg-green-50">
                                 <template #icon>
                                     <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -137,7 +142,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.closeRate"
                                       mobile-direction="column"
-                                      :show-last-period="false"
+                                      :show-last-period="reportType === 'hours'"
                                       append-to-value="%"
                                       icon-circle-class="bg-amber-200">
                                 <template #icon>
@@ -146,7 +151,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.totalSalesCount"
                                       mobile-direction="column"
-                                      :show-last-period="false"
+                                      :show-last-period="reportType === 'hours'"
                                       icon-circle-class="bg-amber-200">
                                 <template #icon>
                                     <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -342,11 +347,19 @@ export default {
         },
         storeSales: {
             type: [Object, Array]
+        },
+        settings: {
+            type: [Object, Array],
+            default: {
+                earlyYouth: 'Early Youth',
+                youth: 'Youth',
+                middleAge: 'Middle Aged',
+                elderly: 'Elderly'
+            },
         }
     },
     data() {
-        console.log(this.storeData.hourlyWalkIn);
-
+        console.log(this.settings?.ageGroups);
         return {
             exportHeaders: {
                 "Date": "date",
@@ -368,7 +381,7 @@ export default {
                 series: Object.values(this.storeData.ageData),
                 chartOptions: {
                     ...donutSettings,
-                    labels: Object.keys(this.storeData.ageData),
+                    labels: this.settings?.ageGroups !== undefined ? Object.values(this.settings?.ageGroups) : ['Early Youth','Youth','Middle Aged','Elderly'],
                 }
             },
             pieChartGender: {

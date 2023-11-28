@@ -22,17 +22,17 @@ const showingNavigationDropdown = ref(false);
                         <div class="flex">
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
-                                <Link :href="route('dashboard')">
+                                <Link :href="route('home')">
                                     <pdf-logo width="100" height="50" />
                                 </Link>
                             </div>
+                        </div>
 
-                            <!-- Navigation Links -->
-                            <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">
-                                <NavLink :href="route('home.show')" :active="route().current('home.show')">
-                                    נתוני זמן אמת
-                                </NavLink>
-                            </div>
+                        <!-- Navigation Links -->
+                        <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">
+                            <NavLink :href="route('home.show')" :active="route().current('home.show')">
+                                נתוני זמן אמת
+                            </NavLink>
                         </div>
 
                         <div class="hidden md:flex md:items-center md:ms-6">

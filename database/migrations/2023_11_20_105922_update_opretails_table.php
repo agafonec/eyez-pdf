@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('opretails', function (Blueprint $table) {
-            $table->json('workdays');
+            $table->json('settings')->nullable();
         });
     }
 
@@ -23,7 +23,7 @@ return new class extends Migration
     {
         Schema::table('opretails', function (Blueprint $table) {
             // Reverse the changes made in the 'up' method
-            $table->dropColumn('workdays');
+            $table->dropColumn('settings');
         });
     }
 };

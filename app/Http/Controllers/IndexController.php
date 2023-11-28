@@ -48,7 +48,8 @@ class IndexController extends Controller
             'summary' => $this->summary,
             'avgWalkIn' => $this->avgWalkIn,
             'stores' => $this->user()->stores,
-            'storeSales' => $this->storeSalesReport
+            'storeSales' => $this->storeSalesReport,
+            'settings' => $this->user()?->opretailCredentials?->settings
         ]);
     }
 
@@ -82,9 +83,9 @@ class IndexController extends Controller
             $this->reportType
         );
 
+        $this->avgWalkIn = $this->avgWalkIn($currentReport, $dateRange->start);
         if ($this->reportType !== 'days') {
             $this->summary = $store->cached('summary') ?? $currentReport->getSummary($store);
-            $this->avgWalkIn = $this->avgWalkIn($currentReport);
         }
 
         $this->storeSalesReport = [
@@ -95,7 +96,7 @@ class IndexController extends Controller
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->totalItemsSold($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                    "value" => $store->totalItemsSold($dateRange->start, $dateRange->end, true)
                 ]
             ],
             "totalSales" => [
@@ -105,17 +106,17 @@ class IndexController extends Controller
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->totalSales($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                    "value" => $store->totalSales($dateRange->start, $dateRange->end, true)
                 ]
             ],
             "totalSalesCount" => [
                 "current" => [
                     "title" => 'כמות הזמנות',
-                    "value" => $store->totalSalesCount($dateRange->start, $dateRange->end)
+                    "value" => $store->totalOrders($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->totalSalesCount($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                    "value" => $store->totalOrders($dateRange->start, $dateRange->end, true)
                 ]
             ],
             "atv" => [
@@ -125,7 +126,7 @@ class IndexController extends Controller
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->getATV($newDateStart->startOfDay(), $newDateEnd->endOfDay())
+                    "value" => $store->getATV($dateRange->start, $dateRange->end, true)
                 ]
             ],
             "closeRate" => [
@@ -135,7 +136,7 @@ class IndexController extends Controller
                 ],
                 "previous" => [
                     "title" => 'תקופה קודמת',
-                    "value" => $store->closeRate($newDateStart->startOfDay(), $newDateEnd->endOfDay(), $this->previousReport?->walkInCount)
+                    "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->avgWalkIn, true)
                 ]
             ]
         ];
@@ -145,19 +146,20 @@ class IndexController extends Controller
      * @param OpretailApi $opretailApi
      * @return float
      */
-    private function avgWalkIn(OpretailApi $opretailApi)
+    private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
     {
         $opretail = $this->user()?->opretailCredentials;
-        if ($avg = $opretail->cached('avgWalkIn')) {
-            return  round($avg, 0);
-        }
+//        if ($avg = $opretail->cached('avgWalkIn')) {
+//            return  round($avg, 0);
+//        }
 
         $walkInCount = $opretailApi->getWalkInCount(
-            Carbon::now()->subDays(26)->startOfDay(),
-            Carbon::now()->subDays(1)->endOfDay()
+            Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay(),
+            Carbon::parse($dateFrom)->subDays(1)->endOfDay()
         );
 
-        if ($workdays = $opretail?->workdays) {
+        \Log::info('opretail settings', ['settings' => $opretail?->settings]);
+        if (isset($opretail?->settings['workdays']) && $workdays = $opretail?->settings['workdays']) {
             // Set the end date as today
             $endDate = Carbon::today();
             $count = 0;
@@ -172,7 +174,7 @@ class IndexController extends Controller
         } else {
             $avg = $walkInCount / 25;
         }
-        $opretail->cache('avgWalkIn', $avg, 60);
+//        $opretail->cache('avgWalkIn', $avg, 60);
         return round($avg, 0);
     }
 
