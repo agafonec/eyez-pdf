@@ -33,6 +33,9 @@ const showingNavigationDropdown = ref(false);
                             <NavLink :href="route('home.show')" :active="route().current('home.show')">
                                 נתוני זמן אמת
                             </NavLink>
+                            <NavLink :href="route('view.orders-import')" :active="route().current('view.orders-import')">
+                                Import Orders
+                            </NavLink>
                         </div>
 
                         <div class="hidden md:flex md:items-center md:ms-6">
