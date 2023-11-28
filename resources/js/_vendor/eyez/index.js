@@ -12,6 +12,8 @@ import IconWarning from './icons/icon-warning/icon-warning.vue'
 import StatBox from './stat-box/stat-box.vue'
 import ChartStatBox from './chart-stat-box/chart-stat-box.vue'
 
+import BaseSelect from './base-select/base-select.vue'
+
 export {
     PdfLogo,
     IconCalendar,
@@ -23,5 +25,6 @@ export {
     IconBags,
     IconWarning,
     StatBox,
-    ChartStatBox
+    ChartStatBox,
+    BaseSelect
 }

@@ -204,7 +204,7 @@
                                     <Checkbox name="toggle_past_period"
                                               v-model:checked="showPastPeriod" />
 
-                                    <span class="ms-2 text-sm text-gray-600">Show Past Period</span>
+                                    <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
                                 </label>
 
                                 <chart-stat-box v-for="stat in lineChartHistory"

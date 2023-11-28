@@ -35,8 +35,12 @@ Route::middleware('auth')->group(function () {
         $router->post('/clear-summary')->uses('IndexController@clearStoreCache')->name('summary.clear-cache');
 
         $router->get('/dashboard')->uses('IndexController@show')->name('home.show');
+        $router->get('/importOrders')->uses('ImportController@ordersView')->name('view.orders-import');
 
         $router->post('/export-report/{store}')->uses('ExportDataController@getReportHistory')->name('report.export');
+        $router->post('/import-orders')->uses('ImportController@orders')->name('orders.import');
+
+        $router->get('/download-file/{file}')->uses('ImportController@downloadFile')->name('orders.import.sample');
     });
 
 
