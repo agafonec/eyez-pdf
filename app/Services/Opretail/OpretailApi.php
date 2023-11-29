@@ -29,11 +29,11 @@ class OpretailApi
         return auth()->user() ?? request()->user() ?? null;
     }
 
-    public function getReport($store, $dateFrom, $dateTo, $reportType)
+    public function getReport($stores, $dateFrom, $dateTo, $reportType)
     {
         $this->dateFrom = $dateFrom;
         $this->dateTo = $dateTo;
-        $this->storeId = $store->dep_id;
+        $this->stores = $stores;
         $this->reportType = $reportType;
 
         $this->walkInCount = $this->getWalkInCount();
@@ -43,12 +43,11 @@ class OpretailApi
         return $this;
     }
 
-    public function getSummary($store)
+    public function getSummary($stores)
     {
-        $this->storeId = $store->dep_id;
+        $this->stores = $stores;
 
         $summary = [
-//                "today" => $this->getWalkInCount(Carbon::now()->startOfDay(), Carbon::now()->endOfDay()),
             "week" => [
                 "current" => [
                     "title" => "השבוע",
@@ -99,7 +98,8 @@ class OpretailApi
             ],
         ];
 
-        $store->cache('summary', $summary, 60);
+        if (!is_array($stores))
+            $stores->cache('summary', $summary, 60);
 
         return $summary;
     }
@@ -219,30 +219,56 @@ class OpretailApi
     }
 
     /**
+     * @param null $dateFrom
+     * @param null $dateTo
      * @return array|\Illuminate\Http\JsonResponse|mixed
      */
     public function getWalkInCount($dateFrom = null, $dateTo = null)
     {
-        $data = [
-            "depId" => $this->storeId,
-            "startTime" => date('Y-m-d H:i:s', strtotime($dateFrom ?? $this->dateFrom)),
-            "endTime" => date('Y-m-d H:i:s', strtotime($dateTo ?? $this->dateTo))
-        ];
+        if (!is_array($this->stores)) {
+            $data = [
+                "depId" => $this->stores->dep_id,
+                "startTime" => date('Y-m-d H:i:s', strtotime($dateFrom ?? $this->dateFrom)),
+                "endTime" => date('Y-m-d H:i:s', strtotime($dateTo ?? $this->dateTo))
+            ];
 
+            return $this->getSingleWalkInCount($data);
+        } else {
+            $response = 0;
+
+            foreach ($this->stores as $store) {
+                $data = [
+                    "depId" => $store,
+                    "startTime" => date('Y-m-d H:i:s', strtotime($dateFrom ?? $this->dateFrom)),
+                    "endTime" => date('Y-m-d H:i:s', strtotime($dateTo ?? $this->dateTo))
+                ];
+                $count = $this->getSingleWalkInCount($data);
+
+                if (!isset($count['error'])) {
+                    $response += $count;
+                } else {
+                    return $count;
+                }
+            }
+
+            return $response;
+        }
+    }
+
+    protected function getSingleWalkInCount($data)
+    {
         $params = $this->getRqParams('open.shopweb.passengerFlow.getPassengerIndicatorData', $data, "POST");
 
-        $response = Http::withHeaders(["authenticator" =>$this->token])
-                        ->accept('application/x-www-form-urlencoded')
-                        ->get($this->host . '?' . http_build_query((array)$params));
-
+        $response = Http::withHeaders(["authenticator" => $this->token])
+            ->accept('application/x-www-form-urlencoded')
+            ->get($this->host . '?' . http_build_query((array)$params));
 
         if ($response->successful()) {
-
             return $response->json('data.passengerFlow');
         } else {
             \Log::info('Opretail error', ['error' => $response->status()] );
 
-            return response()->json(['error' => 'Opretail API request failed'], $response->status());
+            return ['error' => 'Opretail API request failed'];
         }
     }
 
@@ -250,7 +276,7 @@ class OpretailApi
     {
         $params = $this->getRqParams('open.shopweb.departments.getDeptListByPage', [], "POST");
 
-        $response = Http::withHeaders(["authenticator" =>$this->token])
+        $response = Http::withHeaders(["authenticator" => $this->token])
             ->accept('application/x-www-form-urlencoded')
             ->get($this->host . '?' . http_build_query((array)$params));
 
@@ -269,8 +295,14 @@ class OpretailApi
      */
     public function getStoreData()
     {
+        if (!is_array($this->stores)) {
+            $storeIds = "S_{$this->stores->dep_id}";
+        } else {
+            $ids = implode(',S_', $this->stores);
+            $storeIds = "S_{$ids}";
+        }
         $data = [
-            "id" => "S_{$this->storeId}",
+            "id" => $storeIds,
             "startTime" => date('Y-m-d H:i:s', strtotime($this->dateFrom)),
             "endTime" => date('Y-m-d H:i:s', strtotime($this->dateTo)),
             "timeType" => 1,
@@ -284,7 +316,14 @@ class OpretailApi
 
         if ($response->successful()) {
             $storeData = $response->json('data');
-            $this->hourlyWalkIn = $this->mapHourlyWalkIn($storeData[0]['dataList'], $this->reportType);
+            $hourlyWalkIn = [];
+
+            foreach ($storeData as $data) {
+                $hourlyWalkIn = array_merge($hourlyWalkIn, $data['dataList']);
+            }
+
+
+            $this->hourlyWalkIn = $this->mapHourlyWalkIn($hourlyWalkIn);
 
             return $response->json();
         } else {
@@ -294,10 +333,20 @@ class OpretailApi
         }
     }
 
+    /**
+     * @return array|\Illuminate\Http\JsonResponse|mixed
+     */
     public function getAgeGenderData()
     {
+        if (!is_array($this->stores)) {
+            $storeIds = "S_{$this->stores->dep_id}";
+        } else {
+            $ids = implode(',S_', $this->stores);
+            $storeIds = "S_{$ids}";
+        }
+
         $data = [
-            "id" => "S_{$this->storeId}",
+            "id" => $storeIds,
             "stime" => date('Y-m-d H:i:s', strtotime($this->dateFrom)),
             "etime" => date('Y-m-d H:i:s', strtotime($this->dateTo)),
             "startHour" => 1,
@@ -324,37 +373,6 @@ class OpretailApi
             return response()->json(['error' => 'Opretail API request failed'], $response->status());
         }
     }
-
-    public function salesByDay()
-    {
-        $data = [
-            "enterpriseId" => $this->opretailCredentials->enterpriseId,
-            "orgId" => $this->opretailCredentials->orgId,
-            "id" => "S_{$this->storeId}",
-            "stime" => date('Y-m-d H:i:s', strtotime($this->dateFrom)),
-            "etime" => date('Y-m-d H:i:s', strtotime($this->dateTo)),
-            "startHour" => 1,
-            "endHour" => 23
-        ];
-
-        $params = $this->getRqParams('open.ovopark.pos.reportSales', $data, "GET");
-
-
-        $response = Http::withHeaders(["authenticator" =>$this->token])
-            ->accept('application/x-www-form-urlencoded')
-            ->get($this->host . '?' . http_build_query((array)$params));
-
-
-        if ($response->successful()) {
-            \Log::info('successfull opretail response', ['opretail' => $response->json()] );
-            return $response->json();
-        } else {
-            \Log::info('Opretail error', ['error' => $response->status()] );
-
-            return response()->json(['error' => 'Opretail API request failed'], $response->status());
-        }
-    }
-
 
     public function sendOrder($order = []) {
         $opretail_json = [];

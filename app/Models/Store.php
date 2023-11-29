@@ -123,7 +123,7 @@ class Store extends Model
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
 
-            $totalSales =$this->orders()
+            $totalSales = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
                 ->sum('order_total');
 
@@ -159,7 +159,6 @@ class Store extends Model
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
                 ->sum('items_count');
         }
-
     }
 
     /**
@@ -185,9 +184,10 @@ class Store extends Model
     }
 
     /**
+     * @param $walkInCount
      * @param null $dateFrom
      * @param null $dateTo
-     * @param $walkInRate
+     * @param false $average
      * @return float|int
      */
     public function closeRate($walkInCount, $dateFrom = null, $dateTo = null, $average = false)
@@ -233,12 +233,10 @@ class Store extends Model
                 }
             }
             $avg = $value / $count;
-            \Log::info('avarage', ['avg' => $avg, 'value'=> $value, 'count' => $count]);
         } else {
             $avg = $value / 25;
         }
 
         return round($avg, 1);
     }
-
 }

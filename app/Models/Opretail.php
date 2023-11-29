@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 /**
@@ -90,5 +91,174 @@ class Opretail extends Model
         }
 
         return $this;
+    }
+
+    /**
+     * @return mixed[]
+     */
+    public function getStoreIdsArray()
+    {
+        return $this->stores()->pluck('id')->toArray();
+    }
+
+    public function allStoresOrders()
+    {
+        return Order::whereIn('store_id', $this->getStoreIdsArray());
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return int
+     */
+    public function totalOrders($dateFrom = null, $dateTo = null, $average = false)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $totalOrders = $this->allStoresOrders()
+                ->whereBetween('order_date', [$from, $to])
+                ->count();
+            return round($this->getAvarageValue($dateFrom, $totalOrders), 0);
+        } else {
+            return $this->allStoresOrders()
+                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->count();
+        }
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return int|mixed
+     */
+    public function totalSales($dateFrom = null, $dateTo = null, $average = false)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $totalSales = $this->allStoresOrders()
+                ->whereBetween('order_date', [$from, $to])
+                ->sum('order_total');
+
+            return round($this->getAvarageValue($dateFrom, $totalSales), 0);
+        } else {
+            return round($this->allStoresOrders()
+                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->sum('order_total'), 0);
+        }
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return int|mixed
+     */
+    public function totalItemsSold($dateFrom = null, $dateTo = null, $average = false)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $itemsCount = $this->allStoresOrders()
+                ->whereBetween('order_date', [$from, $to])
+                ->sum('items_count');
+
+            return round($this->getAvarageValue($dateFrom, $itemsCount), 0);
+        } else {
+            return $this->allStoresOrders()
+                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->sum('items_count');
+        }
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return float|int
+     */
+    public function getATV($dateFrom = null, $dateTo = null, $average = false)
+    {
+        if ($average) {
+            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+            $to  = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+
+            $totalSales = $this->totalSales($from, $to);
+            $totalOrders = $this->totalOrders($from, $to);
+
+            return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
+        }
+
+        $totalSales = $this->totalSales($dateFrom, $dateTo);
+        $totalOrders = $this->totalOrders($dateFrom, $dateTo);
+        return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
+    }
+
+    /**
+     * @param $walkInCount
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @param false $average
+     * @return float|int
+     */
+    public function closeRate($walkInCount, $dateFrom = null, $dateTo = null, $average = false)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        if ($average) {
+            $totalOrders = $this->totalOrders($dateFrom, $dateTo, true);
+
+            return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
+        }
+
+        $totalOrders = $this->totalOrders($dateFrom, $dateTo);
+
+        return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
+    }
+
+    /**
+     * @param null $dateFrom
+     * @param null $dateTo
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function ordersByDate($dateFrom = null, $dateTo = null)
+    {
+        $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
+        $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+
+        return $this->allStoresOrders()
+            ->whereBetween('order_date', [$dateFrom, $dateTo]);
+    }
+
+    public function getAvarageValue($dateFrom, $value)
+    {
+        if (isset($this->settings['workdays']) && $workdays = $this->settings['workdays']) {
+            // Set the end date as today
+            $endDate = Carbon::parse($dateFrom);
+            $count = 0;
+            for ($i = 1; $i < 26; $i++) {
+                $currentDate = $endDate->copy()->subDays($i);
+
+                if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+                    $count++;
+                }
+            }
+            $avg = $value / $count;
+        } else {
+            $avg = $value / 25;
+        }
+
+        return round($avg, 1);
     }
 }

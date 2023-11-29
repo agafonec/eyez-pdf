@@ -29,7 +29,8 @@
                                     text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                                 >
 <!--                                    <span>{{ currentStore.name }}</span>-->
-                                    <span>Eyez Store</span>
+                                    <span v-if="currentStore.id !== undefined">Eyez Store</span>
+                                    <span v-else>All stores</span>
                                     <svg class="ms-2 -me-0.5 h-8 w-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
                             </span>
@@ -37,7 +38,8 @@
 
                         <template #content>
 <!--                            {{ store.name }}-->
-                            <DropdownLink v-for="(store, index) in stores" :href="route('home.show', {storeId: store.dep_id})" align="center">Eyez Store {{ index }}</DropdownLink>
+                            <DropdownLink v-for="(store, index) in stores" :href="route('home.show', {stores: store.dep_id})" align="center">Eyez Store {{ index }}</DropdownLink>
+                            <DropdownLink :href="route('home.show', {stores: stores.map(obj => obj.dep_id).join(',')})" align="center">All stores</DropdownLink>
                         </template>
                     </Dropdown>
                 </div>
@@ -378,7 +380,7 @@ export default {
             type: Number,
         },
         currentStore: {
-            type: [Object, Array]
+            type: [Object, Array, String]
         },
         prevStoreData: {
             type: [Object, Array]
@@ -575,13 +577,15 @@ export default {
         async fetchExportData() {
             let exportData = [];
 
-            await axios.post(route('report.export', {store: this.currentStore.id}), {
+            await axios.post(route('report.export', {
+                store: this.currentStore.id !== undefined ? this.currentStore.id : this.currentStore
+            }), {
                 dateFrom: this.storeData?.dateFrom,
                 dateTo: this.storeData?.dateTo,
             })
             .then(response => {
                 let orders = response.data.orders;
-                if (this.reportType === 'days') {
+                if (this.reportType === 'days' || this.currentStore.id !== undefined) {
                     const walkinByDate = this.storeData.hourlyWalkIn.reduce((accumulator, obj) => {
                         const key = obj.date;
                         if (!accumulator[key]) {
@@ -627,14 +631,15 @@ export default {
 
                 let ordersCount = matchingOrders.length;
                 let excelRow = {
+                    "storeName": "",
                     "date": selectedDate,
                     "time": walkIn.time,
                     "walkInCount": walkIn.passengerFlow,
-                    "salesTotal": totalSales + '₪',
+                    "salesTotal": totalSales,
                     "itemsCount": itemsCount,
                     "ordersCount": ordersCount,
                     "closeRate": (ordersCount > 0 ? parseFloat(ordersCount / walkIn.passengerFlow * 100).toFixed(1) : 0) + '%',
-                    "atv": (ordersCount > 0 ? parseFloat(totalSales / ordersCount).toFixed(1) : 0) + '₪',
+                    "atv": (ordersCount > 0 ? parseFloat(totalSales / ordersCount).toFixed(1) : 0),
                 }
                 exportData.push(excelRow);
             })
@@ -643,7 +648,7 @@ export default {
         },
         cleareSummaryCache() {
             axios.post(route('summary.clear-cache'), {
-                storeId: this.currentStore.dep_id,
+                storeId: this.currentStore.dep_id ?? null,
             })
             .then(response => {
                 alert(response.data.message);
@@ -652,8 +657,9 @@ export default {
             })
         },
         onDateRangeChange(dateRange) {
+            console.log(this.currentStore.dep_id,  this.currentStore)
             this.$inertia.visit(route('home.show', {
-                storeId: this.currentStore.dep_id,
+                stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
                 dateTo: moment(dateRange.end).format('YYYY-MM-DD')
             }))
@@ -672,28 +678,14 @@ export default {
             return previous === 0 ? '100%' :( (difference / previous ) * 100).toFixed(1) + '%'
         },
         lineChartCategories() {
-            if (this.reportType === 'days') {
-                return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
-            } else {
-                return this.storeData.hourlyWalkIn.map((obj) => obj.time).concat(
-                    this.prevStoreData.hourlyWalkIn.map((obj) => obj.time).filter((item) => {
-                        return this.storeData.hourlyWalkIn.findIndex((obj) => obj.time === item) === -1
-                    })
-                ).sort()
-            }
+            return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
         },
         lineChartArray(main) {
-            if (this.reportType === 'days') {
-                return this.lineChartCategories().map(time => {
-                    return main.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
-                        return accumulator + currentValue.passengerFlow;
-                    }, 0);
-                })
-            } else {
-                return this.lineChartCategories().map(time => {
-                    return main.find(obj => obj.time === time)?.passengerFlow || 0;
-                })
-            }
+            return this.lineChartCategories().map(time => {
+                return main.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                    return accumulator + currentValue.passengerFlow;
+                }, 0);
+            })
         }
     },
     computed: {
@@ -701,7 +693,6 @@ export default {
             const prevStoreData = this.prevStoreData.hourlyWalkIn;
             const currentStoreData = this.storeData.hourlyWalkIn;
 
-            if (this.reportType === 'days') {
                 return this.lineChartCategories().map(time => {
                     return {
                         current: {
@@ -718,22 +709,6 @@ export default {
                         }
                     }
                 })
-            } else {
-                return currentStoreData.map((obj) => {
-                    let prevData = prevStoreData.find((prevObj) => obj.time == prevObj.time)
-                    // console.log(prevData, obj)
-                    return {
-                        current: {
-                            title: obj.time,
-                            value: obj.passengerFlow
-                        },
-                        previous: {
-                            title: 'יום אחרון',
-                            value: prevData?.passengerFlow || 0
-                        }
-                    }
-                })
-            }
         }
     }
 }

@@ -35,13 +35,18 @@ class IndexController extends Controller
             return redirect('profile');
         }
 
-        $store = $request->has('storeId')
-            ? Store::where('dep_id', $request->query('storeId'))->first()
-            : $this->user()->opretailCredentials->stores->last();
+        // It can be one or multiple stores.
+        if ($request->has('stores')) {
+            $query = $request->query('stores');
 
-        $this->getReportData($request, $store);
-        return Inertia::render('Home', [
-            'currentStore' => $store,
+            $currentStore = str_contains($query, ',') ? explode(',', $query) : Store::where('dep_id', $query)->first();
+        } else {
+            $currentStore = $this->user()->opretailCredentials->stores->last();
+        }
+
+        $this->getReportData($request, $currentStore);
+        $homeParams = [
+            'currentStore' => is_array($currentStore) ? implode(',', $currentStore) : $currentStore,
             'reportType' => $this->reportType,
             'storeData' => $this->currentReport,
             'prevStoreData' => $this->previousReport,
@@ -50,13 +55,15 @@ class IndexController extends Controller
             'stores' => $this->user()->stores,
             'storeSales' => $this->storeSalesReport,
             'settings' => $this->user()?->opretailCredentials?->settings
-        ]);
+        ];
+//        \Log::info('Home params', $homeParams);
+        return Inertia::render('Home', $homeParams);
     }
 
     /**
      * @param Request $request
      */
-    protected function getReportData(Request $request, Store $store)
+    protected function getReportData(Request $request, Store|array $stores)
     {
         $this->reportType = 'hours';
         $opretail = $this->user()->opretailCredentials;
@@ -66,7 +73,7 @@ class IndexController extends Controller
 
         $currentReport = new OpretailApi($opretail);
         $this->currentReport = $currentReport->getReport(
-            $store,
+            $stores,
             $dateRange->start,
             $dateRange->end,
             $this->reportType
@@ -77,7 +84,7 @@ class IndexController extends Controller
 
         $previousReport = new OpretailApi($opretail);
         $this->previousReport = $previousReport->getReport(
-            $store,
+            $stores,
             $newDateStart->startOfDay(),
             $newDateEnd->endOfDay(),
             $this->reportType
@@ -85,15 +92,36 @@ class IndexController extends Controller
 
         $this->avgWalkIn = $this->avgWalkIn($currentReport, $dateRange->start);
         if ($this->reportType !== 'days') {
-            $this->summary = $store->cached('summary') ?? $currentReport->getSummary($store);
+            if (!is_array($stores)) {
+                $this->summary = $stores->cached('summary') ?? $currentReport->getSummary($stores);
+            } else {
+                $this->summary = $currentReport->getSummary($stores);
+
+            }
+        } else {
+
         }
 
-        $itemsSold = $store->totalItemsSold($dateRange->start, $dateRange->end);
-        $avarageItemsSold = $store->totalItemsSold($dateRange->start, $dateRange->end, true);
+        $this->storeSalesReport = $this->getSalesReport(
+            $stores,
+            $dateRange,
+            $this->currentReport?->walkInCount,
+            $this->avgWalkIn
+        );
+    }
 
-        $totalSales = $store->totalSales($dateRange->start, $dateRange->end);
-        $avarageTotalSales = $store->totalSales($dateRange->start, $dateRange->end, true);
-        $this->storeSalesReport = [
+    public function getSalesReport($stores, $dateRange, $walkInCount, $avgWalkIn)
+    {
+        $instance = is_array($stores) ? $this->user()->opretailCredentials : $stores;
+
+        $itemsSold = $instance->totalItemsSold($dateRange->start, $dateRange->end);
+        $avarageItemsSold = $instance->totalItemsSold($dateRange->start, $dateRange->end, true);
+
+        $totalSales = $instance->totalSales($dateRange->start, $dateRange->end);
+        $avarageTotalSales = $instance->totalSales($dateRange->start, $dateRange->end, true);
+
+        \Log::info('instance', ['i' => $instance]);
+        return  [
             "productPrice" => [
                 "current" => [
                     "title" => 'ממוצע שווי פריט',
@@ -127,31 +155,31 @@ class IndexController extends Controller
             "totalSalesCount" => [
                 "current" => [
                     "title" => 'עסקאות',
-                    "value" => $store->totalOrders($dateRange->start, $dateRange->end)
+                    "value" => $instance->totalOrders($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
                     "title" => 'ממוצע',
-                    "value" => $store->totalOrders($dateRange->start, $dateRange->end, true)
+                    "value" => $instance->totalOrders($dateRange->start, $dateRange->end, true)
                 ]
             ],
             "atv" => [
                 "current" => [
                     "title" => 'שווי עסקה',
-                    "value" => $store->getATV($dateRange->start, $dateRange->end)
+                    "value" => $instance->getATV($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
                     "title" => 'ממוצע',
-                    "value" => $store->getATV($dateRange->start, $dateRange->end, true)
+                    "value" => $instance->getATV($dateRange->start, $dateRange->end, true)
                 ]
             ],
             "closeRate" => [
                 "current" => [
                     "title" => 'יחס המרה',
-                    "value" => $store->closeRate($this->currentReport?->walkInCount, $dateRange->start, $dateRange->end)
+                    "value" => $instance->closeRate($walkInCount, $dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
                     "title" => 'ממוצע',
-                    "value" => $store->closeRate($this->avgWalkIn, $dateRange->start, $dateRange->end, true)
+                    "value" => $instance->closeRate($avgWalkIn, $dateRange->start, $dateRange->end, true)
                 ]
             ]
         ];
@@ -199,7 +227,7 @@ class IndexController extends Controller
      */
     public function clearStoreCache(Request $request)
     {
-        $store = $request->has('storeId')
+        $store = $request->has('storeId') && !is_null($request->json('storeId'))
             ? Store::where('dep_id', $request->json('storeId'))->first()
             : $this->user()->opretailCredentials->stores->last();
         $opretail = $this->user()?->opretailCredentials;
