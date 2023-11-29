@@ -190,7 +190,7 @@ class Store extends Model
      * @param $walkInRate
      * @return float|int
      */
-    public function closeRate($dateFrom = null, $dateTo = null, $walkInCount, $average = false)
+    public function closeRate($walkInCount, $dateFrom = null, $dateTo = null, $average = false)
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();

@@ -147,11 +147,11 @@ class IndexController extends Controller
             "closeRate" => [
                 "current" => [
                     "title" => 'יחס המרה',
-                    "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->currentReport?->walkInCount)
+                    "value" => $store->closeRate($this->currentReport?->walkInCount, $dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
                     "title" => 'ממוצע',
-                    "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->avgWalkIn, true)
+                    "value" => $store->closeRate($this->avgWalkIn, $dateRange->start, $dateRange->end, true)
                 ]
             ]
         ];

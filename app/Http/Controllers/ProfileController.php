@@ -22,9 +22,9 @@ class ProfileController extends Controller
      */
     public function edit(Request $request): Response
     {
-        \Log::info($this->user()?->eyez_api_key);
         $profile = [
             'mustVerifyEmail' => $request->user() instanceof MustVerifyEmail,
+            'roles' => $this->user()->getRoleNames(),
             'status' => session('status'),
             'eyezApiToken' => $this->user()?->eyez_api_key ?? ''
         ];
@@ -33,6 +33,7 @@ class ProfileController extends Controller
         } else {
             $profile['opretail']['errors'] = $this->validateOpretail([])->errors();
         }
+
 
         return Inertia::render('Profile/Edit', $profile);
     }

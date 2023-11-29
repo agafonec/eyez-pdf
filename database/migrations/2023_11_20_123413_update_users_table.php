@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('eyez_api_key')->default('');
+            $table->string('eyez_api_key')->nullable();
         });
     }
 
