@@ -39,6 +39,7 @@ Route::middleware('auth')->group(function () {
 
         $router->post('/export-report/{store}')->uses('ExportDataController@getReportHistory')->name('report.export');
         $router->post('/import-orders')->uses('ImportController@orders')->name('orders.import');
+//        $router->post('/get-pdf')->uses('PdfController@downloadPdf')->name('pdf.download');
 
         $router->get('/download-file/{file}')->uses('ImportController@downloadFile')->name('orders.import.sample');
     });
