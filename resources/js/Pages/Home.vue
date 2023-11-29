@@ -2,9 +2,11 @@
     <Head title="נתוני זמן אמת" />
 
     <AuthenticatedLayout>
-        <div class="p-5 max-w-pdf-container mx-auto" dir="rtl">
+        <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
             <div class="text-center flex justify-center mb-2 gap-4">
                 <PrimaryButton @click="cleareSummaryCache" >ריענון</PrimaryButton>
+                <PrimaryButton @click="printPage">Print PDF</PrimaryButton>
+
                 <json-excel :fetch="fetchExportData"
                             :stringifyLongNum="true"
                             :fields="exportHeaders">
@@ -280,6 +282,7 @@ import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import JsonExcel from "vue-json-excel3";
 import Checkbox from '@/Components/Checkbox.vue';
+import html2canvas from 'html2canvas';
 
 let donutSettings = {
     chart: {
@@ -574,6 +577,19 @@ export default {
         }
     },
     methods: {
+        saveImage(data) {
+            // You can save the image data or display it as needed
+            const link = document.createElement('a');
+            link.href = data;
+            link.download = 'eyezDocument.png';
+            link.click();
+        },
+        printPage() {
+            html2canvas(document.documentElement).then(canvas => {
+                const imageData = canvas.toDataURL('image/png');
+                this.saveImage(imageData);
+            });
+        },
         async fetchExportData() {
             let exportData = [];
 

@@ -56,7 +56,7 @@ class IndexController extends Controller
             'storeSales' => $this->storeSalesReport,
             'settings' => $this->user()?->opretailCredentials?->settings
         ];
-//        \Log::info('Home params', $homeParams);
+
         return Inertia::render('Home', $homeParams);
     }
 
@@ -91,15 +91,13 @@ class IndexController extends Controller
         );
 
         $this->avgWalkIn = $this->avgWalkIn($currentReport, $dateRange->start);
+
         if ($this->reportType !== 'days') {
             if (!is_array($stores)) {
                 $this->summary = $stores->cached('summary') ?? $currentReport->getSummary($stores);
             } else {
                 $this->summary = $currentReport->getSummary($stores);
-
             }
-        } else {
-
         }
 
         $this->storeSalesReport = $this->getSalesReport(
@@ -192,9 +190,6 @@ class IndexController extends Controller
     private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
     {
         $opretail = $this->user()?->opretailCredentials;
-//        if ($avg = $opretail->cached('avgWalkIn')) {
-//            return  round($avg, 0);
-//        }
 
         $walkInCount = $opretailApi->getWalkInCount(
             Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay(),
@@ -217,7 +212,7 @@ class IndexController extends Controller
         } else {
             $avg = $walkInCount / 25;
         }
-//        $opretail->cache('avgWalkIn', $avg, 60);
+
         return round($avg, 0);
     }
 
