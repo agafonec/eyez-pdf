@@ -100,7 +100,7 @@ class IndexController extends Controller
                     "value" => $itemsSold > 0 ? round($totalSales/$itemsSold) : 0
                 ],
                 "previous" => [
-                    "title" => 'תקופה קודמת',
+                    "title" => 'ממוצע',
                     "value" => $avarageItemsSold > 0 ? round($avarageTotalSales/$avarageItemsSold) : 0
                 ]
             ],
@@ -110,7 +110,7 @@ class IndexController extends Controller
                     "value" => $itemsSold
                 ],
                 "previous" => [
-                    "title" => 'תקופה קודמת',
+                    "title" => 'ממוצע',
                     "value" => $avarageItemsSold
                 ]
             ],
@@ -120,7 +120,7 @@ class IndexController extends Controller
                     "value" => $totalSales
                 ],
                 "previous" => [
-                    "title" => 'תקופה קודמת',
+                    "title" => 'ממוצע',
                     "value" => $avarageTotalSales
                 ]
             ],
@@ -130,7 +130,7 @@ class IndexController extends Controller
                     "value" => $store->totalOrders($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
-                    "title" => 'תקופה קודמת',
+                    "title" => 'ממוצע',
                     "value" => $store->totalOrders($dateRange->start, $dateRange->end, true)
                 ]
             ],
@@ -140,7 +140,7 @@ class IndexController extends Controller
                     "value" => $store->getATV($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
-                    "title" => 'תקופה קודמת',
+                    "title" => 'ממוצע',
                     "value" => $store->getATV($dateRange->start, $dateRange->end, true)
                 ]
             ],
@@ -150,7 +150,7 @@ class IndexController extends Controller
                     "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->currentReport?->walkInCount)
                 ],
                 "previous" => [
-                    "title" => 'תקופה קודמת',
+                    "title" => 'ממוצע',
                     "value" => $store->closeRate($dateRange->start, $dateRange->end, $this->avgWalkIn, true)
                 ]
             ]

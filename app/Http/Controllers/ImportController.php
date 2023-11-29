@@ -27,7 +27,7 @@ class ImportController extends Controller
 
             Excel::import(new OrdersImport($storeId), $file);
 
-            return ['errors' => false, 'message' => 'Soon all the orders will be updated.'];
+            return ['errors' => false, 'message' => 'בקרוב כל ההזמנות יהיו מעודכנות'];
         } else {
             \Log::info('No file selected');
             return ['errors' => true, 'message' => 'There was no files selected.'];

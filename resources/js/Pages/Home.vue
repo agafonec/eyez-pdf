@@ -397,7 +397,6 @@ export default {
         }
     },
     data() {
-        console.log(this.settings?.ageGroups);
         return {
             exportHeaders: {
                 "Date": "date",
@@ -419,6 +418,7 @@ export default {
                 series: Object.values(this.storeData.ageData),
                 chartOptions: {
                     ...donutSettings,
+                    colors: ['#00E396', '#008FFB', '#FEB019', '#FF4560'],
                     labels: this.settings?.ageGroups !== undefined ? Object.values(this.settings?.ageGroups) : ['Early Youth','Youth','Middle Aged','Elderly'],
                 }
             },
@@ -446,7 +446,42 @@ export default {
                         }
                     },
                     tooltip: {
-                        enabled: false,
+                        enabled: true,
+                        enabledOnSeries: false,
+                        shared: true,
+                        theme: 'dark',
+                        fillSeriesColor: true,
+                        style: {
+                            fontSize: '12px',
+                            fontFamily: undefined
+                        },
+                        x: {
+                            show: true,
+                            format: {
+                                hour: 'HHmm'
+                            },
+                            formatter: (index) =>  {
+                                let values = this.lineChartCategories();
+                                // console.log(this.lineChartCategories())
+                                if (index === 1) {
+                                    return `until ${values[index -1]}`
+                                } else {
+                                    return `${values[index -1]} - ${values[index - 2]}`
+                                }
+                            },
+                        },
+                        y: {
+                            formatter: undefined,
+                            title: {
+                                formatter: (seriesName) => '',
+                            },
+                        },
+                        fixed: {
+                            enabled: false,
+                            position: 'topRight',
+                            offsetX: 0,
+                            offsetY: 0,
+                        },
                     },
                     markers: {
                         size: [5,5],
@@ -479,7 +514,6 @@ export default {
                         labels: {
                             show: true, // Set this to false to hide Y-axis labels
                         },
-                        // categories: ['9:00', '10:00', '11:00', '12:00', '13:00', '14:00', '15:00'],
                         categories: this.lineChartCategories()
                     },
                     yaxis: {

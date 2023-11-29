@@ -34,7 +34,7 @@ const showingNavigationDropdown = ref(false);
                                 נתוני זמן אמת
                             </NavLink>
                             <NavLink :href="route('view.orders-import')" :active="route().current('view.orders-import')">
-                                Import Orders
+                                ייבוא הזמנות
                             </NavLink>
                         </div>
 
@@ -115,8 +115,11 @@ const showingNavigationDropdown = ref(false);
                     class="md:hidden"
                 >
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('dashboard')" :active="route().current('dashboard')">
-                            Dashboard
+                        <ResponsiveNavLink :href="route('home.show')" :active="route().current('home.show')">
+                            נתוני זמן אמת
+                        </ResponsiveNavLink>
+                        <ResponsiveNavLink :href="route('view.orders-import')" :active="route().current('view.orders-import')">
+                            ייבוא הזמנות
                         </ResponsiveNavLink>
                     </div>
 
@@ -147,7 +150,7 @@ const showingNavigationDropdown = ref(false);
             </header>
 
             <!-- Page Content -->
-            <main>
+            <main style="direction: rtl">
                 <slot />
             </main>
         </div>

@@ -1,24 +1,25 @@
 <template>
-    <Head title="Import Orders" />
+    <Head title="ייבוא הזמנות" />
 
     <AuthenticatedLayout>
         <template #header>
-            <h2 class="font-semibold text-xl text-gray-800 leading-tight">Import Orders</h2>
+            <h2 class="font-semibold text-xl text-gray-800 leading-tight">ייבוא הזמנות</h2>
         </template>
 
         <div class="py-12">
             <div class="max-w-7xl mx-auto md:px-6 lg:px-8 space-y-6">
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg grid grid-cols-1 md:grid-cols-2 gap-5">
                     <header class="w-full">
-                        <h2 class="text-lg font-medium text-gray-900">Select file to upload the orders.</h2>
+                        <h2 class="text-lg font-medium text-gray-900">נא לבחור קובץ הזמנות לייבוא</h2>
 
                         <p class="mt-1 text-sm text-gray-600">
-                            Here you can download the
                             <a
                                 href="/download-file/eyez_download_sample.csv"
                                 target="_blank"
                                 download
-                                class="font-semibold underline">export sample.</a>
+                                class="font-semibold underline">
+                            כאן ניתן להוריד תבנית מתאימה להזמנות
+                            </a>
 
                         </p>
                     </header>
@@ -26,13 +27,13 @@
                         <div class="mb-4">
                             <base-select :options="storesOptions"
                                          id="store"
-                                         label="Select Store"
+                                         label="נא לבחור חנות"
                                          :currentValue="selectedStore"
                                          @changed="(data) => form.storeId = data.value"
                             />
                         </div>
                         <div class="mb-4">
-                            <InputLabel for="fileInput" value="Select File" />
+                            <InputLabel for="fileInput" value="נא לבחור קובץ" />
 
                             <input
                                 id="fileInput"
@@ -44,7 +45,7 @@
                             <InputError class="mt-2" :message="form.errors?.orgId" />
                         </div>
                         <div class="flex items-center gap-4">
-                            <PrimaryButton @click="uploadOrders" :disabled="form.processing">Save</PrimaryButton>
+                            <PrimaryButton @click="uploadOrders" :disabled="form.processing">שמירה</PrimaryButton>
 
                             <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
                         </div>
