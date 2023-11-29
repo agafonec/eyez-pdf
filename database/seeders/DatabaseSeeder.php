@@ -3,7 +3,10 @@
 namespace Database\Seeders;
 
 // use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\User;
 use Illuminate\Database\Seeder;
+use Spatie\Permission\Models\Permission;
+use Spatie\Permission\Models\Role;
 
 class DatabaseSeeder extends Seeder
 {
@@ -14,9 +17,19 @@ class DatabaseSeeder extends Seeder
     {
         // \App\Models\User::factory(10)->create();
 
-        // \App\Models\User::factory()->create([
-        //     'name' => 'Test User',
-        //     'email' => 'test@example.com',
-        // ]);
+        $role = Role::create(['name' => 'admin']);
+        $createUsers = Permission::create(['name' => 'create_users']);
+        $updateOpretail = Permission::create(['name' => 'update_opretail']);
+
+        $role->givePermissionTo($createUsers);
+        $role->givePermissionTo($updateOpretail);
+
+        $user = User::whereEmail('admin@admin.com')->first() ?? User::factory([
+            'email' => 'dev@astraverdes.com',
+            'name' => 'Super Admin',
+            'password' => bcrypt('admin112233'),
+        ])->create();
+
+        $user->assignRole('admin');
     }
 }

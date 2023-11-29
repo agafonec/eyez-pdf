@@ -108,7 +108,7 @@
             </Transition>
         </div>
 
-        <p>{{ form.errors }}</p>
+        <p v-if="!typeof form.errors === 'object'">{{form.errors }}</p>
 
     </div>
 </template>

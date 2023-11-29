@@ -11,11 +11,12 @@ class ExportDataController extends Controller
     use HasDateMap;
     public string $reportType;
 
-    public function getReportHistory(Request $request, Store $store)
+    public function getReportHistory(Request $request, Store|string $store)
     {
         $dateRange = $this->getDateRange($request);
-        $orders = $store->ordersByDate($dateRange->start, $dateRange->end)
-                    ->select('order_date', 'items_count', 'order_total')
+        $instance = is_string($store) ? $this->user()->opretailCredentials : $store;
+        $orders = $instance->ordersByDate($dateRange->start, $dateRange->end)
+                    ->select('store_id', 'order_date', 'items_count', 'order_total')
                     ->get();
 
         return ['errors' => false, 'orders' => $orders];
