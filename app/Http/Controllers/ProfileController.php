@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\ProfileUpdateRequest;
 use App\Models\Opretail;
 use App\Models\Store;
+use App\Models\User;
 use App\Services\Opretail\OpretailApi;
 use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
@@ -34,7 +35,6 @@ class ProfileController extends Controller
             $profile['opretail']['errors'] = $this->validateOpretail([])->errors();
         }
 
-
         return Inertia::render('Profile/Edit', $profile);
     }
 
@@ -43,6 +43,7 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
+        \Log::info('request', ['request' => $request->json()->all()]);
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -52,6 +53,45 @@ class ProfileController extends Controller
         $request->user()->save();
 
         return Redirect::route('profile.edit');
+    }
+
+    /**
+     * Update the user's profile information.
+     */
+    public function updateOther(Request $request): RedirectResponse
+    {
+        $validator = $this->validateUser($request);
+
+        if ($validator->fails()) {
+            return ['errors' => $validator->errors()];
+        }
+
+        $user = User::find($request->json('user.id'));
+        $user->fill([
+            'name' => $request->json('name'),
+            'email' => $request->json('email')
+        ]);
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        return Redirect::to("/users/{$user->id}");
+    }
+
+    public function validateUser(Request $request)
+    {
+        // Define validation rules
+        $rules = [
+            'name' => 'required|string',
+            'email' => 'required|email',
+            // Add more validation rules as needed
+        ];
+
+        // Validate the request data
+        return Validator::make($request->all(), $rules);
     }
 
     /**
@@ -65,6 +105,7 @@ class ProfileController extends Controller
         if ($validator->fails()) {
             return ['errors' => $validator->errors()];
         }
+
         if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
             $opretail->update($request->toArray());
         } else {

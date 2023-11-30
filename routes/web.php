@@ -39,14 +39,20 @@ Route::middleware('auth')->group(function () {
 
         $router->post('/export-report/{store}')->uses('ExportDataController@getReportHistory')->name('report.export');
         $router->post('/import-orders')->uses('ImportController@orders')->name('orders.import');
-//        $router->post('/get-pdf')->uses('PdfController@downloadPdf')->name('pdf.download');
 
         $router->get('/download-file/{file}')->uses('ImportController@downloadFile')->name('orders.import.sample');
     });
 
+    Route::group(['middleware' => ['role:admin'], 'namespace' => 'App\Http\Controllers'], function ($router) {
+        $router->get('/users/')->uses('AdminController@users')->name('admin.users');
+        $router->get('/users/{user}')->uses('AdminController@singleUser')->name('admin.single-user');
+        $router->post('/users/{user}/delete')->uses('AdminController@destroyProfile')->name('admin.profile.destroy');
+
+    });
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::patch('/profile-other', [ProfileController::class, 'updateOther'])->name('profile.update.other');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/profile_opretail', [ProfileController::class, 'opretailUpdate'])->name('profile.opretail.update');

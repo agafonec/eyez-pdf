@@ -14,7 +14,7 @@
                         :status="status"
                         class="max-w-xl"
                     />
-                    <UpdatePasswordForm class="max-w-xl"/>
+                    <UpdatePasswordForm class="max-w-xl" :user="mustVerifyEmail"/>
                 </div>
 
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
@@ -22,7 +22,7 @@
                 </div>
 
                 <div v-if="roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <OpretailnformationForm  :opretail="opretail"/>
+                    <OpretailnformationForm :opretail="opretail"/>
                 </div>
 
                 <div v-if="roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
