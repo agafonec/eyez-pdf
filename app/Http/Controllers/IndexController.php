@@ -141,7 +141,7 @@ class IndexController extends Controller
             ],
             "totalSales" => [
                 "current" => [
-                    "title" => 'סה"כ מכירה',
+                    "title" => 'מכירות',
                     "value" => $totalSales
                 ],
                 "previous" => [

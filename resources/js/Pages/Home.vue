@@ -3,20 +3,24 @@
 
     <AuthenticatedLayout>
         <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-            <div class="text-center flex justify-center mb-2 gap-4">
-                <PrimaryButton @click="cleareSummaryCache" >ריענון</PrimaryButton>
-                <PrimaryButton @click="printPage">Print PDF</PrimaryButton>
+            <div class="text-center grid md:grid-cols-4 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
+                <PrimaryButton class="w-full block justify-center h-full"
+                               @click="cleareSummaryCache" >ריענון</PrimaryButton>
+                <PrimaryButton class="w-full block justify-center h-full"
+                               @click="printPage">Print PDF</PrimaryButton>
 
-                <json-excel :fetch="fetchExportData"
+                <json-excel class="w-full block"
+                            :fetch="fetchExportData"
                             :stringifyLongNum="true"
                             :fields="exportHeaders">
 
-                    <PrimaryButton class="">ייצוא לאקסל</PrimaryButton>
+                    <PrimaryButton class="w-full justify-center h-full">ייצוא לאקסל</PrimaryButton>
                 </json-excel>
 
-                <json-excel :stringifyLongNum="true"
+                <json-excel class="w-full block"
+                            :stringifyLongNum="true"
                             :data="[Object.assign({}, storeData.genderData, storeData.ageData)]">
-                    <PrimaryButton class="">ייצוא נתונים דמוגרפים</PrimaryButton>
+                    <PrimaryButton class="w-full justify-center h-full">ייצוא נתונים דמוגרפים</PrimaryButton>
                 </json-excel>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
@@ -46,7 +50,11 @@
                     </Dropdown>
                 </div>
                 <div class="hidden end-4 top-4 md:top-0 md:end-0 absolute md:relative md:block">
-                    <date-picker style="direction: ltr" v-model.range="pickerRange" mode="date" :popover="false" @update:modelValue="onDateRangeChange">
+                    <date-picker style="direction: ltr" v-model.range="pickerRange"
+                                 mode="date"
+                                 :popover="false"
+                                 :max-date="new Date()"
+                                 @update:modelValue="onDateRangeChange">
                         <template #default="{ togglePopover, inputValue, inputEvents }">
                             <div class="flex justify-start overflow-hidden" >
                                 <button
@@ -144,10 +152,16 @@
                 <div class="grid grid-cols-1 md:grid-cols-12 gap-5 justify-center">
                     <div class="md:col-span-5">
                         <div class="grid grid-cols-2 gap-x-5 gap-y-3 relative bg-white p-4 rounded-b-[10px] md:gap-x-10 md:rounded-[10px]">
+                            <label class="flex items-center col-span-2">
+                                <Checkbox name="toggle_past_period"
+                                          v-model:checked="showPastPeriod.salesReport" />
+
+                                <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
+                            </label>
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
                             <stat-box :stat="storeSales.totalSales"
                                       mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
+                                      :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       append-to-value="₪"
                                       icon-circle-class="bg-rose-200">
                                 <template #icon>
@@ -156,7 +170,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.closeRate"
                                       mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
+                                      :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       append-to-value="%"
                                       icon-circle-class="bg-amber-200">
                                 <template #icon>
@@ -165,7 +179,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.totalSalesCount"
                                       mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
+                                      :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       icon-circle-class="bg-amber-200">
                                 <template #icon>
                                     <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -173,7 +187,7 @@
                             </stat-box>
                             <stat-box :stat="storeSales.atv"
                                       mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
+                                      :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       append-to-value="₪"
                                       con-circle-class="bg-lime-200">
                                 <template #icon>
@@ -183,7 +197,7 @@
 
                             <stat-box :stat="storeSales.itemsSold"
                                       mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
+                                      :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       icon-circle-class="bg-green-50">
                                 <template #icon>
                                     <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -192,7 +206,7 @@
 
                             <stat-box :stat="storeSales.productPrice"
                                       mobile-direction="column"
-                                      :show-last-period="reportType === 'hours'"
+                                      :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       append-to-value="₪"
                                       icon-circle-class="bg-green-50">
                                 <template #icon>
@@ -206,14 +220,14 @@
                             <div class="grid grid-cols-2 gap-5 mb-5 bg-white p-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-4 md:gap-x-2 md:gap-y-5">
                                 <label class="flex items-center col-span-2 md:col-span-4">
                                     <Checkbox name="toggle_past_period"
-                                              v-model:checked="showPastPeriod" />
+                                              v-model:checked="showPastPeriod.chartLegend" />
 
                                     <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
                                 </label>
 
                                 <chart-stat-box v-for="stat in lineChartHistory"
                                                 :stat="stat"
-                                                :show-past-period="showPastPeriod"
+                                                :show-past-period="showPastPeriod.chartLegend"
                                                 :class="['max-md:w-full max-md:bg-gray-50 max-md:p-4 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
                                 />
                             </div>
@@ -413,7 +427,10 @@ export default {
                 "Close Rate(%)": "closeRate",
                 "ATV": "atv"
             },
-            showPastPeriod: false,
+            showPastPeriod: {
+                chartLegend: false,
+                salesReport: false,
+            },
             pickerRange: {
                 start: this.storeData ? this.storeData?.dateFrom : new Date(),
                 end: this.storeData ? this.storeData?.dateTo : new Date()

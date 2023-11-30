@@ -25,13 +25,14 @@ const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.a
                             <!-- Logo -->
                             <div class="shrink-0 flex items-center">
                                 <Link :href="route('home')">
-                                    <pdf-logo width="100" height="50" />
+                                    <pdf-logo variant="dark" width="100" height="50" />
                                 </Link>
                             </div>
                         </div>
 
                         <!-- Navigation Links -->
-                        <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">
+<!--                        <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">-->
+                        <div class="flex gap-4 -my-px ms-4 -md:space-x-8 md:-my-px md:ms-10 md:flex">
                             <NavLink v-if="!isAdmin" :href="route('home.show')" :active="route().current('home.show')">
                                 נתוני זמן אמת
                             </NavLink>
