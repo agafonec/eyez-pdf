@@ -24,7 +24,7 @@ class DatabaseSeeder extends Seeder
         $role->givePermissionTo($createUsers);
         $role->givePermissionTo($updateOpretail);
 
-        $user = User::whereEmail('admin@admin.com')->first() ?? User::factory([
+        $user = User::whereEmail('dev@astraverdes.com')->first() ?? User::factory([
             'email' => 'dev@astraverdes.com',
             'name' => 'Super Admin',
             'password' => bcrypt('admin112233'),

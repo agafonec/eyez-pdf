@@ -20,7 +20,7 @@
                     <OpretailnformationForm :opretail="opretail" :user="currentUser"/>
                 </div>
 
-                <div v-if="!opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                <div v-if="roles.includes('admin') && currentUser !== undefined && !opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
                     <settings :settings="opretail.settings" :user="currentUser"/>
                 </div>
 
@@ -28,9 +28,9 @@
                     <ApiToken :api-token="eyezApiToken" :user="currentUser"/>
                 </div>
 
-                <div v-if="!roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <DeleteUserForm class="max-w-xl" :user="currentUser"/>
-                </div>
+<!--                <div v-if="!roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">-->
+<!--                    <DeleteUserForm class="max-w-xl" :user="currentUser"/>-->
+<!--                </div>-->
             </div>
         </div>
     </AuthenticatedLayout>
