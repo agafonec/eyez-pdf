@@ -102,7 +102,7 @@ class Store extends Model
             $totalOrders = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
                 ->count();
-            return round($this->getAvarageValue($dateFrom, $totalOrders), 0);
+            return round($this->getAvarageValue($from, $to, $totalOrders), 0);
         } else {
             return $this->orders()
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
@@ -128,7 +128,7 @@ class Store extends Model
                 ->whereBetween('order_date', [$from, $to])
                 ->sum('order_total');
 
-            return round($this->getAvarageValue($dateFrom, $totalSales), 0);
+            return round($this->getAvarageValue($from, $to, $totalSales), 0);
         } else {
             return round($this->orders()
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
@@ -154,7 +154,7 @@ class Store extends Model
                 ->whereBetween('order_date', [$from, $to])
                 ->sum('items_count');
 
-            return round($this->getAvarageValue($dateFrom, $itemsCount), 0);
+            return round($this->getAvarageValue($from, $to, $itemsCount), 0);
         } else {
             return $this->orders()
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
@@ -198,6 +198,7 @@ class Store extends Model
         if ($average) {
             $totalOrders = $this->totalOrders($dateFrom, $dateTo, true);
 
+            \Log::info('closeRate avarage', ['walk' => $walkInCount, 'to' => $totalOrders]);
             return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
         }
 
@@ -220,15 +221,17 @@ class Store extends Model
             ->whereBetween('order_date', [$dateFrom, $dateTo]);
     }
 
-    public function getAvarageValue($dateFrom, $value)
+    public function getAvarageValue($dateFrom, $dateTo, $value)
     {
         if (isset($this->opretail?->settings['workdays']) && $workdays = $this->opretail?->settings['workdays']) {
             // Set the end date as today
-            $endDate = Carbon::parse($dateFrom);
-            $count = 0;
-            for ($i = 1; $i < 26; $i++) {
-                $currentDate = $endDate->copy()->subDays($i);
+            $endDate = Carbon::parse($dateTo);
+            $startDate = Carbon::parse($dateFrom);
+            $diffInDays = $endDate->diffInDays($startDate);
 
+            $count = 0;
+            for ($i = 0; $i <= $diffInDays; $i++) {
+                $currentDate = $endDate->copy()->subDays($i);
                 if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
                     $count++;
                 }

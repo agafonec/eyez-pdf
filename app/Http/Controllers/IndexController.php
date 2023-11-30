@@ -141,7 +141,7 @@ class IndexController extends Controller
             ],
             "totalSales" => [
                 "current" => [
-                    "title" => 'סה"כ מכירה',
+                    "title" => 'מכירות',
                     "value" => $totalSales
                 ],
                 "previous" => [
@@ -189,7 +189,6 @@ class IndexController extends Controller
     private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
     {
         $opretail = $this->user()?->opretailCredentials;
-
         $walkInCount = $opretailApi->getWalkInCount(
             Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay(),
             Carbon::parse($dateFrom)->subDays(1)->endOfDay()
@@ -197,9 +196,12 @@ class IndexController extends Controller
 
         if (isset($opretail?->settings['workdays']) && $workdays = $opretail?->settings['workdays']) {
             // Set the end date as today
-            $endDate = Carbon::today();
+            $endDate = Carbon::parse($dateFrom)->subDays(1)->startOfMonth();
+            $startDate = Carbon::parse($dateFrom)->subDays(1);
+            $diffInDays = $endDate->diffInDays($startDate);
+
             $count = 0;
-            for ($i = 1; $i < 26; $i++) {
+            for ($i = 0; $i <= $diffInDays; $i++) {
                 $currentDate = $endDate->copy()->subDays($i);
 
                 if ( !in_array($currentDate->dayOfWeek, $workdays) ) {

@@ -9,7 +9,7 @@ import {
     <div class="min-h-screen flex flex-col md:justify-center items-center pt-6 md:pt-0 bg-gray-100">
         <div>
             <Link href="/">
-                <pdf-logo />
+                <pdf-logo variant="dark" />
             </Link>
         </div>
 
