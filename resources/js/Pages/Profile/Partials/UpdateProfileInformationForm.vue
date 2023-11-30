@@ -6,6 +6,10 @@ import TextInput from '@/Components/TextInput.vue';
 import { Link, useForm, usePage } from '@inertiajs/vue3';
 
 defineProps({
+    currentUser: {
+        type: Object,
+        default: null,
+    },
     mustVerifyEmail: {
         type: Boolean,
     },
@@ -13,12 +17,12 @@ defineProps({
         type: String,
     },
 });
-
-const user = usePage().props.auth.user;
+const user = usePage().props.currentUser || usePage().props.auth.user;
 
 const form = useForm({
     name: user.name,
     email: user.email,
+    user: user,
 });
 </script>
 
@@ -26,13 +30,13 @@ const form = useForm({
     <section>
         <header>
             <h2 class="text-lg font-medium text-gray-900">Profile Information</h2>
-
             <p class="mt-1 text-sm text-gray-600">
                 Update your account's profile information and email address.
             </p>
         </header>
 
-        <form @submit.prevent="form.patch(route('profile.update'))" class="mt-6 space-y-6">
+        <form @submit.prevent="usePage().props.currentUser === undefined ? form.patch(route('profile.update')) : form.patch(route('profile.update.other'))" class="mt-6 space-y-6">
+
             <div>
                 <InputLabel for="name" value="Name" />
 

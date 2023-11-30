@@ -10,7 +10,7 @@ class OpretailObserver
     public function creating(Opretail $opretail) {
         $user = Auth::user();
 
-        if ($user) {
+        if ($user && !$user->hasRole('admin')) {
             $opretail->user_id = $user->id;
         }
     }

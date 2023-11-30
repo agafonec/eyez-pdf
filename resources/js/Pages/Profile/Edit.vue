@@ -14,23 +14,22 @@
                         :status="status"
                         class="max-w-xl"
                     />
-                    <UpdatePasswordForm class="max-w-xl"/>
+                    <UpdatePasswordForm class="max-w-xl" :user="mustVerifyEmail"/>
+                </div>
+                <div v-if="roles.includes('admin') && currentUser !== undefined" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <OpretailnformationForm :opretail="opretail" :user="currentUser"/>
                 </div>
 
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <settings :settings="opretail.settings"/>
+                <div v-if="!opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <settings :settings="opretail.settings" :user="currentUser"/>
                 </div>
 
-                <div v-if="roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <OpretailnformationForm  :opretail="opretail"/>
+                <div v-if="roles.includes('admin') && !opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <ApiToken :api-token="eyezApiToken" :user="currentUser"/>
                 </div>
 
-                <div v-if="roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <ApiToken :api-token="eyezApiToken"/>
-                </div>
-
-                <div class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <DeleteUserForm class="max-w-xl" />
+                <div v-if="!roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <DeleteUserForm class="max-w-xl" :user="currentUser"/>
                 </div>
             </div>
         </div>
@@ -62,6 +61,9 @@ export default {
     props: {
         mustVerifyEmail: {
             type: Boolean,
+        },
+        currentUser: {
+            type: Object,
         },
         status: {
             type: String,

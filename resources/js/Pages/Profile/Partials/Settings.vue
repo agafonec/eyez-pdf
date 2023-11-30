@@ -89,6 +89,7 @@ export default {
         TextInput
     },
     props: {
+        user: [Object],
         settings: [Object, Array],
     },
     data() {
@@ -112,9 +113,10 @@ export default {
             this.processing = true
             this.response.message = '';
 
-            axios.post(route('profile.workdays.update'), {
+            axios.post(route('profile.settings.update'), {
                 workdays: this.workDays,
-                ageGroups: this.ageGroups
+                ageGroups: this.ageGroups,
+                user: this.user
             })
             .then(response => {
                 this.processing = false

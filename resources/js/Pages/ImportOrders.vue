@@ -23,7 +23,7 @@
 
                         </p>
                     </header>
-                    <div>
+                    <div v-if="storesOptions.length > 0">
                         <div class="mb-4">
                             <base-select :options="storesOptions"
                                          id="store"
@@ -49,6 +49,9 @@
 
                             <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
                         </div>
+                    </div>
+                    <div v-else class="">
+                        Yout didn't opretail account or you don't have any stores created.
                     </div>
                 </div>
             </div>
@@ -87,10 +90,10 @@ export default {
     },
     data() {
         return {
-            storesOptions: this.mapOptions(),
-            selectedStore: this.mapOptions()[0],
+            storesOptions: this.stores.length > 0 ? this.mapOptions() : [],
+            selectedStore: this.stores.length > 0 ? this.mapOptions()[0] : [],
             form: {
-                storeId: this.mapOptions()[0].value,
+                storeId: this.stores.length > 0 ? this.mapOptions()[0].value : [],
                 file: '',
             },
             response: {

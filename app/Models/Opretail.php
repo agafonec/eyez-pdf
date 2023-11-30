@@ -5,6 +5,8 @@ namespace App\Models;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Crypt;
+
 /**
  * App\Models\Opretail
  *
@@ -16,6 +18,7 @@ class Opretail extends Model
     use HasFactory;
 
     protected $fillable = [
+        'user_id',
         'username',
         'password',
         'secret_key',
@@ -30,6 +33,15 @@ class Opretail extends Model
         'settings' => 'json',
     ];
 
+    public function setPasswordAttribute($value)
+    {
+        $this->attributes['password'] = Crypt::encrypt($value);
+    }
+
+    public function getPasswordAttribute($value)
+    {
+        return Crypt::decrypt($value);
+    }
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

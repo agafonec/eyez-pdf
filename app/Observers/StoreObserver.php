@@ -10,7 +10,7 @@ class StoreObserver
     public function creating(Store $store) {
         $user = Auth::user();
 
-        if ($user) {
+        if ($user && !$user->hasRole('admin')) {
             $store->user_id = $user->id;
         }
     }

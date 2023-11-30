@@ -109,7 +109,6 @@
         </div>
 
         <p v-if="!typeof form.errors === 'object'">{{form.errors }}</p>
-
     </div>
 </template>
 
@@ -129,6 +128,9 @@ export default {
         Link
     },
     props: {
+        user: {
+            type: Object
+        },
         opretail: {
             type: Object,
             default: {
@@ -149,13 +151,21 @@ export default {
     },
     methods: {
         submitForm() {
-            axios.post(route('profile.opretail.update'), this.form)
+            console.log(this.form);
+            delete this.form.errors;
+
+            axios.post(route('profile.opretail.update'), {
+                form: this.form,
+                user: this.user,
+            })
             .then(response => {
+
                 let errors = response.data.errors
                 console.log(errors);
-                delete this.form.errors;
                 if (errors) {
                     this.form.errors = errors
+                } else {
+                    window.location.reload()
                 }
             })
         }
