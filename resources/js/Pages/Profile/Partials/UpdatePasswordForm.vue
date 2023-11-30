@@ -3,13 +3,20 @@ import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
-import { useForm } from '@inertiajs/vue3';
+import { useForm, usePage } from '@inertiajs/vue3';
 import { ref } from 'vue';
 
+defineProps({
+    currentUser: {
+        type: Object,
+        default: null,
+    },
+});
 const passwordInput = ref(null);
 const currentPasswordInput = ref(null);
 
 const form = useForm({
+    user: usePage().props.currentUser,
     current_password: '',
     password: '',
     password_confirmation: '',
@@ -45,7 +52,7 @@ const updatePassword = () => {
 
         <form @submit.prevent="updatePassword" class="mt-6 space-y-6">
             <div>
-                <InputLabel for="current_password" value="Current Password" />
+                <InputLabel for="current_password" :value="usePage().props.currentUser !== undefined ? 'Insert admin password' : 'Current Password'" />
 
                 <TextInput
                     id="current_password"
@@ -60,7 +67,7 @@ const updatePassword = () => {
             </div>
 
             <div>
-                <InputLabel for="password" value="New Password" />
+                <InputLabel for="password" :value="usePage().props.currentUser != undefined ? 'New user password' : 'New Password'" />
 
                 <TextInput
                     id="password"
@@ -75,7 +82,7 @@ const updatePassword = () => {
             </div>
 
             <div>
-                <InputLabel for="password_confirmation" value="Confirm Password" />
+                <InputLabel for="password_confirmation" :value="usePage().props.currentUser != undefined ? 'Confirm new user password' : 'Confirm Password'" />
 
                 <TextInput
                     id="password_confirmation"

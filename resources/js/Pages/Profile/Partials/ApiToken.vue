@@ -38,6 +38,9 @@ export default {
         TextInput
     },
     props: {
+        user: {
+            type: Object,
+        },
         apiToken: {
             type: String,
             default: '',
@@ -57,7 +60,7 @@ export default {
             this.processing = true
             this.response.message = '';
 
-            axios.post(route('profile.generate-api-token'))
+            axios.post(route('profile.generate-api-token'), {user: this.user})
             .then(response => {
                 this.processing = false
 

@@ -118,7 +118,6 @@ class IndexController extends Controller
         $totalSales = $instance->totalSales($dateRange->start, $dateRange->end);
         $avarageTotalSales = $instance->totalSales($dateRange->start, $dateRange->end, true);
 
-        \Log::info('instance', ['i' => $instance]);
         return  [
             "productPrice" => [
                 "current" => [
@@ -196,7 +195,6 @@ class IndexController extends Controller
             Carbon::parse($dateFrom)->subDays(1)->endOfDay()
         );
 
-        \Log::info('opretail settings', ['settings' => $opretail?->settings]);
         if (isset($opretail?->settings['workdays']) && $workdays = $opretail?->settings['workdays']) {
             // Set the end date as today
             $endDate = Carbon::today();
