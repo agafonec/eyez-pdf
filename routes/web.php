@@ -56,7 +56,7 @@ Route::middleware('auth')->group(function () {
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
 
     Route::post('/profile_opretail', [ProfileController::class, 'opretailUpdate'])->name('profile.opretail.update');
-    Route::post('/profile_workdays', [ProfileController::class, 'updateSettings'])->name('profile.workdays.update');
+    Route::post('/profile_settings', [ProfileController::class, 'updateSettings'])->name('profile.settings.update');
     Route::post('/profile_generate_token', [ProfileController::class, 'generateApiToken'])->name('profile.generate-api-token');
 });
 

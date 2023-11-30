@@ -11,6 +11,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Crypt;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
 use Inertia\Inertia;
@@ -43,7 +44,6 @@ class ProfileController extends Controller
      */
     public function update(ProfileUpdateRequest $request): RedirectResponse
     {
-        \Log::info('request', ['request' => $request->json()->all()]);
         $request->user()->fill($request->validated());
 
         if ($request->user()->isDirty('email')) {
@@ -56,7 +56,10 @@ class ProfileController extends Controller
     }
 
     /**
-     * Update the user's profile information.
+     * Update the other user's profile information from admin.
+     *
+     * @param Request $request
+     * @return RedirectResponse
      */
     public function updateOther(Request $request): RedirectResponse
     {
@@ -81,6 +84,12 @@ class ProfileController extends Controller
         return Redirect::to("/users/{$user->id}");
     }
 
+    /**
+     * Used for validatin user when trying to update other user from admin account.
+     *
+     * @param Request $request
+     * @return \Illuminate\Validation\Validator
+     */
     public function validateUser(Request $request)
     {
         // Define validation rules
@@ -100,30 +109,38 @@ class ProfileController extends Controller
      */
     public function opretailUpdate(Request $request)
     {
-        $validator = $this->validateOpretail($request);
+        $validator = $this->validateOpretail($request->json('form'));
 
         if ($validator->fails()) {
             return ['errors' => $validator->errors()];
         }
 
-        if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
-            $opretail->update($request->toArray());
+        $user = $request->json('user.id') ? User::find($request->json('user.id')) : $this->user();
+
+        $opretailData = $request->json('form');
+
+        if ($opretail = $user->opretailCredentials) {
+            $opretail->update($opretailData);
         } else {
-            $opretail = Opretail::create($request->toArray());
+            if ($request->json('user.id')) {
+                $opretailData['user_id'] = $request->json('user.id');
+            }
+
+            $opretail = Opretail::create($opretailData);
         }
 
-        $opretailApi = new OpretailApi($this->user()->opretailCredentials);
+        $opretailApi = new OpretailApi($opretail);
         if ($opretailApi->getToken() === 'error') {
             return ['errors' => 'Bad token generated. please check the credentials.'];
         }
 
         $stores = $opretailApi->getStores();
-
         if (!array_key_exists( 'errors', $stores)) {
             foreach ($stores as $store) {
                 Store::firstOrCreate(
-                    ['dep_id' => $store['id']],
+                    ['dep_id' => $store['id'], 'user_id' => $user->id],
                     [
+                        'user_id' => $user->id,
                         'name' => $store['name'],
                         'store_id' => $store['shopId'],
                         'organize_id' => $store['organizeId']
@@ -158,10 +175,16 @@ class ProfileController extends Controller
         return Validator::make($toValidate, $rules);
     }
 
+    /**
+     * @param Request $request
+     * @return array
+     */
     public function updateSettings(Request $request)
     {
-        if ($opretail = Opretail::where('user_id', $this->user()->id)->first()) {
-            $settings = $opretail->settings ?? (object)[];
+        $user = $request->json('user.id') ? User::find($request->json('user.id')) : $this->user();
+
+        if ($opretail = $user->opretailCredentials) {
+            $settings = $opretail->settings ?? [];
             $settings['workdays'] = $request->json('workdays');
             $settings['ageGroups'] = $request->json('ageGroups');
 
@@ -185,13 +208,15 @@ class ProfileController extends Controller
      */
     public function generateApiToken(Request $request)
     {
-        $this->user()->tokens()->delete();
+        $user = $request->json('user.id') ? User::find($request->json('user.id')) : $this->user();
 
-        if ($token = $this->user()->createToken('eyez_api_key')) {
+        $user->tokens()->delete();
+
+        if ($token = $user->createToken('eyez_api_key')) {
             $tokenText = explode('|', $token->plainTextToken)[1];
 
-            $this->user()->eyez_api_key = $tokenText;
-            $this->user()->save();
+            $user->eyez_api_key = $tokenText;
+            $user->save();
             return ['errors' => false, 'message' => 'Token succcesfully generated. refresh the page to see token.'];
         } else {
             return ['errors' => true, 'message' => 'Something went wrong during tokene generation'];

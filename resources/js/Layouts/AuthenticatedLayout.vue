@@ -5,11 +5,13 @@ import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
-import { Link } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import {
 PdfLogo
 } from '@/_vendor/eyez/index'
 const showingNavigationDropdown = ref(false);
+
+const isAdmin = usePage().props.auth.user.roles.length > 0 && usePage().props.auth.user.roles.filter(obj => obj.name = 'admin').length > 0
 </script>
 
 <template>
@@ -30,11 +32,15 @@ const showingNavigationDropdown = ref(false);
 
                         <!-- Navigation Links -->
                         <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">
-                            <NavLink :href="route('home.show')" :active="route().current('home.show')">
+                            <NavLink v-if="!isAdmin" :href="route('home.show')" :active="route().current('home.show')">
                                 נתוני זמן אמת
                             </NavLink>
-                            <NavLink :href="route('view.orders-import')" :active="route().current('view.orders-import')">
+                            <NavLink v-if="!isAdmin" :href="route('view.orders-import')" :active="route().current('view.orders-import')">
                                 ייבוא הזמנות
+                            </NavLink>
+
+                            <NavLink v-if="isAdmin" :href="route('admin.users')" :active="route().current('admin.users')">
+                                Users
                             </NavLink>
                         </div>
 
@@ -115,11 +121,15 @@ const showingNavigationDropdown = ref(false);
                     class="md:hidden"
                 >
                     <div class="pt-2 pb-3 space-y-1">
-                        <ResponsiveNavLink :href="route('home.show')" :active="route().current('home.show')">
+                        <ResponsiveNavLink v-if="!isAdmin" :href="route('home.show')" :active="route().current('home.show')">
                             נתוני זמן אמת
                         </ResponsiveNavLink>
-                        <ResponsiveNavLink :href="route('view.orders-import')" :active="route().current('view.orders-import')">
+                        <ResponsiveNavLink v-if="!isAdmin" :href="route('view.orders-import')" :active="route().current('view.orders-import')">
                             ייבוא הזמנות
+                        </ResponsiveNavLink>
+
+                        <ResponsiveNavLink v-if="isAdmin" :href="route('admin.users')" :active="route().current('admin.users')">
+                            Users
                         </ResponsiveNavLink>
                     </div>
 

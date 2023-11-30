@@ -2,8 +2,6 @@
     <Head title="Manage Users" />
 
     <AuthenticatedLayout>
-        {{ users }}
-
         <div class="py-12">
             <div class="max-w-7xl mx-auto md:px-6 lg:px-8 space-y-6">
                 <div class="p-4 md:p-8 bg-white shadow md:rounded-lg gap-5">
