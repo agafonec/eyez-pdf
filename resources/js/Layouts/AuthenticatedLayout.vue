@@ -11,7 +11,7 @@ PdfLogo
 } from '@/_vendor/eyez/index'
 const showingNavigationDropdown = ref(false);
 
-const isAdmin = usePage().props.auth.user.roles.length > 0 && usePage().props.auth.user.roles.filter(obj => obj.name = 'admin').length > 0
+const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.auth.user.roles?.filter(obj => obj.name = 'admin').length > 0
 </script>
 
 <template>
