@@ -31,13 +31,13 @@ class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts
         if (!$order) {
             return new Order([
                 'store_id' => $this->storeId,
-                'order_id'     => $row['order_id'],
-                'order_date'    => Carbon::parse($row['order_date'])->format('Y-m-d H:i:s'),
-                'items_count' => $row['items_count'],
-                'order_total' => $row['order_total'],
+                'order_id'    => $row['order_id'],
+                'order_date'  => Carbon::createFromFormat('d/m/Y', $row['order_date'])->format('Y-m-d H:i:s'),
+                'items_count' => $row['items_count'] ?? 0,
+                'order_total' => $row['order_total'] ?? 0,
             ]);
         } else {
-            return [];
+            return null;
         }
 
     }

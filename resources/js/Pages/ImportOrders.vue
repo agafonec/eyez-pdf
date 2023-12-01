@@ -46,7 +46,7 @@
                         </div>
                         <div class="flex items-center gap-4">
                             <PrimaryButton @click="uploadOrders" :disabled="form.processing">שמירה</PrimaryButton>
-
+                            <page-loader v-if="form.processing" width="30" height="30"/>
                             <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
                         </div>
                     </div>
@@ -68,7 +68,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
-import { BaseSelect } from '@/_vendor/eyez/index'
+import { BaseSelect, PageLoader } from '@/_vendor/eyez/index'
 export default {
     name: "ImportOrders",
     components: {
@@ -80,7 +80,8 @@ export default {
         TextInput,
         Dropdown,
         DropdownLink,
-        BaseSelect
+        BaseSelect,
+        PageLoader
     },
     props: {
         stores: {
@@ -115,7 +116,7 @@ export default {
 
             axios.post(route('orders.import'), formData)
             .then((response) => {
-                this.form.processing = true;
+                this.form.processing = false;
                 this.response = response.data;
             })
         },
