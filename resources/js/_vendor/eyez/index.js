@@ -8,6 +8,7 @@ import IconSale from './icons/icon-sale/icon-sale.vue'
 import IconBook from './icons/icon-book/icon-book.vue'
 import IconBags from './icons/icon-bags/icon-bags.vue'
 import IconWarning from './icons/icon-warning/icon-warning.vue'
+import PageLoader from './icons/page-loader/page-loader.vue'
 
 import StatBox from './stat-box/stat-box.vue'
 import ChartStatBox from './chart-stat-box/chart-stat-box.vue'
@@ -26,5 +27,6 @@ export {
     IconWarning,
     StatBox,
     ChartStatBox,
-    BaseSelect
+    BaseSelect,
+    PageLoader
 }

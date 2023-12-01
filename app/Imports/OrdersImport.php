@@ -29,15 +29,17 @@ class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts
             'order_id'     => $row['order_id']
         ])->first();
         if (!$order) {
+            $dateString = str_contains($row['order_date'], '/') ? str_replace('/', '-', $row['order_date']) : $row['order_date'] ;
+            $datetime = new \DateTime($dateString, new \DateTimeZone('Asia/Jerusalem'));
             return new Order([
                 'store_id' => $this->storeId,
-                'order_id'     => $row['order_id'],
-                'order_date'    => Carbon::parse($row['order_date'])->format('Y-m-d H:i:s'),
-                'items_count' => $row['items_count'],
-                'order_total' => $row['order_total'],
+                'order_id'    => $row['order_id'],
+                'order_date'  => $datetime->format('Y-m-d H:i:s'),
+                'items_count' => $row['items_count'] ?? 0,
+                'order_total' => $row['order_total'] ?? 0,
             ]);
         } else {
-            return [];
+            return null;
         }
 
     }
