@@ -3,6 +3,7 @@
 namespace App\Imports;
 
 use App\Models\Order;
+use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
 use Maatwebsite\Excel\Concerns\ToModel;
@@ -31,7 +32,7 @@ class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts
             return new Order([
                 'store_id' => $this->storeId,
                 'order_id'     => $row['order_id'],
-                'order_date'    => $row['order_date'],
+                'order_date'    => Carbon::parse($row['order_date'])->format('Y-m-d H:i:s'),
                 'items_count' => $row['items_count'],
                 'order_total' => $row['order_total'],
             ]);
