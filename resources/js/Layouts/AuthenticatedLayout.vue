@@ -31,8 +31,7 @@ const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.a
                         </div>
 
                         <!-- Navigation Links -->
-<!--                        <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">-->
-                        <div class="flex gap-4 -my-px ms-4 -md:space-x-8 md:-my-px md:ms-10 md:flex">
+                        <div class="hidden space-x-8 md:-my-px md:ms-10 md:flex">
                             <NavLink v-if="!isAdmin" :href="route('home.show')" :active="route().current('home.show')">
                                 נתוני זמן אמת
                             </NavLink>
@@ -135,7 +134,7 @@ const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.a
                     </div>
 
                     <!-- Responsive Settings Options -->
-                    <div class="pt-4 pb-1 border-t border-gray-200">
+                    <div class="pt-4 pb-1 border-t border-gray-200 text-center">
                         <div class="px-4">
                             <div class="font-medium text-base text-gray-800">
                                 {{ $page.props.auth.user.name }}
