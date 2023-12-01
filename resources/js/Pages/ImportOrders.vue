@@ -119,6 +119,14 @@ export default {
                 this.form.processing = false;
                 this.response = response.data;
             })
+            .catch(error => {
+                console.log(error);
+                this.form.processing = false;
+                this.response = {
+                    'errors': true,
+                    'message': 'Something went wrong, try again later.'
+                }
+            })
         },
         handleFileChange(event) {
             console.log(event.target.files[0]);
