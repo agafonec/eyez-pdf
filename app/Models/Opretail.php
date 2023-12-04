@@ -131,8 +131,8 @@ class Opretail extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $totalOrders = $this->allStoresOrders()
                 ->whereBetween('order_date', [$from, $to])
@@ -158,8 +158,8 @@ class Opretail extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $totalSales = $this->allStoresOrders()
                 ->whereBetween('order_date', [$from, $to])
@@ -186,8 +186,8 @@ class Opretail extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $itemsCount = $this->allStoresOrders()
                 ->whereBetween('order_date', [$from, $to])
@@ -211,8 +211,8 @@ class Opretail extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $totalSales = $this->totalSales($from, $to);
             $totalOrders = $this->totalOrders($from, $to);

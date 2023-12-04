@@ -98,8 +98,8 @@ class Store extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $totalOrders = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
@@ -125,13 +125,14 @@ class Store extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $totalSales = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
                 ->sum('order_total');
 
+            \Log::info('avarage total sales dates', ['from' => $from, 'to' => $to, 'sales' => $totalSales]);
             return round($this->getAvarageValue($from, $to, $totalSales), 0);
         } else {
             return round($this->orders()
@@ -153,8 +154,8 @@ class Store extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $itemsCount = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
@@ -178,8 +179,8 @@ class Store extends Model
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
             $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
+                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+                : Carbon::now()->subDays(1)->endOfDay();
 
             $totalSales = $this->totalSales($from, $to);
             $totalOrders = $this->totalOrders($from, $to);
@@ -247,6 +248,7 @@ class Store extends Model
                 }
             }
 
+            \Log::info('count', ['c' => $count, 'v' => $value]);
             $avg = $count === 0 ? $value : $value / $count;
         } else {
             $avg = $value / 25;
