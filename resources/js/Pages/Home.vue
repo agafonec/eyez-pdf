@@ -254,7 +254,7 @@
                         <div class="max-md:text-xs bg-gray-50 text-gray-200 rounded-md p-5 md:absolute md:right-5 md:bottom-5 grid grid-cols-2 gap-10 align-end">
                             <div class="text-start md:text-center">
                                 <div>ילדים <span>0 - 15</span></div>
-                                <div>נוער ובוגרים <span>16 - 40</span></div>
+                                <div>צעירים <span>16 - 40</span></div>
                                 <div class="text-xs text-black font-semibold md:hidden mt-2">
                                     <span>תאריך:</span>
                                     <span v-html="dateRangeText()"></span>
