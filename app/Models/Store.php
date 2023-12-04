@@ -198,7 +198,6 @@ class Store extends Model
         if ($average) {
             $totalOrders = $this->totalOrders($dateFrom, $dateTo, true);
 
-            \Log::info('closeRate avarage', ['walk' => $walkInCount, 'to' => $totalOrders]);
             return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
         }
 
@@ -225,18 +224,22 @@ class Store extends Model
     {
         if (isset($this->opretail?->settings['workdays']) && $workdays = $this->opretail?->settings['workdays']) {
             // Set the end date as today
-            $endDate = Carbon::parse($dateTo);
             $startDate = Carbon::parse($dateFrom);
+            $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
             $diffInDays = $endDate->diffInDays($startDate);
 
             $count = 0;
             for ($i = 0; $i <= $diffInDays; $i++) {
                 $currentDate = $endDate->copy()->subDays($i);
+
                 if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
                     $count++;
                 }
             }
-            $avg = $value / $count;
+
+            $avg = $count === 0 ? $value : $value / $count;
         } else {
             $avg = $value / 25;
         }

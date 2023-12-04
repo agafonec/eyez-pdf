@@ -189,26 +189,29 @@ class IndexController extends Controller
     private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
     {
         $opretail = $this->user()?->opretailCredentials;
+        $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth();
+        $to = Carbon::now()->month !== Carbon::parse($dateFrom)->subDays(1)->month
+            ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()
+            : Carbon::now()->subDays(1);
+
         $walkInCount = $opretailApi->getWalkInCount(
-            Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay(),
-            Carbon::parse($dateFrom)->subDays(1)->endOfDay()
+            $from->startOfDay(),
+            $to->endOfDay()
         );
 
         if (isset($opretail?->settings['workdays']) && $workdays = $opretail?->settings['workdays']) {
             // Set the end date as today
-            $endDate = Carbon::parse($dateFrom)->subDays(1)->startOfMonth();
-            $startDate = Carbon::parse($dateFrom)->subDays(1);
-            $diffInDays = $endDate->diffInDays($startDate);
+            $diffInDays = $to->diffInDays($from);
 
             $count = 0;
             for ($i = 0; $i <= $diffInDays; $i++) {
-                $currentDate = $endDate->copy()->subDays($i);
+                $currentDate = $to->copy()->subDays($i);
 
                 if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
                     $count++;
                 }
             }
-            $avg = $walkInCount / $count;
+            $avg = $count === 0 ? $walkInCount : $walkInCount / $count;
         } else {
             $avg = $walkInCount / 25;
         }
