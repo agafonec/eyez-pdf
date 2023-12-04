@@ -97,7 +97,9 @@ class Store extends Model
 
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $totalOrders = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
@@ -122,7 +124,9 @@ class Store extends Model
 
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $totalSales = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
@@ -148,7 +152,9 @@ class Store extends Model
 
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $itemsCount = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
@@ -171,7 +177,9 @@ class Store extends Model
     {
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to  = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $totalSales = $this->totalSales($from, $to);
             $totalOrders = $this->totalOrders($from, $to);
@@ -238,6 +246,7 @@ class Store extends Model
                     $count++;
                 }
             }
+            \Log::info('end date', ['e' => $endDate, 'count' => $count, 'value' => $value]);
 
             $avg = $count === 0 ? $value : $value / $count;
         } else {

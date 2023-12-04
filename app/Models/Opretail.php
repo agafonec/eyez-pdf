@@ -130,7 +130,9 @@ class Opretail extends Model
 
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $totalOrders = $this->allStoresOrders()
                 ->whereBetween('order_date', [$from, $to])
@@ -155,7 +157,9 @@ class Opretail extends Model
 
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $totalSales = $this->allStoresOrders()
                 ->whereBetween('order_date', [$from, $to])
@@ -181,7 +185,9 @@ class Opretail extends Model
 
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $itemsCount = $this->allStoresOrders()
                 ->whereBetween('order_date', [$from, $to])
@@ -204,7 +210,9 @@ class Opretail extends Model
     {
         if ($average) {
             $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to  = Carbon::parse($dateFrom)->subDays(1)->endOfDay();
+            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
+                ? Carbon::parse($dateTo)->endOfMonth()
+                : Carbon::now()->subDays(1);
 
             $totalSales = $this->totalSales($from, $to);
             $totalOrders = $this->totalOrders($from, $to);
