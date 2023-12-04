@@ -142,7 +142,7 @@ class ProfileController extends Controller
                     [
                         'user_id' => $user->id,
                         'name' => $store['name'],
-                        'store_id' => $store['shopId'],
+                        'store_id' => empty($store['shopId']) ? null : $store['shopId'],
                         'organize_id' => $store['organizeId']
                     ]
                 );
