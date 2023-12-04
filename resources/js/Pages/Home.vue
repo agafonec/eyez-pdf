@@ -73,7 +73,6 @@
                     </date-picker>
                 </div>
             </div>
-
             <div class="md:hidden p-4 bg-white mt-4 rounded-[10px]">
                 <div class="bg-gray-100 rounded-md">
                     <date-picker style="direction: ltr"
@@ -162,6 +161,7 @@
                             <stat-box :stat="storeSales.totalSales"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
+                                      :show-difference="reportType === 'hours'"
                                       append-to-value="₪"
                                       icon-circle-class="bg-rose-200">
                                 <template #icon>
@@ -171,23 +171,26 @@
                             <stat-box :stat="storeSales.closeRate"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
+                                      :show-difference="reportType === 'hours'"
                                       append-to-value="%"
-                                      icon-circle-class="bg-amber-200">
+                                      icon-circle-class="bg-rose-200">
                                 <template #icon>
-                                    <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                    <icon-conversion class="text-rose-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
                             <stat-box :stat="storeSales.totalSalesCount"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
-                                      icon-circle-class="bg-amber-200">
+                                      :show-difference="reportType === 'hours'"
+                                      icon-circle-class="bg-green-50">
                                 <template #icon>
-                                    <icon-bags class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                    <icon-box class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
                             <stat-box :stat="storeSales.atv"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
+                                      :show-difference="reportType === 'hours'"
                                       append-to-value="₪"
                                       con-circle-class="bg-lime-200">
                                 <template #icon>
@@ -198,6 +201,7 @@
                             <stat-box :stat="storeSales.itemsSold"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
+                                      :show-difference="reportType === 'hours'"
                                       icon-circle-class="bg-green-50">
                                 <template #icon>
                                     <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
@@ -207,6 +211,7 @@
                             <stat-box :stat="storeSales.productPrice"
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
+                                      :show-difference="reportType === 'hours'"
                                       append-to-value="₪"
                                       icon-circle-class="bg-green-50">
                                 <template #icon>
@@ -275,7 +280,9 @@
 <script>
 import {
     PdfLogo,
+    IconBox,
     IconCalendar,
+    IconConversion,
     IconPeople,
     IconArrowUp,
     IconArrowDown,
@@ -361,7 +368,9 @@ export default {
     components: {
         IconPeople,
         PdfLogo,
+        IconBox,
         IconCalendar,
+        IconConversion,
         IconArrowUp,
         IconArrowDown,
         IconSale,
@@ -698,7 +707,7 @@ export default {
             }))
         },
         dateRangeText() {
-            let dateTo = moment(this.storeData?.dateTo).format('YYYY-MM-DD')
+            let dateTo = moment(this.storeData?.dateTo).subtract(2, 'hour').format('YYYY-MM-DD')
             let dateFrom = moment(this.storeData?.dateFrom).format('YYYY-MM-DD')
             if ( moment(dateFrom).isSame(moment(dateTo).subtract(1, 'hour'), 'day') ) {
                 return moment(dateFrom).format('YYYY-MM-DD').toString()
