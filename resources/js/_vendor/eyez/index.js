@@ -3,6 +3,7 @@ import PdfLogo from './icons/pdf-logo/pdf-logo.vue'
 import IconBox from './icons/icon-box/icon-box.vue'
 import IconCalendar from './icons/icon-calendar/icon-calendar.vue'
 import IconConversion from './icons/icon-conversion/icon-conversion.vue'
+import IconPriceTag from './icons/icon-price-tag/icon-price-tag.vue'
 import IconPeople from './icons/icon-people/icon-people.vue'
 import IconArrowUp from './icons/icon-arrow-up/icon-arrow-up.vue'
 import IconArrowDown from './icons/icon-arrow-down/icon-arrow-down.vue'
@@ -22,6 +23,7 @@ export {
     IconBox,
     IconCalendar,
     IconConversion,
+    IconPriceTag,
     IconPeople,
     IconArrowUp,
     IconArrowDown,

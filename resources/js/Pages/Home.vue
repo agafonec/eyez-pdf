@@ -213,9 +213,9 @@
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       :show-difference="reportType === 'hours'"
                                       append-to-value="₪"
-                                      icon-circle-class="bg-green-50">
+                                      icon-circle-class="bg-amber-200">
                                 <template #icon>
-                                    <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                    <icon-price-tag class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
                         </div>
@@ -283,6 +283,7 @@ import {
     IconBox,
     IconCalendar,
     IconConversion,
+    IconPriceTag,
     IconPeople,
     IconArrowUp,
     IconArrowDown,
@@ -371,6 +372,7 @@ export default {
         IconBox,
         IconCalendar,
         IconConversion,
+        IconPriceTag,
         IconArrowUp,
         IconArrowDown,
         IconSale,
