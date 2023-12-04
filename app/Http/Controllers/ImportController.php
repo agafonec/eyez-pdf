@@ -23,7 +23,6 @@ class ImportController extends Controller
     }
 
     public function orders(Request $request) {
-
         if ($request->hasFile('file')) {
             $file = $request->file('file');
             $storeId = (int)$request->input('storeId');

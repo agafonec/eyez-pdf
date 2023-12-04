@@ -1,6 +1,6 @@
 <template>
     <div v-if="variant === 'small'" :class="['flex items-center md:flex-row w-full relative', `${mobileDirection === 'row' ? 'flex-row': 'max-md:flex-col max-md:text-center'}`]">
-        <div v-if="showLastPeriod" :class="['text-sm md:text-base absolute end-0 top-1 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
+        <div v-if="showDifference" :class="['text-sm md:text-base absolute end-0 top-1 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
             <span class="font-medium leading-none">{{ percent }}</span>
             <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
             <icon-arrow-down v-else class="text-red-300"/>
@@ -30,7 +30,7 @@
                 <div class="text-sm text-gray-300 leading-tight">{{ stat.current.title }}</div>
                 <div class="text-base md:text-2xl text-gray-900 leading-tight flex">
                     <div>{{ stat.current.value.toLocaleString() }}{{ appendToValue }}</div>
-                    <div v-if="showLastPeriod" :class="['text-sm md:text-base mr-2 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
+                    <div v-if="showDifference" :class="['text-sm md:text-base mr-2 flex items-center', `${stat.current.value >= stat.previous.value ? 'text-green-300' : 'text-red-300'}`]">
                         <span class="font-medium leading-none">{{ percent }}</span>
                         <icon-arrow-up v-if="stat.current.value >= stat.previous.value" calss="text-green-300"/>
                         <icon-arrow-down v-else class="text-red-300"/>
@@ -66,6 +66,10 @@ export default {
         iconCircleClass: {
             type: String,
             default: 'bg-gray-100',
+        },
+        showDifference: {
+            type: Boolean,
+            default: true,
         },
         showLastPeriod: {
             type: Boolean,
