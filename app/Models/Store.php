@@ -246,7 +246,6 @@ class Store extends Model
                     $count++;
                 }
             }
-            \Log::info('end date', ['e' => $endDate, 'count' => $count, 'value' => $value]);
 
             $avg = $count === 0 ? $value : $value / $count;
         } else {
