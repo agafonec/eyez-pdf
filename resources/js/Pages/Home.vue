@@ -112,8 +112,8 @@
                                 <span class="text-3xl mr-2.5 text-green-400 font-medium">{{ storeData.walkInCount.toLocaleString() }}</span>
                             </div>
                             <div v-if="this.reportType === 'hours'" class="flex items-center max-md:mt-4">
-                                <span :class="['font-medium md:ms-6 text-lg', `${storeData.walkInCount < prevStoreData.walkInCount ? 'text-red-300' : 'text-green-300'}` ]">
-                                    {{ percent(storeData.walkInCount, prevStoreData.walkInCount) }}
+                                <span :class="['font-medium md:ms-6 text-lg', `${storeData.walkInCount < avgWalkIn ? 'text-red-300' : 'text-green-300'}` ]">
+                                    {{ percent(storeData.walkInCount, avgWalkIn) }}
                                 </span>
                                 <div v-if="storeData.walkInCount < prevStoreData.walkInCount"
                                      class="flex items-center justify-center max-md:from-red-200 max-md:to-red-500 max-md:bg-gradient-to-t max-md:ms-3 rounded-full w-11 h-11 sm:w-auto sm:h-auto">
@@ -213,9 +213,9 @@
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       :show-difference="reportType === 'hours'"
                                       append-to-value="₪"
-                                      icon-circle-class="bg-green-50">
+                                      icon-circle-class="bg-amber-200">
                                 <template #icon>
-                                    <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                    <icon-price-tag class="text-amber-400 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
                         </div>
@@ -283,6 +283,7 @@ import {
     IconBox,
     IconCalendar,
     IconConversion,
+    IconPriceTag,
     IconPeople,
     IconArrowUp,
     IconArrowDown,
@@ -371,6 +372,7 @@ export default {
         IconBox,
         IconCalendar,
         IconConversion,
+        IconPriceTag,
         IconArrowUp,
         IconArrowDown,
         IconSale,
@@ -709,7 +711,7 @@ export default {
         dateRangeText() {
             let dateTo = moment(this.storeData?.dateTo).subtract(2, 'hour').format('YYYY-MM-DD')
             let dateFrom = moment(this.storeData?.dateFrom).format('YYYY-MM-DD')
-            if ( moment(dateFrom).isSame(moment(dateTo).subtract(1, 'hour'), 'day') ) {
+            if ( moment(dateFrom).isSame(moment(dateTo), 'day') ) {
                 return moment(dateFrom).format('YYYY-MM-DD').toString()
             } else {
                 return`${dateFrom} - ${dateTo}`
