@@ -27,7 +27,6 @@ class Order extends Model
 
     public function createOrder(Store $store, object $data)
     {
-        \Log::info('Data', ['data'=> $data]);
         $this->store_id = $store->getID();
         $this->order_id = $data->order_id;
         $this->order_date = $data->order_date;

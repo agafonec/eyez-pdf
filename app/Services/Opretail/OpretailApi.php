@@ -362,7 +362,6 @@ class OpretailApi
 
 
         if ($response->successful()) {
-            \Log::info('age gender', ['data' => $response->json('data')]);
             $this->genderData = $this->mapGender($response->json('data.genderDistribution'));
             $this->ageData = $this->mapAge($response->json('data.ageDistribution'));
 

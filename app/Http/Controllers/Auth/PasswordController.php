@@ -18,8 +18,6 @@ class PasswordController extends Controller
     {
 
         $user = $request->json('user.id') ? User::find($request->json('user.id')) :  $request->user();
-        \Log::info('user', ['r' => $user]);
-
 
         $validated = $request->validate([
             'current_password' => ['required', 'current_password'],
