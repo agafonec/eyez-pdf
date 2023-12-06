@@ -58,13 +58,24 @@
             />
         </div>
         <div class="mb-2">
-            <InputLabel for="elder" value="Elderly" />
+            <InputLabel for="middleAge" value="Middle Old" />
 
             <TextInput
-                id="elder"
+                id="middleOld"
                 type="text"
                 class="mt-1 block w-full"
-                v-model="ageGroups.elder"
+                v-model="ageGroups.middleOld"
+                required
+            />
+        </div>
+        <div class="mb-2">
+            <InputLabel for="elderly" value="Elderly" />
+
+            <TextInput
+                id="elderly"
+                type="text"
+                class="mt-1 block w-full"
+                v-model="ageGroups.elderly"
                 required
             />
         </div>
@@ -100,7 +111,8 @@ export default {
                 earlyYouth: 'Early Youth',
                 youth: 'Youth',
                 middleAge: 'Middle Age',
-                elder: 'Elderly',
+                middleOld: 'Middle Old',
+                elderly: 'Elderly',
             },
             response: {
                 'errors': false,
