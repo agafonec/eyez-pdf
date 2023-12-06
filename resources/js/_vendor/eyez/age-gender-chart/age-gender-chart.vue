@@ -30,7 +30,7 @@
                      :class="['h-8 rounded-md', ageGroupClass(key, 'bg')]"
                      :style="`width: ${ageGroup.percentage}%`" />
             </template>
-            <div v-else class="bg-red-300 bg-blue-300 bg-blue-400 bg-purple-300text-red-300 text-blue-300 text-blue-400 text-purple-300"></div>
+            <div v-else class="bg-red-300 bg-blue-300 bg-blue-400 bg-purple-300 text-red-300 text-blue-300 text-blue-400 text-purple-300"></div>
         </div>
 
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
