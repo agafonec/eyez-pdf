@@ -6,6 +6,10 @@ namespace App\Services\Opretail;
 
 trait OpretailHelpers
 {
+    /**
+     * @param array $data
+     * @return array
+     */
     public static function mapGender(Array $data)
     {
         if (!$data) die('No gender data has been received.');
@@ -15,8 +19,11 @@ trait OpretailHelpers
         foreach ($data as $single) {
             if ($single['gender'] === 0)
                 continue;
-            $gender = $single['gender'] === 1 ? 'גברים' : 'נשים';
-            $return[$gender] = $single['peopleNum'];
+            $gender = $single['gender'] === 1 ? 'female' : 'male';
+            $return[$gender] = [
+                'count' => $single['peopleNum'],
+                'percentage' => $single['percentage']
+            ];
         }
 
         return $return;
@@ -40,18 +47,29 @@ trait OpretailHelpers
                 $group = 'youth';
             } else if ($single['ageDivisionType'] === 2) {
                 $group = 'middleAge';
+            } else if ($single['ageDivisionType'] === 3) {
+                $group = 'middleOld';
             } else if ($single['ageDivisionType'] === 4) {
                 $group = 'elderly';
             }
 
             if ($group) {
-                $return[$group] = $single['peopleNum'];
+                $return[$group] = [
+                    'count' => $single['peopleNum'],
+                    'percentage' => $single['percentage'],
+                    'description' => $single['ageTo'] ? "{$single['ageFrom']} - {$single['ageTo']}" : "> {$single['ageFrom']}",
+                ];
             }
         }
 
         return $return;
     }
 
+    /**
+     * @param array $data
+     * @param string $splitType
+     * @return array
+     */
     public static function mapHourlyWalkIn(Array $data, $splitType = 'hours')
     {
         if (!$data) die('No gender data has been received.');

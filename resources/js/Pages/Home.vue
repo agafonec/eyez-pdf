@@ -5,7 +5,7 @@
         <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
             <div class="text-center grid md:grid-cols-4 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
                 <PrimaryButton class="w-full block justify-center h-full"
-                               @click="cleareSummaryCache" >ריענון</PrimaryButton>
+                               @click="clearSummaryCache" >ריענון</PrimaryButton>
                 <PrimaryButton class="w-full block justify-center h-full"
                                @click="printPage">Print PDF</PrimaryButton>
 
@@ -115,7 +115,7 @@
                                 <span :class="['font-medium md:ms-6 text-lg', `${storeData.walkInCount < avgWalkIn ? 'text-red-300' : 'text-green-300'}` ]">
                                     {{ percent(storeData.walkInCount, avgWalkIn) }}
                                 </span>
-                                <div v-if="storeData.walkInCount < prevStoreData.walkInCount"
+                                <div v-if="storeData.walkInCount < avgWalkIn"
                                      class="flex items-center justify-center max-md:from-red-200 max-md:to-red-500 max-md:bg-gradient-to-t max-md:ms-3 rounded-full w-11 h-11 sm:w-auto sm:h-auto">
                                     <icon-arrow-down class="text-white sm:text-red-300 w-3 h-5 sm:w-2 sm:h-3.5"/>
                                 </div>
@@ -202,9 +202,9 @@
                                       mobile-direction="column"
                                       :show-last-period="reportType === 'hours' && showPastPeriod.salesReport"
                                       :show-difference="reportType === 'hours'"
-                                      icon-circle-class="bg-green-50">
+                                      icon-circle-class="bg-blue-50">
                                 <template #icon>
-                                    <icon-people class="text-green-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
+                                    <icon-sold class="text-blue-500 w-[22px] h-[22px] md:w-[32px] md:h-[32px]"/>
                                 </template>
                             </stat-box>
 
@@ -220,8 +220,14 @@
                             </stat-box>
                         </div>
 
-                        <div class="mt-5">
-
+                        <div class="mt-5 bg-white p-6 rounded-[10px] relative">
+                            <age-gender-chart :age-data="storeData.ageData"
+                                              :gender-data="storeData.genderData"
+                            />
+                        </div>
+                    </div>
+                    <div class="md:col-span-7">
+                        <div class="h-full md:bg-white md:rounded-[10px]">
                             <div class="grid grid-cols-2 gap-5 mb-5 bg-white p-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-4 md:gap-x-2 md:gap-y-5">
                                 <label class="flex items-center col-span-2 md:col-span-4">
                                     <Checkbox name="toggle_past_period"
@@ -238,38 +244,13 @@
                             </div>
 
                             <div  class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0">
-                                <apexchart
-                                    type="line"
-                                    :options="lineChart.chartOptions"
-                                    :series="lineChart.series"></apexchart>
-                            </div>
+                            <apexchart
+                                type="line"
+                                :options="lineChart.chartOptions"
+                                :series="lineChart.series"></apexchart>
+                        </div>
+                        </div>
 
-                        </div>
-                    </div>
-                    <div class="md:col-span-7 bg-white p-4 rounded-[10px] relative">
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-5 md:h-full md:flex md:items-center md:pb-[25%]">
-                            <apexchart width="350" height="350" type="donut" :options="pieChartAge.chartOptions" :series="pieChartAge.series"></apexchart>
-                            <apexchart  width="350" height="330" type="donut" :options="pieChartGender.chartOptions" :series="pieChartGender.series"></apexchart>
-                        </div>
-                        <div class="max-md:text-xs bg-gray-50 text-gray-200 rounded-md p-5 md:absolute md:right-5 md:bottom-5 grid grid-cols-2 gap-10 align-end">
-                            <div class="text-start md:text-center">
-                                <div>ילדים <span>0 - 15</span></div>
-                                <div>צעירים <span>16 - 40</span></div>
-                                <div class="text-xs text-black font-semibold md:hidden mt-2">
-                                    <span>תאריך:</span>
-                                    <span v-html="dateRangeText()"></span>
-                                </div>
-                            </div>
-
-                            <div>
-                                <div>בוגרים <span>40 - 60</span></div>
-                                <div>מבוגרים <span>60+</span> - ריק</div>
-                            </div>
-                        </div>
-                        <div class="max-md:hidden bg-gray-50 px-4 py-2 rounded-md font-semibold absolute left-5 bottom-5">
-                            <span>תאריך:</span>
-                            <span  v-html="dateRangeText()"></span>
-                        </div>
                     </div>
                 </div>
             </div>
@@ -288,11 +269,13 @@ import {
     IconArrowUp,
     IconArrowDown,
     IconSale,
+    IconSold,
     IconBook,
     IconBags,
     IconWarning,
     StatBox,
-    ChartStatBox
+    ChartStatBox,
+    AgeGenderChart
 } from '@/_vendor/eyez/index'
 import moment from "moment";
 import Dropdown from '@/Components/Dropdown.vue';
@@ -306,64 +289,6 @@ import JsonExcel from "vue-json-excel3";
 import Checkbox from '@/Components/Checkbox.vue';
 import html2canvas from 'html2canvas';
 
-let donutSettings = {
-    chart: {
-        width: 300,
-        type: 'donut',
-    },
-    plotOptions: {
-        pie: {
-            donut: {
-                size: '60%'
-            },
-            startAngle: 0,
-            endAngle: 360
-        }
-    },
-    dataLabels: {
-        enabled: true,
-        enabledOnSeries: true,
-        formatter: function (val, opts) {
-            return val.toFixed(1) + '%'
-        },
-        style: {
-            fontSize: '12px',
-            fontFamily: 'Inter, Arial, sans-serif',
-            fontWeight: 'bold',
-            colors: undefined
-        },
-        background: {
-            enabled: true,
-            foreColor: '#fff',
-            padding: 4,
-            borderRadius: 2,
-            borderWidth: 1,
-            borderColor: '#fff',
-            opacity: 0.9,
-        },
-    },
-    fill: {
-        type: 'gradient',
-    },
-    legend: {
-        position: 'bottom',
-        formatter: function(seriesName, opts) {
-            return [seriesName, " - ", opts.w.globals.series[opts.seriesIndex]]
-        },
-        fontFamily: 'Inter, Arial',
-        fontWeight: 500,
-        markers: {
-            width: 10,
-            height: 10,
-            strokeWidth: 0,
-            strokeColor: '#fff',
-            radius: 2,
-            offsetX: 5,
-            offsetY: 0
-        },
-    }
-}
-
 export default {
     name: "Home",
     components: {
@@ -376,6 +301,7 @@ export default {
         IconArrowUp,
         IconArrowDown,
         IconSale,
+        IconSold,
         IconBook,
         IconBags,
         IconWarning,
@@ -389,7 +315,8 @@ export default {
         AuthenticatedLayout,
         Head,
         JsonExcel,
-        Checkbox
+        Checkbox,
+        AgeGenderChart
     },
     props: {
         reportType: {
@@ -445,22 +372,6 @@ export default {
             pickerRange: {
                 start: this.storeData ? this.storeData?.dateFrom : new Date(),
                 end: this.storeData ? this.storeData?.dateTo : new Date()
-            },
-            lineChartLegend: [],
-            pieChartAge: {
-                series: Object.values(this.storeData.ageData),
-                chartOptions: {
-                    ...donutSettings,
-                    colors: ['#00E396', '#008FFB', '#FEB019', '#FF4560'],
-                    labels: this.settings?.ageGroups !== undefined ? Object.values(this.settings?.ageGroups) : ['Early Youth','Youth','Middle Aged','Elderly'],
-                }
-            },
-            pieChartGender: {
-                series: Object.values(this.storeData.genderData),
-                chartOptions: {
-                    ...donutSettings,
-                    labels: Object.keys(this.storeData.genderData),
-                },
             },
             lineChart: {
                 chartOptions: {
@@ -690,7 +601,7 @@ export default {
 
             return exportData;
         },
-        cleareSummaryCache() {
+        clearSummaryCache() {
             axios.post(route('summary.clear-cache'), {
                 storeId: this.currentStore.dep_id ?? null,
             })
