@@ -263,26 +263,23 @@ class Opretail extends Model
 
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
-        if (isset($this->settings['workdays']) && $workdays = $this->settings['workdays']) {
-            // Set the end date as today
-            $startDate = Carbon::parse($dateFrom);
-            $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
-            $diffInDays = $endDate->diffInDays($startDate);
+        $workdays = $this->settings['workdays'] ?? [];
+        // Set the end date as today
+        $startDate = Carbon::parse($dateFrom);
+        $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month
+            ? Carbon::parse($dateTo)->endOfMonth()
+            : Carbon::now()->subDays(1);
+        $diffInDays = $endDate->diffInDays($startDate);
 
-            $count = 0;
-            for ($i = 0; $i <= $diffInDays; $i++) {
-                $currentDate = $endDate->copy()->subDays($i);
+        $count = 0;
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $currentDate = $endDate->copy()->subDays($i);
 
-                if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
-                    $count++;
-                }
+            if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+                $count++;
             }
-            $avg = $count === 0 ? $value : $value / $count;
-        } else {
-            $avg = $value / 25;
         }
+        $avg = $count === 0 ? $value : $value / $count;
 
         return round($avg, 1);
     }
