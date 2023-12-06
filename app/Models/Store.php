@@ -132,7 +132,6 @@ class Store extends Model
                 ->whereBetween('order_date', [$from, $to])
                 ->sum('order_total');
 
-            \Log::info('avarage total sales dates', ['from' => $from, 'to' => $to, 'sales' => $totalSales]);
             return round($this->getAvarageValue($from, $to, $totalSales), 0);
         } else {
             return round($this->orders()
@@ -249,7 +248,6 @@ class Store extends Model
             }
         }
 
-        \Log::info('count', ['c' => $count, 'v' => $value]);
         $avg = $count === 0 ? $value : $value / $count;
 
         return round($avg, 1);

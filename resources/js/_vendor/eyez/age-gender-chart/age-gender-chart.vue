@@ -25,11 +25,12 @@
     </div>
     <div class="">
         <div class="flex gap-2">
-            <template v-for="(ageGroup, key) in ageData">
+            <template v-if="ageData" v-for="(ageGroup, key) in ageData">
                 <div v-if="ageGroup.percentage > 0"
                      :class="['h-8 rounded-md', ageGroupClass(key, 'bg')]"
                      :style="`width: ${ageGroup.percentage}%`" />
             </template>
+            <div v-else class="bg-red-300 bg-blue-300 bg-blue-400 bg-purple-300text-red-300 text-blue-300 text-blue-400 text-purple-300"></div>
         </div>
 
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
