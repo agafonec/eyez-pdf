@@ -231,28 +231,26 @@ class Store extends Model
 
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
-        if (isset($this->opretail?->settings['workdays']) && $workdays = $this->opretail?->settings['workdays']) {
-            // Set the end date as today
-            $startDate = Carbon::parse($dateFrom);
-            $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()
-                : Carbon::now()->subDays(1);
-            $diffInDays = $endDate->diffInDays($startDate);
+        $workdays = $this->settings['workdays'] ?? [];
 
-            $count = 0;
-            for ($i = 0; $i <= $diffInDays; $i++) {
-                $currentDate = $endDate->copy()->subDays($i);
+        // Set the end date as today
+        $startDate = Carbon::parse($dateFrom);
+        $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month
+            ? Carbon::parse($dateTo)->endOfMonth()
+            : Carbon::now()->subDays(1);
+        $diffInDays = $endDate->diffInDays($startDate);
 
-                if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
-                    $count++;
-                }
+        $count = 0;
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $currentDate = $endDate->copy()->subDays($i);
+
+            if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+                $count++;
             }
-
-            \Log::info('count', ['c' => $count, 'v' => $value]);
-            $avg = $count === 0 ? $value : $value / $count;
-        } else {
-            $avg = $value / 25;
         }
+
+        \Log::info('count', ['c' => $count, 'v' => $value]);
+        $avg = $count === 0 ? $value : $value / $count;
 
         return round($avg, 1);
     }

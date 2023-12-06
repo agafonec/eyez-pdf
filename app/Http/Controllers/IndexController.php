@@ -199,22 +199,21 @@ class IndexController extends Controller
             $to->endOfDay()
         );
 
-        if (isset($opretail?->settings['workdays']) && $workdays = $opretail?->settings['workdays']) {
-            // Set the end date as today
-            $diffInDays = $to->diffInDays($from);
+        $workdays = $opretail?->settings['workdays'] ?? [];
 
-            $count = 0;
-            for ($i = 0; $i <= $diffInDays; $i++) {
-                $currentDate = $to->copy()->subDays($i);
+        // Set the end date as today
+        $diffInDays = $to->diffInDays($from);
 
-                if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
-                    $count++;
-                }
+        $count = 0;
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $currentDate = $to->copy()->subDays($i);
+
+            if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+                $count++;
             }
-            $avg = $count === 0 ? $walkInCount : $walkInCount / $count;
-        } else {
-            $avg = $walkInCount / 25;
         }
+        $avg = $count === 0 ? $walkInCount : $walkInCount / $count;
+
 
         return round($avg, 0);
     }
