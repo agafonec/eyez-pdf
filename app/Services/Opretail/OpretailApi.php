@@ -29,6 +29,13 @@ class OpretailApi
         return auth()->user() ?? request()->user() ?? null;
     }
 
+    /**
+     * @param $stores
+     * @param $dateFrom
+     * @param $dateTo
+     * @param $reportType
+     * @return $this
+     */
     public function getReport($stores, $dateFrom, $dateTo, $reportType)
     {
         $this->dateFrom = $dateFrom;
@@ -255,6 +262,10 @@ class OpretailApi
         }
     }
 
+    /**
+     * @param $data
+     * @return array|mixed|string[]
+     */
     protected function getSingleWalkInCount($data)
     {
         $params = $this->getRqParams('open.shopweb.passengerFlow.getPassengerIndicatorData', $data, "POST");
@@ -272,6 +283,9 @@ class OpretailApi
         }
     }
 
+    /**
+     * @return array|\Illuminate\Http\JsonResponse|mixed
+     */
     public function getStores()
     {
         $params = $this->getRqParams('open.shopweb.departments.getDeptListByPage', [], "POST");
@@ -322,6 +336,7 @@ class OpretailApi
                 $hourlyWalkIn = array_merge($hourlyWalkIn, $data['dataList']);
             }
 
+            \Log::info('store data hourly statistic', ['h' => $storeData]);
             $this->hourlyWalkIn = $this->mapHourlyWalkIn($hourlyWalkIn);
 
             return $response->json();
