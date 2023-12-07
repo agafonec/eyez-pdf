@@ -7,13 +7,12 @@
                 </div>
                 <span class="font-semibold">{{ title }}</span>
             </div>
-            <div class="flex items-center justify-center">
-                <span class="text-2xl ml-2 font-semibold">{{ stat.count }}</span>
-                <span class="text-md text-gray-300">איש</span>
+            <div class="text-center">
+                <span class="text-2xl font-semibold">{{ stat.count }}</span>
             </div>
             <div class="text-md text-gray-300">{{ stat.percentage }}%</div>
         </div>
-        <div role="tooltip"
+        <div v-if="stat.description" role="tooltip"
              :class="['absolute z-10 invisible inline-block px-3 py-2 text-sm font-medium -top-10 left-1/2 -translate-x-1/2 whitespace-nowrap',
               'text-white transition-opacity duration-300 bg-gray-900 rounded-lg shadow-sm opacity-0 tooltip dark:bg-gray-700',
               'group-hover:opacity-100 group-hover:visible'

@@ -19,7 +19,7 @@ trait OpretailHelpers
         foreach ($data as $single) {
             if ($single['gender'] === 0)
                 continue;
-            $gender = $single['gender'] === 1 ? 'female' : 'male';
+            $gender = $single['gender'] === 1 ? 'male' : 'female';
             $return[$gender] = [
                 'count' => $single['peopleNum'],
                 'percentage' => $single['percentage']

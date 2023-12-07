@@ -2,7 +2,7 @@
     <div class="mb-8">
         <div class="flex gap-4">
             <div class="h-8 rounded-md bg-blue-400"
-                 :style="`width: ${genderData.male.percentage}%`" />
+                 :style="`width: ${genderData.female.percentage}%`" />
 
             <div class="h-8 rounded-md bg-green-400"
                  :style="`width: ${genderData.male.percentage}%`" />
@@ -10,13 +10,13 @@
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
 
         <div class="flex justify-center gap-8">
-            <bar-stat-box :stat="genderData.female" color-class="text-blue-400" title="גברים">
+            <bar-stat-box :stat="genderData.female" color-class="text-blue-400" title="נשים">
                 <template #icon>
                     <icon-female />
                 </template>
             </bar-stat-box>
 
-            <bar-stat-box :stat="genderData.male" color-class="text-green-400" title="נשים">
+            <bar-stat-box :stat="genderData.male" color-class="text-green-400" title="גברים">
                 <template #icon>
                     <icon-male />
                 </template>
