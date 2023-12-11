@@ -336,7 +336,6 @@ class OpretailApi
                 $hourlyWalkIn = array_merge($hourlyWalkIn, $data['dataList']);
             }
 
-            \Log::info('store data hourly statistic', ['h' => $storeData]);
             $this->hourlyWalkIn = $this->mapHourlyWalkIn($hourlyWalkIn);
 
             return $response->json();

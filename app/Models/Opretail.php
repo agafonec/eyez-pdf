@@ -267,8 +267,8 @@ class Opretail extends Model
         // Set the end date as today
         $startDate = Carbon::parse($dateFrom);
         $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month
-            ? Carbon::parse($dateTo)->endOfMonth()
-            : Carbon::now()->subDays(1);
+            ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
+            : Carbon::now()->subDays(1)->endOfDay();
         $diffInDays = $endDate->diffInDays($startDate);
 
         $count = 0;

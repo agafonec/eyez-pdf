@@ -189,10 +189,10 @@ class IndexController extends Controller
     private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
     {
         $opretail = $this->user()?->opretailCredentials;
-        $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth();
+        $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
         $to = Carbon::now()->month !== Carbon::parse($dateFrom)->subDays(1)->month
-            ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()
-            : Carbon::now()->subDays(1);
+            ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()->endOfDay()
+            : Carbon::now()->subDays(1)->endOfDay();
 
         $walkInCount = $opretailApi->getWalkInCount(
             $from->startOfDay(),
@@ -213,7 +213,6 @@ class IndexController extends Controller
             }
         }
         $avg = $count === 0 ? $walkInCount : $walkInCount / $count;
-
 
         return round($avg, 0);
     }
