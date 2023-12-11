@@ -77,6 +77,7 @@
                 <div class="bg-gray-100 rounded-md">
                     <date-picker style="direction: ltr"
                                  v-model.range="pickerRange" mode="date"
+                                 :max-date="new Date()"
                                  :popover="{
                                   visibility: 'hover-focus',
                                   placement: 'bottom',
@@ -612,7 +613,6 @@ export default {
             })
         },
         onDateRangeChange(dateRange) {
-            console.log(this.currentStore.dep_id,  this.currentStore)
             this.$inertia.visit(route('home.show', {
                 stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
