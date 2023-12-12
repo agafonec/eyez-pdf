@@ -19,7 +19,7 @@
 
                 <json-excel class="w-full block"
                             :stringifyLongNum="true"
-                            :data="[Object.assign({}, storeData.genderData, storeData.ageData)]">
+                            :data="exportAgeGender">
                     <PrimaryButton class="w-full justify-center h-full">ייצוא נתונים דמוגרפים</PrimaryButton>
                 </json-excel>
             </div>
@@ -35,7 +35,7 @@
                                     text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                                 >
 <!--                                    <span>{{ currentStore.name }}</span>-->
-                                    <span v-if="currentStore.id !== undefined">Eyez Store</span>
+                                    <span v-if="currentStore.id !== undefined">{{ currentStore.name }}</span>
                                     <span v-else>All stores</span>
                                     <svg class="ms-2 -me-0.5 h-8 w-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -44,7 +44,7 @@
 
                         <template #content>
 <!--                            {{ store.name }}-->
-                            <DropdownLink v-for="(store, index) in stores" :href="route('home.show', {stores: store.dep_id})" align="center">Eyez Store {{ index }}</DropdownLink>
+                            <DropdownLink v-for="(store, index) in stores" :href="route('home.show', {stores: store.dep_id})" align="center">{{ store.name }}</DropdownLink>
                             <DropdownLink :href="route('home.show', {stores: stores.map(obj => obj.dep_id).join(',')})" align="center">All stores</DropdownLink>
                         </template>
                     </Dropdown>
@@ -347,10 +347,12 @@ export default {
         settings: {
             type: [Object, Array],
             default: {
-                earlyYouth: 'Early Youth',
-                youth: 'Youth',
-                middleAge: 'Middle Aged',
-                elderly: 'Elderly'
+                ageGroups: {
+                    earlyYouth: 'Early Youth',
+                    youth: 'Youth',
+                    middleAge: 'Middle Aged',
+                    elderly: 'Elderly'
+                }
             },
         }
     },
@@ -641,9 +643,34 @@ export default {
                     return accumulator + currentValue.passengerFlow;
                 }, 0);
             })
-        }
+        },
+        ageGroupLabel(key) {
+            return key === 'youth' ? this.settings?.ageGroups[key] ?? 'Youth'
+            : key === 'earlyYouth' ? this.settings?.ageGroups[key] ?? 'Teenagers'
+            : key === 'middleAge' ? this.settings?.ageGroups[key] ?? 'Middle Age'
+            : key === 'middleOld' ? this.settings?.ageGroups[key] ?? 'Middle Old'
+            : key === 'elderly' ? this.settings?.ageGroups[key] ?? 'Elderly'
+            : ''
+        },
     },
     computed: {
+        exportAgeGender() {
+            let exportObject = {
+                'נשים': this.storeData.genderData?.female.count,
+                'גברים': this.storeData.genderData?.male.count
+            };
+
+            for (let key in this.storeData.ageData) {
+                if (this.storeData.ageData.hasOwnProperty(key)) {
+                    let ageGroup = this.storeData.ageData[key];
+                    exportObject[this.ageGroupLabel(key)] = ageGroup.count
+                }
+            }
+
+            return [
+                exportObject
+            ]
+        },
         lineChartHistory() {
             const prevStoreData = this.prevStoreData.hourlyWalkIn;
             const currentStoreData = this.storeData.hourlyWalkIn;
