@@ -95,7 +95,6 @@ export default {
     },
     methods: {
         ageGroupClass(key, prefix = 'text') {
-            console.log(key)
             return prefix + '-' + (key === 'youth' ? 'green-300'
                                 : key === 'earlyYouth' ? 'red-300'
                                 : key === 'middleAge' ? 'blue-300'
