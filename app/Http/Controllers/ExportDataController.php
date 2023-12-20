@@ -14,7 +14,8 @@ class ExportDataController extends Controller
     public function getReportHistory(Request $request, Store|string $store)
     {
         $dateRange = $this->getDateRange($request);
-        $instance = is_string($store) ? $this->user()->opretailCredentials : $store;
+        $instance = str_contains($store, ',' ) ? $this->user()->opretailCredentials : Store::find($store);
+        \Log::info('instance', ['store' => $store,'instance' => $instance]);
         $orders = $instance->ordersByDate($dateRange->start, $dateRange->end)
                     ->select('store_id', 'order_date', 'items_count', 'order_total')
                     ->get();
