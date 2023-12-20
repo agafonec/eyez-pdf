@@ -21,7 +21,7 @@
                 </div>
 
                 <div v-if="roles.includes('admin') && currentUser !== undefined && !opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <settings :settings="opretail.settings" :user="currentUser"/>
+                    <settings :settings="opretail.settings" :user="currentUser" :stores="stores"/>
                 </div>
 
                 <div v-if="roles.includes('admin') && !opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
@@ -70,6 +70,9 @@ export default {
         },
         opretail: {
             type: Object
+        },
+        stores: {
+            type: [Object, Array]
         },
         roles: {
             type: Array

@@ -31,6 +31,7 @@ class AdminController extends Controller
             'currentUser' => $user,
             'roles' => $this->user()->getRoleNames(),
             'status' => session('status'),
+            'stores' => $user->stores,
             'eyezApiToken' => $user?->eyez_api_key ?? ''
         ];
         if ($user?->opretailCredentials) {

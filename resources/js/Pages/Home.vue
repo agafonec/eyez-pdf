@@ -44,8 +44,14 @@
 
                         <template #content>
 <!--                            {{ store.name }}-->
-                            <DropdownLink v-for="(store, index) in stores" :href="route('home.show', {stores: store.dep_id})" align="center">Eyez Store {{ index }}</DropdownLink>
-                            <DropdownLink :href="route('home.show', {stores: stores.map(obj => obj.dep_id).join(',')})" align="center">All stores</DropdownLink>
+                            <template v-for="(store, index) in availableStores">
+                                <DropdownLink
+                                    :href="route('home.show', {stores: store.dep_id})"
+                                    v-if="!settings?.hiddenStores?.includes(store.dep_id)"
+                                    align="center">Eyez Store {{ index }}</DropdownLink>
+                            </template>
+
+                            <DropdownLink v-if="showAllStoresLink" :href="route('home.show', {stores: availableStores.map(obj => obj.dep_id).join(',')})" align="center">All stores</DropdownLink>
                         </template>
                     </Dropdown>
                 </div>
@@ -654,6 +660,26 @@ export default {
         },
     },
     computed: {
+        availableStores() {
+            return this.stores.filter(store => {
+                if (this.settings?.hiddenStores) {
+                    return !this.settings?.hiddenStores?.includes(store.dep_id)
+                } else {
+                    return true
+                }
+            })
+        },
+        showAllStoresLink() {
+            let updatedStores = this.stores.filter(store => {
+                if (this.settings?.hiddenStores) {
+                    return !this.settings?.hiddenStores?.includes(store.dep_id)
+                } else {
+                    return true
+                }
+            })
+
+            return updatedStores.length > 1;
+        },
         exportAgeGender() {
             let exportObject = {
                 'נשים': this.storeData.genderData?.female.count,

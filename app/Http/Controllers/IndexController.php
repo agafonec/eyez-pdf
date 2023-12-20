@@ -35,11 +35,18 @@ class IndexController extends Controller
             return redirect('profile');
         }
 
+        $settings = $this->user()?->opretailCredentials?->settings;
+        $hiddenStores = $settings['hiddenStores'] ?? [];
         // It can be one or multiple stores.
         if ($request->has('stores')) {
             $query = $request->query('stores');
 
-            $currentStore = str_contains($query, ',') ? explode(',', $query) : Store::where('dep_id', $query)->first();
+            if (str_contains($query, ',')) {
+                $currentStore = explode(',', $query);
+                $currentStore = array_filter($currentStore, fn($storeId) => !in_array((int)$storeId, $hiddenStores));
+            } else {
+                $currentStore = Store::where('dep_id', $query)->first();
+            }
         } else {
             $currentStore = $this->user()->opretailCredentials->stores->last();
         }
@@ -54,7 +61,7 @@ class IndexController extends Controller
             'avgWalkIn' => $this->avgWalkIn,
             'stores' => $this->user()->stores,
             'storeSales' => $this->storeSalesReport,
-            'settings' => $this->user()?->opretailCredentials?->settings
+            'settings' => $settings
         ];
 
         return Inertia::render('Home', $homeParams);
