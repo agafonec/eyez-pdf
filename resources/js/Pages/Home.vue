@@ -549,6 +549,7 @@ export default {
             })
             .then(response => {
                 let orders = response.data.orders;
+
                 if (this.reportType === 'days' || this.currentStore.id !== undefined) {
                     const walkinByDate = this.storeData.hourlyWalkIn.reduce((accumulator, obj) => {
                         const key = obj.date;
@@ -594,20 +595,29 @@ export default {
                 }, 0);
 
                 let ordersCount = matchingOrders.length;
+                let passengerFlow = dayilyWalkIn.filter(wi => walkIn.time === wi.time)
+                                                .reduce((accumulator, wi) => {
+                                                    return accumulator + wi.passengerFlow;
+                                                }, 0)
                 let excelRow = {
                     "storeName": "",
                     "date": selectedDate,
                     "time": walkIn.time,
-                    "walkInCount": walkIn.passengerFlow,
+                    "walkInCount": passengerFlow ?? walkIn.passengerFlow,
                     "salesTotal": totalSales,
                     "itemsCount": itemsCount,
                     "ordersCount": ordersCount,
                     "closeRate": (ordersCount > 0 ? parseFloat(ordersCount / walkIn.passengerFlow * 100).toFixed(1) : 0) + '%',
                     "atv": (ordersCount > 0 ? parseFloat(totalSales / ordersCount).toFixed(1) : 0),
                 }
-                exportData.push(excelRow);
+
+                let objectExist = exportData.find(obj => obj.time === walkIn.time && obj.date === selectedDate);
+
+                if (!objectExist)
+                    exportData.push(excelRow);
             })
 
+            console.log(dayilyWalkIn, exportData)
             return exportData;
         },
         clearSummaryCache() {
