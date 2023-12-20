@@ -187,6 +187,7 @@ class ProfileController extends Controller
             $settings = $opretail->settings ?? [];
             $settings['workdays'] = $request->json('workdays');
             $settings['ageGroups'] = $request->json('ageGroups');
+            $settings['hiddenStores'] = $request->json('hiddenStores');
 
             $opretail->settings = $settings;
             $opretail->save();

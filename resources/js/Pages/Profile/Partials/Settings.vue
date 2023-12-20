@@ -1,5 +1,19 @@
 <template>
     <header>
+        <h2 class="text-lg font-medium text-gray-900">Hide Stores for user</h2>
+    </header>
+
+    <div class="flex items-center gap-4 mt-4">
+        <label v-for="(store, index) in stores" class="flex items-center">
+            <Checkbox name="hidden_stores"
+                      @update:checked="updateHiddenStores(store.dep_id)"
+                      :value="store.dep_id" :checked="hiddenStores.includes(store.dep_id)" />
+
+            <span class="ms-2 text-sm text-gray-600">{{ store.name }}</span>
+        </label>
+    </div>
+
+    <header class="mt-8">
         <h2 class="text-lg font-medium text-gray-900">Off Days</h2>
 
         <p class="mt-1 text-sm text-gray-600">
@@ -101,11 +115,13 @@ export default {
     },
     props: {
         user: [Object],
+        stores: [Object, Array],
         settings: [Object, Array],
     },
     data() {
         return {
             processing: false,
+            hiddenStores: this.settings?.hiddenStores ?? [],
             workDays: this.settings?.workdays ?? [],
             ageGroups: this.settings?.ageGroups ?? {
                 earlyYouth: 'Early Youth',
@@ -128,6 +144,7 @@ export default {
             axios.post(route('profile.settings.update'), {
                 workdays: this.workDays,
                 ageGroups: this.ageGroups,
+                hiddenStores: this.hiddenStores,
                 user: this.user
             })
             .then(response => {
@@ -141,6 +158,13 @@ export default {
                 this.workDays.push(day);
             } else {
                 this.workDays.splice(this.workDays.indexOf(day), 1);
+            }
+        },
+        updateHiddenStores(store) {
+            if (!this.hiddenStores.includes(store)) {
+                this.hiddenStores.push(store);
+            } else {
+                this.hiddenStores.splice(this.hiddenStores.indexOf(store), 1);
             }
         }
     },
