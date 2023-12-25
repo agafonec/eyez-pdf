@@ -39,24 +39,48 @@
                             </tr>
                             </thead>
                             <tbody>
-                            <tr  v-for="user in users.data" class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
-                                <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
-                                    {{ user.id }}
-                                </th>
-                                <td class="px-6 py-4">
-                                    {{ user.name }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ user.email }}
-                                </td>
-                                <td class="px-6 py-4">
-                                    {{ createdAt(user.created_at) }}
-                                </td>
-                                <td class="px-6 py-4 text-left">
-                                    <a :href="`/users/${user.id}`" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                                    <a href="#" @click="deleteUser(user.id)" class="font-medium text-red-600 dark:text-red-500 hover:underline me-4">Delete</a>
-                                </td>
-                            </tr>
+                            <template v-for="user in users.data">
+                                <tr class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ user.id }}
+                                    </th>
+                                    <td class="px-6 py-4">
+                                        {{ user.name }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ user.email }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ createdAt(user.created_at) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-left">
+                                        <a :href="`/users/${user.id}`" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                                        <a href="#" @click="deleteUser(user.id)" class="font-medium text-red-600 dark:text-red-500 hover:underline me-4">Delete</a>
+                                        <a href="#" @click="$inertia.visit(route('register', {parent_user: user.id}))"  class="font-medium text-red-600 dark:text-blue-500 hover:underline me-4">Add User</a>
+                                    </td>
+                                </tr>
+
+                                <tr v-if="user.sub_users"
+                                    v-for="subUser in user.sub_users"
+                                    class="bg-white border-b dark:bg-gray-800 dark:border-gray-700 hover:bg-gray-50 dark:hover:bg-gray-600">
+                                    <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
+                                        {{ subUser.id }}
+                                    </th>
+                                    <td class="px-6 py-4">
+                                        {{ subUser.name }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ subUser.email }}
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        {{ createdAt(subUser.created_at) }}
+                                    </td>
+                                    <td class="px-6 py-4 text-left">
+                                        <a :href="`/users/${subUser.id}`" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
+                                        <a href="#" @click="deleteUser(subUser.id)" class="font-medium text-red-600 dark:text-red-500 hover:underline me-4">Delete</a>
+                                    </td>
+                                </tr>
+                            </template>
                             </tbody>
                         </table>
                         <nav v-if="users.data.length > 0" class="flex items-center flex-column flex-wrap md:flex-row justify-between pt-4 ml-1" aria-label="Table navigation">

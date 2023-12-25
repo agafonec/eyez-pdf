@@ -28,7 +28,6 @@ const closeImport = () => {
 importInterval.value = setInterval(() => {
     axios.get(route('orders.import.status'))
     .then(response => {
-        console.log('orders.import.status', response);
         if (response.data.lastImport === 'completed') {
             importComplete.value = response.data.lastImport === 'completed'
 

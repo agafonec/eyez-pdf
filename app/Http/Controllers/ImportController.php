@@ -17,8 +17,12 @@ class ImportController extends Controller
      */
     public function ordersView()
     {
+        $hiddenStores = $this->user()?->settings['hiddenStores'] ?? [];
+        $stores = $this->user()->stores?->toArray();
+        $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
+
         return Inertia::render('ImportOrders', [
-            'stores' => $this->user()->stores,
+            'stores' => $filteredStores,
         ]);
     }
 
@@ -53,7 +57,6 @@ class ImportController extends Controller
     public function getStatus(Request $request)
     {
         $last_import = $this->user()->cached('last_import');
-        \Log::info('get status', ['last_import' => $last_import]);
 
         return ['lastImport' => $last_import];
     }

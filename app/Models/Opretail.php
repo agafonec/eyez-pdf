@@ -26,11 +26,6 @@ class Opretail extends Model
         '_aid',
         'enterpriseId',
         'orgId',
-        'settings',
-    ];
-
-    protected $casts = [
-        'settings' => 'json',
     ];
 
     public function setPasswordAttribute($value)
@@ -263,7 +258,7 @@ class Opretail extends Model
 
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
-        $workdays = $this->settings['workdays'] ?? [];
+        $workdays = $this->user?->settings['workdays'] ?? [];
         // Set the end date as today
         $startDate = Carbon::parse($dateFrom);
         $endDate = Carbon::now()->month !== Carbon::parse($dateTo)->month

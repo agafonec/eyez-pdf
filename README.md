@@ -68,6 +68,7 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 ## Installation Eyez
 1. `composer install`
 2. `php artisan migrate:fresh && php artisan db:seed` 
-in cas of using docker
+in case of using docker
 `sail artisan migrate:fresh && sail artisan db:seed`
+   `sail artisan db:seed --class=RolesSeeder`
 3. running Jobs `php artisan queue:work --queue=default`

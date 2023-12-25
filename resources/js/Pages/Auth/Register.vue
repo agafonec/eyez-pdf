@@ -6,11 +6,18 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import { Head, Link, useForm } from '@inertiajs/vue3';
 
+// Get the query parameters from the URL
+const urlParams = new URLSearchParams(window.location.search);
+
+// Example: Get the value of a specific parameter
+const parentUser = urlParams.get('parent_user');
+console.log(parentUser);
 const form = useForm({
     name: '',
     email: '',
     password: '',
     password_confirmation: '',
+    parent_user: parentUser
 });
 
 const submit = () => {

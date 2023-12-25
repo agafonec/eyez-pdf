@@ -16,15 +16,15 @@
                     />
                     <UpdatePasswordForm class="max-w-xl" :user="mustVerifyEmail"/>
                 </div>
-                <div v-if="roles.includes('admin') && currentUser !== undefined" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                <div v-if="roles.includes('admin') && currentUser !== undefined">
                     <OpretailnformationForm :opretail="opretail" :user="currentUser"/>
                 </div>
 
                 <div v-if="roles.includes('admin') && currentUser !== undefined && !opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
-                    <settings :settings="opretail.settings" :user="currentUser" :stores="stores"/>
+                    <settings :settings="currentUser.settings" :user="currentUser" :stores="stores"/>
                 </div>
 
-                <div v-if="roles.includes('admin') && !opretail.errors" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                <div v-if="roles.includes('admin') && !opretail.errors">
                     <ApiToken :api-token="eyezApiToken" :user="currentUser"/>
                 </div>
 

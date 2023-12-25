@@ -23,6 +23,8 @@ class User extends Authenticatable
         'email',
         'password',
         'eyez_api_key',
+        'parent_user_id',
+        'settings'
     ];
 
     /**
@@ -43,15 +45,47 @@ class User extends Authenticatable
     protected $casts = [
         'email_verified_at' => 'datetime',
         'password' => 'hashed',
+        'settings' => 'json',
     ];
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function subUsers()
+    {
+        return $this->hasMany(self::class, 'parent_user_id', 'id');
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne|null
+     */
+    public function parentUser()
+    {
+        if ($this->parent_user_id !== null) {
+            return $this->hasOne(self::class, 'id', 'parent_user_id');
+        } else {
+            return null;
+        }
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\HasOne
+     */
+    public function opretail()
+    {
+        return $this->hasOne(Opretail::class);
+    }
 
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasOne
      */
     public function opretailCredentials()
     {
-        return $this->hasOne(Opretail::class);
+        if ($this->hasRole('child_user')) {
+            return $this->parentUser->opretail();
+        } else {
+            return $this->opretail();
+        }
     }
 
     /**
@@ -59,7 +93,11 @@ class User extends Authenticatable
      */
     public function stores()
     {
-        return $this->hasMany('\App\Models\Store', 'user_id', 'id');
+        if ($this->hasRole('child_user')) {
+            return $this->hasMany('\App\Models\Store', 'user_id', 'parent_user_id');
+        } else {
+            return $this->hasMany('\App\Models\Store', 'user_id', 'id');
+        }
     }
 
     /**

@@ -13,8 +13,10 @@ class AdminController extends Controller
 {
     public function users(Request $request)
     {
-        $users = User::paginate(10); // Adjust the number per page as needed
-
+        $users = User::where('parent_user_id', null)
+            ->with('subUsers')
+            ->paginate(10); // Adjust the number per page as needed
+        \Log::info('users with subusers', ['u' => $users]);
         return Inertia::render('Admin/Users', [
             'users' => $users
         ]);

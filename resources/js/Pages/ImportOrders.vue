@@ -23,6 +23,7 @@
 
                         </p>
                     </header>
+
                     <div v-if="storesOptions.length > 0">
                         <div class="mb-4">
                             <base-select :options="storesOptions"
@@ -96,16 +97,16 @@ export default {
     },
     props: {
         stores: {
-            type: Object,
+            type: Array,
             required: true,
         }
     },
     data() {
         return {
-            storesOptions: this.stores.length > 0 ? this.mapOptions() : [],
-            selectedStore: this.stores.length > 0 ? this.mapOptions()[0] : [],
+            storesOptions: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions() : [],
+            selectedStore: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions()[0] : [],
             form: {
-                storeId: this.stores.length > 0 ? this.mapOptions()[0].value : [],
+                storeId: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions()[0].value : [],
                 file: null,
             },
             response: {
@@ -190,12 +191,22 @@ export default {
             });
         },
         mapOptions() {
-            return this.stores.map((store) => {
-                return {
-                    value: store.id,
-                    label: store.name
-                }
-            })
+            if (typeof this.stores === 'object' ) {
+                return Object.values(this.stores).map((store) => {
+                    return {
+                        value: store.id,
+                        label: store.name
+                    }
+                })
+            } else {
+                return this.stores.map((store) => {
+                    return {
+                        value: store.id,
+                        label: store.name
+                    }
+                })
+            }
+
         }
     }
 }
