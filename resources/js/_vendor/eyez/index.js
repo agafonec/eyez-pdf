@@ -21,6 +21,7 @@ import IconTeenager from './icons/icon-teenager/icon-teenager.vue'
 import IconMiddleAge from './icons/icon-middle-age/icon-middle-age.vue'
 import IconMiddleOld from './icons/icon-middle-old/icon-middle-old.vue'
 import IconElderly from './icons/icon-elderly/icon-elderly.vue'
+import IconClose from './icons/icon-close/icon-close.vue'
 
 import StatBox from './stat-box/stat-box.vue'
 import ChartStatBox from './chart-stat-box/chart-stat-box.vue'
@@ -29,6 +30,8 @@ import BarStatBox from './bar-stat-box/bar-stat-box.vue'
 import BaseSelect from './base-select/base-select.vue'
 
 import AgeGenderChart from './age-gender-chart/age-gender-chart.vue'
+
+import PopupModal from './popup-modal/popup-modal.vue'
 
 export {
     PdfLogo,
@@ -44,6 +47,7 @@ export {
     IconBook,
     IconBags,
     IconWarning,
+    IconClose,
 
     StatBox,
     ChartStatBox,
@@ -58,5 +62,7 @@ export {
     IconMiddleAge,
     IconMiddleOld,
     IconElderly,
-    AgeGenderChart
+    AgeGenderChart,
+
+    PopupModal
 }

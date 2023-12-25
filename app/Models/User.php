@@ -61,4 +61,51 @@ class User extends Authenticatable
     {
         return $this->hasMany('\App\Models\Store', 'user_id', 'id');
     }
+
+    /**
+     * @param $key
+     * @param $value
+     * @param int $minutes
+     * @return $this
+     */
+    public function cache($key, $value, $minutes = 30)
+    {
+        $cache_key = "user.{$this->id}.$key";
+
+        try {
+            cache()->forget($cache_key);
+            // TTL is in seconds since L5.8
+            cache()->put($cache_key, $value, $minutes instanceof \DateTime ? $minutes : $minutes * 60);
+        } catch (\Exception $e) {
+        }
+
+        return $this;
+    }
+
+    /**
+     * @param $key
+     * @param null $default
+     * @return mixed
+     */
+    public function cached($key, $default = null)
+    {
+        try {
+            return cache("user.{$this->id}.$key", $default);
+        } catch (\Exception $e) {
+        }
+    }
+
+    /**
+     * @param $key
+     * @return $this
+     */
+    public function forgetCached($key)
+    {
+        try {
+            cache()->forget("user.{$this->id}.$key");
+        } catch (\Exception $e) {
+        }
+
+        return $this;
+    }
 }

@@ -29,6 +29,14 @@ class Store extends Model
         return $this->belongsTo(Opretail::class, 'user_id', 'user_id');
     }
 
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
+
     public function getID()
     {
         return $this->id;

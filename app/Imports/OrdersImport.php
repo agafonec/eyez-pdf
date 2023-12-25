@@ -3,16 +3,25 @@
 namespace App\Imports;
 
 use App\Models\Order;
+use App\Models\Store;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Facades\Auth;
 use Maatwebsite\Excel\Concerns\ToModel;
 use Maatwebsite\Excel\Concerns\WithBatchInserts;
 use Maatwebsite\Excel\Concerns\WithChunkReading;
 use Maatwebsite\Excel\Concerns\WithHeadingRow;
+use Maatwebsite\Excel\Concerns\WithEvents;
+use Maatwebsite\Excel\Concerns\RegistersEventListeners;
+use Maatwebsite\Excel\Events\AfterImport;
 
-class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts
+class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithEvents
 {
+    use RegistersEventListeners;
+    public User $user;
+
     public function __construct(
         public int $storeId
     ) {}
@@ -26,7 +35,7 @@ class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts
     {
         $order = Order::where([
             'store_id' => $this->storeId,
-            'order_id'     => $row['order_id']
+            'order_id' => $row['order_id']
         ])->first();
         if (!$order) {
             if (isset($row['order_time'])) {
@@ -47,11 +56,16 @@ class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts
         } else {
             return null;
         }
-
     }
 
     public function batchSize(): int
     {
         return 100;
+    }
+
+    public static function afterImport(AfterImport $event)
+    {
+        $user = Auth::user();
+        $user->cache('last_import', 'completed', 1440);
     }
 }

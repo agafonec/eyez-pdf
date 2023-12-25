@@ -39,6 +39,8 @@ Route::middleware('auth')->group(function () {
 
         $router->post('/export-report/{store}')->uses('ExportDataController@getReportHistory')->name('report.export');
         $router->post('/import-orders')->uses('ImportController@orders')->name('orders.import');
+        $router->get('/import-orders/get-status')->uses('ImportController@getStatus')->name('orders.import.status');
+        $router->get('/import-orders/clean-status')->uses('ImportController@cleanStatus')->name('orders.import.clean-status');
 
         $router->get('/download-file/{file}')->uses('ImportController@downloadFile')->name('orders.import.sample');
     });
