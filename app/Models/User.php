@@ -48,6 +48,15 @@ class User extends Authenticatable
         'settings' => 'json',
     ];
 
+
+    /**
+     * @return bool
+     */
+    public function getIsAdminAttribute()
+    {
+        return $this->hasRole('admin');
+    }
+
     /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */

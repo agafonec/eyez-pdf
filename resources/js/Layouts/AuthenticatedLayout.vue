@@ -1,5 +1,5 @@
 <script setup>
-import { ref } from 'vue';
+import { ref, onMounted } from 'vue';
 import ApplicationLogo from '@/Components/ApplicationLogo.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
@@ -14,8 +14,7 @@ import {
 const showingNavigationDropdown = ref(false);
 const importComplete = ref(false);
 const importInterval = ref("");
-
-const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.auth.user.roles?.filter(obj => obj.name = 'admin').length > 0
+const isAdmin = ref(false)
 
 const closeImport = () => {
     importComplete.value = false
@@ -25,6 +24,18 @@ const closeImport = () => {
             console.log(error);
         })
 }
+
+onMounted(() => {
+    axios.get(route('user.roles'))
+    .then(response => {
+        console.log(response);
+        isAdmin.value = response.data
+    })
+    .catch(error => {
+        console.log(error)
+    })
+})
+
 importInterval.value = setInterval(() => {
     axios.get(route('orders.import.status'))
     .then(response => {
