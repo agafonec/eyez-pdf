@@ -52,6 +52,7 @@ Route::middleware('auth')->group(function () {
 
     });
 
+    Route::get('/user/isAdmin', [ProfileController::class, 'getUserRoles'])->name('user.roles');
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile-other', [ProfileController::class, 'updateOther'])->name('profile.update.other');
