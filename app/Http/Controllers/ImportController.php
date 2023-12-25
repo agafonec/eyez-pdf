@@ -17,14 +17,20 @@ class ImportController extends Controller
      */
     public function ordersView()
     {
+        $hiddenStores = $this->user()?->settings['hiddenStores'] ?? [];
+        $stores = $this->user()->stores?->toArray();
+        $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
+
         return Inertia::render('ImportOrders', [
-            'stores' => $this->user()->stores,
+            'stores' => $filteredStores,
         ]);
     }
 
     public function orders(Request $request) {
         if ($request->hasFile('file')) {
             $file = $request->file('file');
+
+            $this->user()->cache('last_import', 'started', 360);
             $storeId = (int)$request->input('storeId');
 
             Excel::import(new OrdersImport($storeId), $file);
@@ -46,5 +52,19 @@ class ImportController extends Controller
         $path = storage_path("app/public/samples/{$file}");
 
         return response()->download($path, $file);
+    }
+
+    public function getStatus(Request $request)
+    {
+        $last_import = $this->user()->cached('last_import');
+
+        return ['lastImport' => $last_import];
+    }
+
+    public function cleanStatus(Request $request)
+    {
+        $this->user()->forgetCached('last_import');
+        \Log::info('CLEANED STATUS');
+        return true;
     }
 }

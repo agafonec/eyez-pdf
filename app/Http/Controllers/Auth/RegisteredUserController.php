@@ -38,11 +38,19 @@ class RegisteredUserController extends Controller
             'password' => ['required', 'confirmed', Rules\Password::defaults()],
         ]);
 
-        $user = User::create([
+        $userParams = [
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-        ]);
+        ];
+
+        if ($parentUser = $request->json('parent_user')) {
+            $userParams['parent_user_id'] = $parentUser;
+        }
+        $role = isset($userParams['parent_user_id']) ? 'child_user' : 'main_user';
+
+        $user = User::create($userParams);
+        $user->assignRole($role);
 
         event(new Registered($user));
 

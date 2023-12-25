@@ -35,7 +35,7 @@ class IndexController extends Controller
             return redirect('profile');
         }
 
-        $settings = $this->user()?->opretailCredentials?->settings;
+        $settings = $this->user()?->settings ?? [];
         $hiddenStores = $settings['hiddenStores'] ?? [];
         // It can be one or multiple stores.
         if ($request->has('stores')) {
@@ -48,7 +48,11 @@ class IndexController extends Controller
                 $currentStore = Store::where('dep_id', $query)->first();
             }
         } else {
-            $currentStore = $this->user()->opretailCredentials->stores->last();
+            if ($hiddenStores) {
+                $currentStore = $this->user()->opretailCredentials->stores->whereNotIn('dep_id', $hiddenStores)->last();
+            } else {
+                $currentStore = $this->user()->opretailCredentials->stores->last();
+            }
         }
 
         $this->getReportData($request, $currentStore);
@@ -195,7 +199,6 @@ class IndexController extends Controller
      */
     private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
     {
-        $opretail = $this->user()?->opretailCredentials;
         $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
         $to = Carbon::now()->month !== Carbon::parse($dateFrom)->subDays(1)->month
             ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()->endOfDay()
@@ -206,7 +209,7 @@ class IndexController extends Controller
             $to->endOfDay()
         );
 
-        $workdays = $opretail?->settings['workdays'] ?? [];
+        $workdays = $this->user()?->settings['workdays'] ?? [];
 
         // Set the end date as today
         $diffInDays = $to->diffInDays($from);

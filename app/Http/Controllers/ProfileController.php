@@ -183,24 +183,17 @@ class ProfileController extends Controller
     {
         $user = $request->json('user.id') ? User::find($request->json('user.id')) : $this->user();
 
-        if ($opretail = $user->opretailCredentials) {
-            $settings = $opretail->settings ?? [];
-            $settings['workdays'] = $request->json('workdays');
-            $settings['ageGroups'] = $request->json('ageGroups');
-            $settings['hiddenStores'] = $request->json('hiddenStores');
+        $settings = $user->settings ?? [];
+        $settings['workdays'] = $request->json('workdays');
+        $settings['ageGroups'] = $request->json('ageGroups');
+        $settings['hiddenStores'] = $request->json('hiddenStores');
 
-            $opretail->settings = $settings;
-            $opretail->save();
-            return [
-                'errors' => false,
-                'message' => 'Settings successfully saved.'
-            ];
-        } else {
-            return [
-                'errors' => true,
-                'message' => 'You have to connect opretail account first.'
-            ];
-        }
+        $user->settings = $settings;
+        $user->save();
+        return [
+            'errors' => false,
+            'message' => 'Settings successfully saved.'
+        ];
     }
 
     /**

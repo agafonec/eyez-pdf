@@ -93,11 +93,12 @@
                 required
             />
         </div>
-
-        <PrimaryButton class="mt-2" @click="saveWorkingDays" :disabled="processing">Save</PrimaryButton>
-
-        <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
     </div>
+
+
+    <PrimaryButton class="mt-2" @click="saveWorkingDays" :disabled="processing">Save</PrimaryButton>
+
+    <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
 </template>
 
 <script>

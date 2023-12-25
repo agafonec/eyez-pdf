@@ -7,11 +7,42 @@ import NavLink from '@/Components/NavLink.vue';
 import ResponsiveNavLink from '@/Components/ResponsiveNavLink.vue';
 import { Link, usePage } from '@inertiajs/vue3';
 import {
-PdfLogo
+    PdfLogo,
+    PopupModal
 } from '@/_vendor/eyez/index'
+
 const showingNavigationDropdown = ref(false);
+const importComplete = ref(false);
+const importInterval = ref("");
 
 const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.auth.user.roles?.filter(obj => obj.name = 'admin').length > 0
+
+const closeImport = () => {
+    importComplete.value = false
+    axios.get(route('orders.import.clean-status'))
+        .then(response => {})
+        .catch(error => {
+            console.log(error);
+        })
+}
+importInterval.value = setInterval(() => {
+    axios.get(route('orders.import.status'))
+    .then(response => {
+        if (response.data.lastImport === 'completed') {
+            importComplete.value = response.data.lastImport === 'completed'
+
+            clearInterval(importInterval.value);
+        }
+
+        if (response.data.lastImport !== 'started') {
+            clearInterval(importInterval.value);
+        }
+    })
+    .catch(error => {
+        console.log('error', error);
+    })
+}, 500)
+
 </script>
 
 <template>
@@ -165,4 +196,14 @@ const isAdmin = usePage().props.auth.user.roles?.length > 0 && usePage().props.a
             </main>
         </div>
     </div>
+
+    <popup-modal :show="importComplete"
+                 max-width="max-w-xl"
+                 @close="closeImport"
+    >
+        <div class="font-semibold text-center">
+            Orders Import has been completed.
+        </div>
+    </popup-modal>
+
 </template>

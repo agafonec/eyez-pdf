@@ -23,6 +23,7 @@
 
                         </p>
                     </header>
+
                     <div v-if="storesOptions.length > 0">
                         <div class="mb-4">
                             <base-select :options="storesOptions"
@@ -45,18 +46,26 @@
                             <InputError class="mt-2" :message="form.errors?.orgId" />
                         </div>
                         <div class="flex items-center gap-4">
-                            <PrimaryButton @click="uploadOrders" :disabled="form.processing">שמירה</PrimaryButton>
+                            <PrimaryButton @click="() => {this.importConfirmation = true}" :disabled="form.processing || form.file === null">שמירה</PrimaryButton>
                             <page-loader v-if="form.processing" width="30" height="30"/>
                             <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
                         </div>
                     </div>
                     <div v-else class="">
-                        Yout didn't opretail account or you don't have any stores created.
+                        You didn't create opretail account or you don't have any stores created.
                     </div>
                 </div>
             </div>
         </div>
     </AuthenticatedLayout>
+    <popup-modal :show="importConfirmation" max-width="max-w-xl" @close="() => {this.importConfirmation = false}">
+        <h2 class="text-lg font-medium text-gray-900 text-center">Are you sure you want to import orders to {{ selectedStore.label }}?</h2>
+        <div class="flex justify-center gap-x-4 mt-6">
+            <PrimaryButton @click="uploadOrders">Yes</PrimaryButton>
+            <DangerButton @click="() => {this.importConfirmation = false}">No</DangerButton>
+        </div>
+
+    </popup-modal>
 </template>
 
 <script>
@@ -65,10 +74,11 @@ import { Head } from '@inertiajs/vue3';
 import InputError from '@/Components/InputError.vue';
 import InputLabel from '@/Components/InputLabel.vue';
 import PrimaryButton from '@/Components/PrimaryButton.vue';
+import DangerButton from '@/Components/DangerButton.vue';
 import TextInput from '@/Components/TextInput.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
-import { BaseSelect, PageLoader } from '@/_vendor/eyez/index'
+import { BaseSelect, PageLoader, PopupModal } from '@/_vendor/eyez/index'
 export default {
     name: "ImportOrders",
     components: {
@@ -81,26 +91,30 @@ export default {
         Dropdown,
         DropdownLink,
         BaseSelect,
-        PageLoader
+        PageLoader,
+        PopupModal,
+        DangerButton
     },
     props: {
         stores: {
-            type: Object,
+            type: Array,
             required: true,
         }
     },
     data() {
         return {
-            storesOptions: this.stores.length > 0 ? this.mapOptions() : [],
-            selectedStore: this.stores.length > 0 ? this.mapOptions()[0] : [],
+            storesOptions: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions() : [],
+            selectedStore: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions()[0] : [],
             form: {
-                storeId: this.stores.length > 0 ? this.mapOptions()[0].value : [],
-                file: '',
+                storeId: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions()[0].value : [],
+                file: null,
             },
             response: {
                 'errors': false,
                 'message': ''
-            }
+            },
+            importConfirmation: false,
+            importInterval: null
         }
     },
     methods: {
@@ -114,31 +128,85 @@ export default {
             formData.append('file', this.form.file);
             formData.append('storeId', this.form.storeId);
 
-            axios.post(route('orders.import'), formData)
-            .then((response) => {
-                this.form.processing = false;
-                this.response = response.data;
-            })
-            .catch(error => {
-                console.log(error);
-                this.form.processing = false;
-                this.response = {
-                    'errors': true,
-                    'message': 'Something went wrong, try again later.'
-                }
-            })
+            this.validateCsv()
+                .then(validation => {
+                    console.log('validation', validation);
+
+                    if (validation.length > 0) {
+                        let missingFields = validation.join(',')
+                        this.form.processing = false;
+
+                        this.response = {
+                            'errors': true,
+                            'message': `Required columns are missing. ${missingFields}`
+                        }
+                    } else {
+                        axios.post(route('orders.import'), formData)
+                            .then((response) => {
+                                this.form.processing = false;
+                                this.response = response.data;
+                                this.importConfirmation = false
+                                setTimeout(() => {
+                                    window.location.reload()
+                                }, 2000)
+                            })
+                            .catch(error => {
+                                console.log(error);
+                                this.form.processing = false;
+                                this.response = {
+                                    'errors': true,
+                                    'message': 'Something went wrong, try again later.'
+                                }
+                            })
+                    }
+                })
+                .catch(error => {
+                    console.error(error);
+                });
         },
         handleFileChange(event) {
             console.log(event.target.files[0]);
             this.form.file = event.target.files[0];
         },
-        mapOptions() {
-            return this.stores.map((store) => {
-                return {
-                    value: store.id,
-                    label: store.name
+        validateCsv() {
+            return new Promise((resolve, reject) => {
+                let requiredFields = ['order_id', 'order_date', 'items_count', 'order_total'];
+
+                if (this.form.file) {
+                    const reader = new FileReader();
+
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        const lines = content.split('\r\n');
+                        const headers = lines[0].split(',');
+
+                        const missingFields = requiredFields.filter(item => !headers.includes(item));
+                        resolve(missingFields);
+                    };
+
+                    reader.readAsText(this.form.file);
+                } else {
+                    reject('No file selected');
                 }
-            })
+            });
+        },
+        mapOptions() {
+            if (typeof this.stores === 'object' ) {
+                return Object.values(this.stores).map((store) => {
+                    return {
+                        value: store.id,
+                        label: store.name
+                    }
+                })
+            } else {
+                return this.stores.map((store) => {
+                    return {
+                        value: store.id,
+                        label: store.name
+                    }
+                })
+            }
+
         }
     }
 }
