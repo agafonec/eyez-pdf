@@ -213,7 +213,7 @@ importInterval.value = setInterval(() => {
                  @close="closeImport"
     >
         <div class="font-semibold text-center">
-            Orders Import has been completed.
+            טעינת הזמנות הושלמה
         </div>
     </popup-modal>
 
