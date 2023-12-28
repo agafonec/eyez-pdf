@@ -32,6 +32,7 @@ import BaseSelect from './base-select/base-select.vue'
 import AgeGenderChart from './age-gender-chart/age-gender-chart.vue'
 
 import PopupModal from './popup-modal/popup-modal.vue'
+import ProgressBar from './progress-bar/progress-bar.vue'
 
 export {
     PdfLogo,
@@ -64,5 +65,6 @@ export {
     IconElderly,
     AgeGenderChart,
 
-    PopupModal
+    PopupModal,
+    ProgressBar
 }

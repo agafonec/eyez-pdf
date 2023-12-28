@@ -28,6 +28,13 @@
                     <ApiToken :api-token="eyezApiToken" :user="currentUser"/>
                 </div>
 
+                <div v-if="roles.includes('admin') || roles.includes('main_user')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">
+                    <header>
+                        <h2 class="text-lg font-medium text-gray-900 mb-4">Start sync process with cameras.</h2>
+                    </header>
+                    <PrimaryButton @click="$inertia.visit(route('profile.sync-opretail'))">Go to sync page</PrimaryButton>
+                </div>
+
 <!--                <div v-if="!roles.includes('admin')" class="p-4 md:p-8 bg-white shadow md:rounded-lg">-->
 <!--                    <DeleteUserForm class="max-w-xl" :user="currentUser"/>-->
 <!--                </div>-->
@@ -45,6 +52,7 @@ import { Head } from '@inertiajs/vue3';
 import OpretailnformationForm from "./Partials/OpretailnformationForm.vue";
 import Settings from "./Partials/Settings.vue";
 import ApiToken from "./Partials/ApiToken.vue";
+import PrimaryButton from "@/Components/PrimaryButton.vue"
 
 export default {
     name: "Edit",
@@ -56,7 +64,8 @@ export default {
         Head,
         OpretailnformationForm,
         Settings,
-        ApiToken
+        ApiToken,
+        PrimaryButton
     },
     props: {
         mustVerifyEmail: {

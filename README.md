@@ -71,4 +71,5 @@ The Laravel framework is open-sourced software licensed under the [MIT license](
 in case of using docker
 `sail artisan migrate:fresh && sail artisan db:seed`
    `sail artisan db:seed --class=RolesSeeder`
-3. running Jobs `php artisan queue:work --queue=default`
+3. running Jobs `php artisan queue:work --queue=default,syncOpretail`
+4. Need to add cron jobs to make app work properly.

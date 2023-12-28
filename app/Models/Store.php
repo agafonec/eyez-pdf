@@ -32,6 +32,18 @@ class Store extends Model
     /**
      * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
      */
+    public function opretailCredentials()
+    {
+        if ($this->user->hasRole('child_user')) {
+            return $this->user->parentUser->opretail();
+        } else {
+            return $this->opretail();
+        }
+    }
+
+    /**
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     */
     public function user()
     {
         return $this->belongsTo(User::class);
@@ -50,6 +62,21 @@ class Store extends Model
     public function orders()
     {
         return $this->hasMany(Order::class);
+    }
+
+    public function hourlyWalkIn()
+    {
+        return $this->hasMany(HourlyPassengerFlow::class);
+    }
+
+    public function ageGroups()
+    {
+        return $this->hasMany(AgeGroup::class);
+    }
+
+    public function ageGenderFlow()
+    {
+        return $this->hasMany(AgeGenderFlow::class);
     }
 
     public function cache($key, $value, $minutes = 30)

@@ -28,7 +28,6 @@ const closeImport = () => {
 onMounted(() => {
     axios.get(route('user.roles'))
     .then(response => {
-        console.log(response);
         isAdmin.value = response.data
     })
     .catch(error => {

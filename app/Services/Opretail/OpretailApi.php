@@ -5,6 +5,7 @@ namespace App\Services\Opretail;
 
 use App\Models\Opretail;
 use Carbon\Carbon;
+use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Facades\Http;
 use App\Services\Opretail\OpretailHelpers as OpretailHelpers;
 
@@ -12,8 +13,17 @@ class OpretailApi
 {
     use OpretailHelpers, OpretailAuth;
 
-    public function __construct(private Opretail $opretailCredentials)
-    {
+    public $genderData;
+    public $ageData;
+    public $hourlyWalkIn;
+
+    public function __construct(
+        private Opretail $opretailCredentials,
+        public Model|array $stores = [],
+        public null|string $dateFrom = null,
+        public null|string $dateTo = null,
+        public string $reportType = 'hours'
+    ) {
         $this->generateToken($opretailCredentials);
     }
 
@@ -214,7 +224,6 @@ class OpretailApi
             foreach ($storeData as $data) {
                 $hourlyWalkIn = array_merge($hourlyWalkIn, $data['dataList']);
             }
-
             $this->hourlyWalkIn = $this->mapHourlyWalkIn($hourlyWalkIn);
 
             return $response->json();
@@ -258,7 +267,7 @@ class OpretailApi
             $this->genderData = $this->mapGender($response->json('data.genderDistribution'));
             $this->ageData = $this->mapAge($response->json('data.ageDistribution'));
 
-            return $response->json();
+            return $response->json('data');
         } else {
             \Log::info('Opretail error', ['error' => $response->status()] );
 
