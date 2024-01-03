@@ -28,7 +28,6 @@ const closeImport = () => {
 onMounted(() => {
     axios.get(route('user.roles'))
     .then(response => {
-        console.log(response);
         isAdmin.value = response.data
     })
     .catch(error => {
@@ -213,7 +212,7 @@ importInterval.value = setInterval(() => {
                  @close="closeImport"
     >
         <div class="font-semibold text-center">
-            Orders Import has been completed.
+            טעינת הזמנות הושלמה
         </div>
     </popup-modal>
 

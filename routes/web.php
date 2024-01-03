@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SyncOpretailController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -57,6 +58,11 @@ Route::middleware('auth')->group(function () {
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
     Route::patch('/profile-other', [ProfileController::class, 'updateOther'])->name('profile.update.other');
     Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+
+    Route::get('/profile/sync_store', [SyncOpretailController::class, 'view'])->name('profile.sync-opretail');
+    Route::post('/profile/sync_store/{store}', [SyncOpretailController::class, 'start'])->name('profile.sync.start');
+
+    Route::get('/jobs/progress/{batchId}', [SyncOpretailController::class, 'getProgress'])->name('jobs.progress');
 
     Route::post('/profile_opretail', [ProfileController::class, 'opretailUpdate'])->name('profile.opretail.update');
     Route::post('/profile_settings', [ProfileController::class, 'updateSettings'])->name('profile.settings.update');

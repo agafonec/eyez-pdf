@@ -75,6 +75,7 @@ trait OpretailHelpers
         if (!$data) die('No gender data has been received.');
 
         $return = [];
+
         foreach ($data as $single) {
             if ($single['passengerFlow'] > 0) {
                 $return[] = [
