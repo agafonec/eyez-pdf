@@ -121,6 +121,14 @@ class IndexController extends Controller
 
     public function getSalesReport($stores, $dateRange, $walkInCount, $avgWalkIn)
     {
+
+        $report = new OpretailApi(
+            $this->user()->opretailCredentials,
+            $stores,
+            Carbon::parse($dateRange->start)->startOfMonth()->startOfDay(),
+            Carbon::parse($dateRange->start)->endOfMonth()->endOfDay(),
+        );
+
         $instance = is_array($stores) ? $this->user()->opretailCredentials : $stores;
 
         $itemsSold = $instance->totalItemsSold($dateRange->start, $dateRange->end);
@@ -187,7 +195,12 @@ class IndexController extends Controller
                 ],
                 "previous" => [
                     "title" => 'ממוצע',
-                    "value" => $instance->closeRate($avgWalkIn, $dateRange->start, $dateRange->end, true)
+                    "value" => $instance->closeRate(
+                        $report->getWalkInCount(),
+                        Carbon::parse($dateRange->start)->startOfMonth()->startOfDay(),
+                        Carbon::parse($dateRange->start)->endOfMonth()->endOfDay(),
+                        true
+                    )
                 ]
             ]
         ];

@@ -239,7 +239,9 @@ class Store extends Model
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
         if ($average) {
-            $totalOrders = $this->totalOrders($dateFrom, $dateTo, true);
+            $dateFrom = $dateFrom->startOfMonth()->startOfDay();
+            $dateTo = $dateTo->endOfMonth()->endOfDay();
+            $totalOrders = $this->totalOrders($dateFrom, $dateTo);
 
             return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
         }
