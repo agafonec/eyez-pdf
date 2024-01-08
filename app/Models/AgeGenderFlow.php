@@ -22,4 +22,9 @@ class AgeGenderFlow extends Model
     {
         return $this->belongsTo(Store::class);
     }
+
+    public function ageGroup()
+    {
+        return $this->belongsTo(AgeGroup::class);
+    }
 }

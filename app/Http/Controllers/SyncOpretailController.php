@@ -57,7 +57,8 @@ class SyncOpretailController extends Controller
             $batch->add(
                 new SyncOpretailJob(
                     $store,
-                    $currentDate
+                    $currentDate,
+                    'update'
                 )
             );
         }

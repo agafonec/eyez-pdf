@@ -2,10 +2,13 @@
 
 namespace App\Providers;
 
+use App\Contracts\CustomersFlowInterface;
 use App\Models\Opretail;
 use App\Models\Store;
 use App\Observers\OpretailObserver;
 use App\Observers\StoreObserver;
+use App\Services\CustomersFlow\CustomersFlow;
+use App\Services\Opretail\OpretailService;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -15,7 +18,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->bind(CustomersFlowInterface::class, CustomersFlow::class);
     }
 
     /**
