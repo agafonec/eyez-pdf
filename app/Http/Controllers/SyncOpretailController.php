@@ -18,11 +18,10 @@ class SyncOpretailController extends Controller
     public function view(Request $request)
     {
         $user = $this->user();
-        $s = Store::find(1);
-        \Log::info('Store opretail', ['s' => $s->opretailCredentials]);
+
         if ($user && $user->hasRole('admin') || $user->hasRole('main_user')) {
-            $hiddenStores = $this->user()?->settings['hiddenStores'] ?? [];
-            $stores = $this->user()->stores?->toArray();
+            $hiddenStores = $user?->settings['hiddenStores'] ?? [];
+            $stores = $user->stores?->toArray();
             $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
 
             $inertiaParams = [
@@ -34,7 +33,6 @@ class SyncOpretailController extends Controller
                 'messages' => 'You are not allowed to sync stores. Contact support or the main account manager.'
             ];
         }
-
 
         return Inertia::render('Profile/SyncOpretail', $inertiaParams);
     }

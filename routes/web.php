@@ -49,6 +49,7 @@ Route::middleware('auth')->group(function () {
     Route::group(['middleware' => ['role:admin'], 'namespace' => 'App\Http\Controllers'], function ($router) {
         $router->get('/users/')->uses('AdminController@users')->name('admin.users');
         $router->get('/users/{user}')->uses('AdminController@singleUser')->name('admin.single-user');
+        $router->get('/users/{user}/sync-store')->uses('AdminController@syncStore')->name('admin.sync-store');
         $router->post('/users/{user}/delete')->uses('AdminController@destroyProfile')->name('admin.profile.destroy');
 
     });
