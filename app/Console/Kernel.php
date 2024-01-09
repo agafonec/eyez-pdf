@@ -13,7 +13,7 @@ class Kernel extends ConsoleKernel
     protected function schedule(Schedule $schedule): void
     {
         $schedule->command('eyez:sync-all-stores')
-            ->hourlyAt(13);
+            ->everyFifteenMinutes();
     }
 
     /**

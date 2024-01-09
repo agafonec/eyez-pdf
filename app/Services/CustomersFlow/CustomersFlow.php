@@ -119,7 +119,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'שנה שעברה',
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfYear()->startOfDay(),
+                        Carbon::now()->subYear()->startOfYear()->startOfDay(),
                         Carbon::now()->subYear()->endOfDay()
                     )
                 ],

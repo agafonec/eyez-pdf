@@ -106,7 +106,7 @@ class SyncOpretailJob implements ShouldQueue
 
         foreach ($hourlyWalkIn as $flow) {
             if ($flow['passengerFlow'] > 0) {
-                call_user_func([HourlyPassengerFlow::class, $this->method],
+                $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
                     [
                         'store_id' => $this->store->id,
                         'time' => Carbon::parse("{$flow['date']} {$flow['time']}")->format('Y-m-d H:i:s')
@@ -115,6 +115,13 @@ class SyncOpretailJob implements ShouldQueue
                         'passengerFlow' => $flow['passengerFlow']
                     ]
                 );
+
+                \Log::info('HOURLY FLOW CREATE', [
+                    'timeBeforeParse' => "{$flow['date']} {$flow['time']}",
+                    'timeAfterPArse' => Carbon::parse("{$flow['date']} {$flow['time']}")->format('Y-m-d H:i:s'),
+                    'c' => $hourlyFlowCreate
+                ]);
+
             }
         }
     }
