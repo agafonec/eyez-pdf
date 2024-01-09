@@ -661,12 +661,12 @@ export default {
             })
         },
         ageGroupLabel(key) {
-            return key === 'youth' ? this.settings?.ageGroups[key] ?? 'Youth'
-            : key === 'earlyYouth' ? this.settings?.ageGroups[key] ?? 'Teenagers'
-            : key === 'middleAge' ? this.settings?.ageGroups[key] ?? 'Middle Age'
-            : key === 'middleOld' ? this.settings?.ageGroups[key] ?? 'Middle Old'
-            : key === 'elderly' ? this.settings?.ageGroups[key] ?? 'Elderly'
-            : ''
+                return key === 'youth' ? this.settings?.ageGroups?.key ?? 'Youth'
+                    : key === 'earlyYouth' ? this.settings?.ageGroups?.key ?? 'Teenagers'
+                    : key === 'middleAge' ? this.settings?.ageGroups?.key ?? 'Middle Age'
+                    : key === 'middleOld' ? this.settings?.ageGroups?.key ?? 'Middle Old'
+                    : key === 'elderly' ? this.settings?.ageGroups?.key ?? 'Elderly'
+                    : ''
         },
     },
     computed: {

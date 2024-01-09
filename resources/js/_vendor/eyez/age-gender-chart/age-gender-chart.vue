@@ -105,12 +105,13 @@ export default {
                                 : 'gray-300')
         },
         ageGroupLabel(key) {
-            return key === 'youth' ? this.settings[key] ?? 'Youth'
-                : key === 'earlyYouth' ? this.settings[key] ?? 'Teenagers'
-                : key === 'middleAge' ? this.settings[key] ?? 'Middle Age'
-                : key === 'middleOld' ? this.settings[key] ?? 'Middle Old'
-                : key === 'elderly' ? this.settings[key] ?? 'Elderly'
-                : 'gray-300'
+                return key === 'youth' ? this.settings?.key ?? 'Youth'
+                    : key === 'earlyYouth' ? this.settings?.key ?? 'Teenagers'
+                    : key === 'middleAge' ? this.settings?.key ?? 'Middle Age'
+                    : key === 'middleOld' ? this.settings?.key ?? 'Middle Old'
+                    : key === 'elderly' ? this.settings?.key ?? 'Elderly'
+                    : 'gray-300'
+
         }
     }
 }
