@@ -28,7 +28,7 @@ class SyncOpretailJob implements ShouldQueue
         public $date,
         public $type = 'create'
     ) {
-        $this->onQueue('syncOpretail');
+        $this->onQueue('syncopretail');
 
         $this->method = $this->type === 'update' ? 'updateOrCreate' : 'firstOrCreate';
     }
