@@ -137,7 +137,9 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     {
         $storeIds = $this->getStoreIds($stores);
 
-        $totalWalkIn = $this->getWalkInCount($storeIds, $dateFrom, $dateTo);
+        $totalWalkIn = AgeGenderFlow::whereIn('store_id', $storeIds)
+            ->whereBetween('date', [$dateFrom, $dateTo])
+            ->sum('people_count');
 
         return (object)[
             'genderData' => $this->getGenderData($storeIds, $dateFrom, $dateTo, $totalWalkIn),
@@ -147,7 +149,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'reportType' => $this->reportType,
-            'walkInCount' => $totalWalkIn
+            'walkInCount' => $this->getWalkInCount($storeIds, $dateFrom, $dateTo)
         ];
     }
 

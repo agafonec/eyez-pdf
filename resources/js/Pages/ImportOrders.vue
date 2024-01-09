@@ -103,10 +103,10 @@ export default {
     },
     data() {
         return {
-            storesOptions: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions() : [],
-            selectedStore: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions()[0] : [],
+            storesOptions: this.stores.length > 0 || Object.keys(this.stores).length > 0 ? this.mapOptions() : [],
+            selectedStore: this.stores.length > 0 || Object.keys(this.stores).length > 0 ? this.mapOptions()[0] : [],
             form: {
-                storeId: this.stores.length > 0 || typeof this.stores === 'object' ? this.mapOptions()[0].value : [],
+                storeId: this.stores.length > 0 || Object.keys(this.stores).length > 0 ? this.mapOptions()[0].value : [],
                 file: null,
             },
             response: {

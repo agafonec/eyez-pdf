@@ -21,43 +21,48 @@
                                   :failes="progress.error"
                                   label="Syncing store" />
 
-                    <div v-else v-if="storesOptions.length > 0" class="max-w-md">
-                        <div class="mb-4">
-                            <base-select :options="storesOptions"
-                                         id="store"
-                                         label="נא לבחור חנות"
-                                         :currentValue="selectedStore"
-                                         @changed="(data) => selectedStore = data"
-                            />
-                        </div>
-                        <div class="">
-                            <label class="block text-sm font-medium leading-6 text-gray-900">Select starting date you want to sync from</label>
-                            <date-picker style="direction: ltr" mode="date"
-                                         :max-date="new Date()"
-                                         v-model="selectedDate"
-                                         :popover="{
+                    <div v-else class="max-w-md">
+                        <div v-if="storesOptions.length > 0">
+                            <div class="mb-4">
+                                <base-select :options="storesOptions"
+                                             id="store"
+                                             label="נא לבחור חנות"
+                                             :currentValue="selectedStore"
+                                             @changed="(data) => selectedStore = data"
+                                />
+                            </div>
+                            <div class="">
+                                <label class="block text-sm font-medium leading-6 text-gray-900">Select starting date you want to sync from</label>
+                                <date-picker style="direction: ltr" mode="date"
+                                             :max-date="new Date()"
+                                             v-model="selectedDate"
+                                             :popover="{
                                           visibility: 'hover-focus',
                                           placement: 'bottom',
                                           isInteractive: true,
                                         }">
-                                <template #default="{ togglePopover, inputValue, inputEvents }">
-                                    <div class="flex justify-center overflow-hidden w-full" >
-                                        <button
-                                            class="flex items-center justify-center text-gray-900 ring-1 ring-inset ring-gray-300 rounded-md w-full py-1.5"
-                                            @click="() => togglePopover()">
-                                            <span>{{ formattedDate() }}</span>
-                                            <icon-calendar class="mr-4"/>
-                                        </button>
-                                        <input
-                                            :value="inputValue"
-                                            v-on="inputEvents"
-                                            class="flex-grow p-0 bg-white dark:bg-gray-700 opacity-0 w-0"
-                                        />
-                                    </div>
-                                </template>
-                            </date-picker>
+                                    <template #default="{ togglePopover, inputValue, inputEvents }">
+                                        <div class="flex justify-center overflow-hidden w-full" >
+                                            <button
+                                                class="flex items-center justify-center text-gray-900 ring-1 ring-inset ring-gray-300 rounded-md w-full py-1.5"
+                                                @click="() => togglePopover()">
+                                                <span>{{ formattedDate() }}</span>
+                                                <icon-calendar class="mr-4"/>
+                                            </button>
+                                            <input
+                                                :value="inputValue"
+                                                v-on="inputEvents"
+                                                class="flex-grow p-0 bg-white dark:bg-gray-700 opacity-0 w-0"
+                                            />
+                                        </div>
+                                    </template>
+                                </date-picker>
+                            </div>
+                            <PrimaryButton class="mt-4" @click="startSync">Start Sync</PrimaryButton>
                         </div>
-                        <PrimaryButton class="mt-4" @click="startSync">Start Sync</PrimaryButton>
+                        <div v-else>
+                            You have no stores created. Contact main user or support.
+                        </div>
                     </div>
                 </div>
             </div>
