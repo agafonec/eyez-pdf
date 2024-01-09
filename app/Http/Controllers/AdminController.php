@@ -45,6 +45,26 @@ class AdminController extends Controller
         return Inertia::render('Profile/Edit', $profile);
     }
 
+    public function syncStore(Request $request, User $user)
+    {
+        if ($user && $user->hasRole('admin') || $user->hasRole('main_user')) {
+            $hiddenStores = $user?->settings['hiddenStores'] ?? [];
+            $stores = $user->stores?->toArray();
+            $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
+
+            $inertiaParams = [
+                'stores' => $filteredStores,
+            ];
+        } else {
+            $inertiaParams = [
+                'errors' => true,
+                'messages' => 'You are not allowed to sync stores. Contact support or the main account manager.'
+            ];
+        }
+
+        return Inertia::render('Profile/SyncOpretail', $inertiaParams);
+    }
+
     /**
      * @param Request|array $request
      * @return \Illuminate\Validation\Validator

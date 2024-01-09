@@ -72,7 +72,7 @@ trait OpretailHelpers
      */
     public static function mapHourlyWalkIn(Array $data, $splitType = 'hours')
     {
-        if (!$data) die('No gender data has been received.');
+        if (!$data) die('No hourly data has been received.');
 
         $return = [];
 

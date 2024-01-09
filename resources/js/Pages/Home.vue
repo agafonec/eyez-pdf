@@ -691,9 +691,10 @@ export default {
             return updatedStores.length > 1;
         },
         exportAgeGender() {
+            console.log('this.storeData', this.storeData)
             let exportObject = {
-                'נשים': this.storeData.genderData?.female.count,
-                'גברים': this.storeData.genderData?.male.count
+                'נשים': this.storeData.genderData?.female?.count,
+                'גברים': this.storeData.genderData?.male?.count
             };
 
             for (let key in this.storeData.ageData) {

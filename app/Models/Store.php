@@ -64,9 +64,21 @@ class Store extends Model
         return $this->hasMany(Order::class);
     }
 
-    public function hourlyWalkIn()
+    public function passengerFlow()
     {
         return $this->hasMany(HourlyPassengerFlow::class);
+    }
+
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @return mixed
+     */
+    public function getWalkInCount($stores, $dateFrom, $dateTo)
+    {
+        return $this->passengerFlow->whereIn('store_id', $stores)
+            ->whereBetween('time', [$dateFrom, $dateTo])
+            ->sum('passengerFlow');
     }
 
     public function ageGroups()

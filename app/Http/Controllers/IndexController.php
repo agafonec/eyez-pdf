@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Contracts\CustomersFlowInterface;
 use App\Models\Store;
 use App\Traits\HasDateMap;
 use Carbon\Carbon;
@@ -19,7 +20,9 @@ class IndexController extends Controller
     public float|null $avgWalkIn;
     public array $storeSalesReport;
 
-    public function __construct()
+    public function __construct(
+        protected CustomersFlowInterface $customersFlow,
+    )
     {
         $this->summary = null;
         $this->avgWalkIn = null;
@@ -55,14 +58,20 @@ class IndexController extends Controller
             }
         }
 
-        $this->getReportData($request, $currentStore);
+        // TODO replace with interface
+        $reports = $this->customersFlow->getReportData($request, $currentStore);
+        $this->storeSalesReport = $this->getSalesReport(
+            $currentStore,
+            $this->getDateRange($request),
+            $reports->currentReport?->walkInCount,
+        );
         $homeParams = [
             'currentStore' => is_array($currentStore) ? implode(',', $currentStore) : $currentStore,
-            'reportType' => $this->reportType,
-            'storeData' => $this->currentReport,
-            'prevStoreData' => $this->previousReport,
-            'summary' => $this->summary,
-            'avgWalkIn' => $this->avgWalkIn,
+            'reportType' => $reports->reportType,
+            'storeData' => $reports->currentReport,
+            'prevStoreData' => $reports->previousReport,
+            'summary' => $reports->summary,
+            'avgWalkIn' => $reports->avgWalkIn,
             'stores' => $this->user()->stores,
             'storeSales' => $this->storeSalesReport,
             'settings' => $settings
@@ -71,57 +80,9 @@ class IndexController extends Controller
         return Inertia::render('Home', $homeParams);
     }
 
-    /**
-     * @param Request $request
-     */
-    protected function getReportData(Request $request, Store|array $stores)
+    public function getSalesReport($stores, $dateRange, $walkInCount)
     {
-        $this->reportType = 'hours';
-        $opretail = $this->user()->opretailCredentials;
-
-        // Transform query date to date from/to parameters.
-        $dateRange = $this->getDateRange($request);
-
-        $currentReport = new OpretailApi($opretail);
-        $this->currentReport = $currentReport->getReport(
-            $stores,
-            $dateRange->start,
-            $dateRange->end,
-            $this->reportType
-        );
-
-        $newDateStart = Carbon::parse($dateRange->start)->subDays($dateRange->diffInDays);
-        $newDateEnd = Carbon::parse($dateRange->end)->subDays($dateRange->diffInDays);
-
-        $previousReport = new OpretailApi($opretail);
-        $this->previousReport = $previousReport->getReport(
-            $stores,
-            $newDateStart->startOfDay(),
-            $newDateEnd->endOfDay(),
-            $this->reportType
-        );
-
-        $this->avgWalkIn = $this->avgWalkIn($currentReport, $dateRange->start);
-
-        if ($this->reportType !== 'days') {
-            if (!is_array($stores)) {
-                $this->summary = $stores->cached('summary') ?? $currentReport->getSummary($stores);
-            } else {
-                $this->summary = $currentReport->getSummary($stores);
-            }
-        }
-
-        $this->storeSalesReport = $this->getSalesReport(
-            $stores,
-            $dateRange,
-            $this->currentReport?->walkInCount,
-            $this->avgWalkIn
-        );
-    }
-
-    public function getSalesReport($stores, $dateRange, $walkInCount, $avgWalkIn)
-    {
-
+        // TODO replace with interface
         $report = new OpretailApi(
             $this->user()->opretailCredentials,
             $stores,
@@ -204,40 +165,6 @@ class IndexController extends Controller
                 ]
             ]
         ];
-    }
-
-    /**
-     * @param OpretailApi $opretailApi
-     * @return float
-     */
-    private function avgWalkIn(OpretailApi $opretailApi, $dateFrom)
-    {
-        $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-        $to = Carbon::now()->month !== Carbon::parse($dateFrom)->subDays(1)->month
-            ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()->endOfDay()
-            : Carbon::now()->subDays(1)->endOfDay();
-
-        $walkInCount = $opretailApi->getWalkInCount(
-            $from->startOfDay(),
-            $to->endOfDay()
-        );
-
-        $workdays = $this->user()?->settings['workdays'] ?? [];
-
-        // Set the end date as today
-        $diffInDays = $to->diffInDays($from);
-
-        $count = 0;
-        for ($i = 0; $i <= $diffInDays; $i++) {
-            $currentDate = $to->copy()->subDays($i);
-
-            if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
-                $count++;
-            }
-        }
-        $avg = $count === 0 ? $walkInCount : $walkInCount / $count;
-
-        return round($avg, 0);
     }
 
     /**

@@ -1,11 +1,11 @@
 <template>
-    <div class="mb-8">
+    <div v-if="genderData.female || genderData.male" class="mb-8">
         <div class="flex gap-4">
             <div class="h-8 rounded-md bg-blue-400"
-                 :style="`width: ${genderData.female.percentage}%`" />
+                 :style="`width: ${genderData.female?.percentage}%`" />
 
             <div class="h-8 rounded-md bg-green-400"
-                 :style="`width: ${genderData.male.percentage}%`" />
+                 :style="`width: ${genderData.male?.percentage}%`" />
         </div>
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
 
@@ -23,7 +23,8 @@
             </bar-stat-box>
         </div>
     </div>
-    <div class="">
+    <div v-else class="text-center font-medium mb-8">No gender data found.</div>
+    <div  v-if="Object.keys(ageData).length > 0"  class="">
         <div class="flex gap-2">
             <template v-if="ageData" v-for="(ageGroup, key) in ageData">
                 <div v-if="ageGroup.percentage > 0"
@@ -52,6 +53,7 @@
             </div>
         </div>
     </div>
+    <div v-else class="text-center font-medium">No age data found.</div>
 </template>
 
 <script>
