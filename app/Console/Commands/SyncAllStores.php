@@ -35,7 +35,7 @@ class SyncAllStores extends Command
                 $store,
                 Carbon::now(),
                 'update'
-            )->onQueue('syncOpretail');
+            )->onQueue('syncopretail');
         }
     }
 }
