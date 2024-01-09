@@ -47,7 +47,7 @@ class AdminController extends Controller
 
     public function syncStore(Request $request, User $user)
     {
-        if ($user && $user->hasRole('admin') || $user->hasRole('main_user')) {
+        if ($user && $user->hasRole('main_user') || ($this->user() && $this->user()->hasRole('admin'))) {
             $hiddenStores = $user?->settings['hiddenStores'] ?? [];
             $stores = $user->stores?->toArray();
             $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));

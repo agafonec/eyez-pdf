@@ -29,7 +29,7 @@ class SyncAllStores extends Command
     public function handle()
     {
         $stores = Store::all();
-
+        \Log::info('Syncing stores', ['s' => $stores]);
         foreach ($stores as $store) {
             SyncOpretailJob::dispatch(
                 $store,
