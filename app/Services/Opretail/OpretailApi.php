@@ -250,8 +250,8 @@ class OpretailApi
             "id" => $storeIds,
             "stime" => date('Y-m-d H:i:s', strtotime($this->dateFrom)),
             "etime" => date('Y-m-d H:i:s', strtotime($this->dateTo)),
-            "startHour" => 1,
-            "endHour" => 23
+            "startHour" => 0,
+            "endHour" => 24
         ];
         // alternative data
         // $params = $this->getRqParams('open.shopweb.passengerFlow.flowGroup.getFlowGroupDistribution', $data, "POST");
