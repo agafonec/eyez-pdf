@@ -651,6 +651,15 @@ export default {
             return previous === 0 ? '100%' :( (difference / previous ) * 100).toFixed(1) + '%'
         },
         lineChartCategories() {
+            this.prevStoreData.hourlyWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
+                ...obj,
+                time: obj.time === '00:00' ? '24:00' : obj.time
+            }))
+
+            this.storeData.hourlyWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
+                ...obj,
+                time: obj.time === '00:00' ? '24:00' : obj.time
+            }))
             return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
         },
         lineChartArray(main) {
@@ -712,22 +721,23 @@ export default {
             const prevStoreData = this.prevStoreData.hourlyWalkIn;
             const currentStoreData = this.storeData.hourlyWalkIn;
 
-                return this.lineChartCategories().map(time => {
-                    return {
-                        current: {
-                            title: time,
-                            value: currentStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
-                                return accumulator + currentValue.passengerFlow;
-                            }, 0)
-                        },
-                        previous: {
-                            title: 'יום אחרון',
-                            value: prevStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
-                                return accumulator + currentValue.passengerFlow;
-                            }, 0)
-                        }
+            return this.lineChartCategories().map(time => {
+                console.log('time', time === '00:00' ? '24:00' : time)
+                return {
+                    current: {
+                        title: time,
+                        value: currentStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                            return accumulator + currentValue.passengerFlow;
+                        }, 0)
+                    },
+                    previous: {
+                        title: 'יום אחרון',
+                        value: prevStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
+                            return accumulator + currentValue.passengerFlow;
+                        }, 0)
                     }
-                })
+                }
+            })
         }
     }
 }

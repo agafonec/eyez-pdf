@@ -37,20 +37,21 @@
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
 
         <div class="flex justify-center gap-4 flex-wrap">
-            <div v-for="(ageGroup, key) in ageData" class="basis-0 grow">
-                <bar-stat-box v-if="ageGroup.count > 0"
-                              :stat="ageGroup"
-                              :color-class="ageGroupClass(key)"
-                              :title="ageGroupLabel(key)">
-                    <template #icon>
-                        <icon-teenager v-if="key === 'earlyYouth'" />
-                        <icon-youth v-if="key === 'youth'" />
-                        <icon-middle-age v-if="key === 'middleAge'" />
-                        <icon-middle-old v-if="key === 'middleOld'" />
-                        <icon-elderly v-if="key === 'elderly'" />
-                    </template>
-                </bar-stat-box>
-            </div>
+            <template v-for="(ageGroup, key) in ageData" >
+                <div v-if="ageGroup.count > 0" class="basis-0 grow">
+                    <bar-stat-box :stat="ageGroup"
+                                  :color-class="ageGroupClass(key)"
+                                  :title="ageGroupLabel(key)">
+                        <template #icon>
+                            <icon-teenager v-if="key === 'earlyYouth'" />
+                            <icon-youth v-if="key === 'youth'" />
+                            <icon-middle-age v-if="key === 'middleAge'" />
+                            <icon-middle-old v-if="key === 'middleOld'" />
+                            <icon-elderly v-if="key === 'elderly'" />
+                        </template>
+                    </bar-stat-box>
+                </div>
+            </template>
         </div>
     </div>
     <div v-else class="text-center font-medium">No age data found.</div>
