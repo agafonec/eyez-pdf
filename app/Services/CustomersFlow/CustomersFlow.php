@@ -18,7 +18,6 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     use HasDateMap;
     public string $reportType;
     public array|null $summary;
-    public float|null $avgWalkIn;
     public array $storeSalesReport;
 
     public function getReportData(Request $request, Store|array $stores)
@@ -28,20 +27,17 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
         // Transform query date to date from/to parameters.
         $dateRange = $this->getDateRange($request);
 
-        if ($this->reportType !== 'days') {
-            $this->summary = $this->getSummary($stores);
-        }
-
+        $this->summary = $this->reportType !== 'days' ? $this->getSummary($stores) : null;
         $previousDateStart = Carbon::parse($dateRange->start)
             ->subDays($dateRange->diffInDays)
-            ->startOfDay();
+            ->startOfDay()->addSecond();
         $previousDateEnd = Carbon::parse($dateRange->end)
             ->subDays($dateRange->diffInDays)
-            ->endOfDay();
+            ->endOfDay()->addSecond();
 
         return (object)[
             'reportType' => $this->reportType,
-            'currentReport' => $this->getReport($stores, $dateRange->start, $dateRange->end),
+            'currentReport' => $this->getReport($stores, $dateRange->start->addSecond(), $dateRange->end->addSecond()),
             'previousReport' => $this->getReport($stores, $previousDateStart, $previousDateEnd),
             'summary' => $this->summary,
             'avgWalkIn' => $this->avgWalkIn($stores, $dateRange->start),
@@ -75,16 +71,16 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => "השבוע",
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay(),
-                        Carbon::now()->endOfDay()
+                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->addSecond()->startOfDay(),
+                        Carbon::now()->addSecond()->endOfDay()
                     )
                 ],
                 "previous" => [
                     "title" => 'שבוע שעבר',
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->startOfDay(),
-                        Carbon::now()->subWeek()->endOfDay()
+                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->addSecond()->startOfDay(),
+                        Carbon::now()->subWeek()->addSecond()->endOfDay()
                     ),
                 ]
             ],
@@ -93,16 +89,16 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'החודש',
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfMonth()->startOfDay(),
-                        Carbon::now()->endOfDay()
+                        Carbon::now()->startOfMonth()->addSecond()->startOfDay(),
+                        Carbon::now()->addSecond()->endOfDay()
                     )
                 ],
                 "previous" => [
                     "title" => 'חודש שעבר',
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfMonth()->subMonth()->startOfDay(),
-                        Carbon::now()->subMonth()->endOfDay()
+                        Carbon::now()->startOfMonth()->subMonth()->addSecond()->startOfDay(),
+                        Carbon::now()->subMonth()->addSecond()->endOfDay()
                     )
                 ]
             ],
@@ -111,16 +107,16 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'השנה',
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfYear()->startOfDay(),
-                        Carbon::now()->endOfDay()
+                        Carbon::now()->startOfYear()->addSecond()->startOfDay(),
+                        Carbon::now()->addSecond()->endOfDay()
                     )
                 ],
                 "previous" => [
                     "title" => 'שנה שעברה',
                     "value" => $this->getWalkInCount(
                         $storeIds,
-                        Carbon::now()->startOfYear()->startOfDay(),
-                        Carbon::now()->subYear()->endOfDay()
+                        Carbon::now()->subYear()->startOfYear()->addSecond()->startOfDay(),
+                        Carbon::now()->subYear()->addSecond()->endOfDay()
                     )
                 ],
             ],

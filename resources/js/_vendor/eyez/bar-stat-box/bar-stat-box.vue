@@ -1,7 +1,7 @@
 <template>
     <div class="group relative cursor-pointer">
         <div class="text-center">
-            <div :class="['flex items-center justify-center mb-2', colorClass]">
+            <div :class="['flex items-center justify-center mb-2 whitespace-nowrap', colorClass]">
                 <div class="ml-2">
                     <slot name="icon" />
                 </div>
@@ -14,7 +14,6 @@
             <div class="text-md text-gray-300">{{ stat.percentage }}%</div>
         </div>
     </div>
-
 </template>
 
 <script>
