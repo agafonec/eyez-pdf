@@ -44,17 +44,30 @@
 
                         <template #content>
 <!--                            {{ store.name }}-->
-                            <template v-for="(store, index) in availableStores">
+                            <template v-if="roles.includes('admin')" v-for="(store, index) in availableStores">
+                                <DropdownLink
+                                    :href="route('profile.dashboard.view', {user: store.user_id, stores: store.dep_id})"
+                                    v-if="!settings?.hiddenStores?.includes(store.dep_id)"
+                                    align="center">Eyez Store {{ index }}</DropdownLink>
+                            </template>
+                            <template v-else v-for="(store, index) in availableStores">
                                 <DropdownLink
                                     :href="route('home.show', {stores: store.dep_id})"
                                     v-if="!settings?.hiddenStores?.includes(store.dep_id)"
                                     align="center">Eyez Store {{ index }}</DropdownLink>
                             </template>
 
-                            <DropdownLink v-if="showAllStoresLink" :href="route('home.show', {stores: availableStores.map(obj => obj.dep_id).join(',')})" align="center">All stores</DropdownLink>
+                            <DropdownLink v-if="showAllStoresLink && roles.includes('admin')"
+                                          :href="route('profile.dashboard.view', {
+                                              user: availableStores[0].user_id,
+                                              stores: availableStores.map(obj => obj.dep_id).join(',')
+                                          })"
+                                          align="center">All stores</DropdownLink>
+                            <DropdownLink v-else-if="showAllStoresLink" :href="route('home.show', {stores: availableStores.map(obj => obj.dep_id).join(',')})" align="center">All stores</DropdownLink>
                         </template>
                     </Dropdown>
                 </div>
+
                 <div class="hidden end-4 top-4 md:top-0 md:end-0 absolute md:relative md:block">
                     <date-picker style="direction: ltr" v-model.range="pickerRange"
                                  mode="date"
@@ -352,6 +365,9 @@ export default {
         storeSales: {
             type: [Object, Array]
         },
+        roles: {
+            type: Array
+        },
         settings: {
             type: [Object, Array],
             default: {
@@ -619,7 +635,6 @@ export default {
                     exportData.push(excelRow);
             })
 
-            console.log(dayilyWalkIn, exportData)
             return exportData;
         },
         clearSummaryCache() {
@@ -633,7 +648,9 @@ export default {
             })
         },
         onDateRangeChange(dateRange) {
-            this.$inertia.visit(route('home.show', {
+            let endpoint = this.roles.includes('admin') ? 'profile.dashboard.view' : 'home.show'
+            this.$inertia.visit(route(endpoint, {
+                user: this.currentStore.user_id,
                 stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
                 dateTo: moment(dateRange.end).format('YYYY-MM-DD')

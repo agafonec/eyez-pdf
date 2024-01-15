@@ -96,7 +96,8 @@ class IndexController extends Controller
             'avgWalkIn' => $reports->avgWalkIn,
             'stores' => $user->stores,
             'storeSales' => $this->storeSalesReport,
-            'settings' => $settings
+            'settings' => $settings,
+            'roles' => $this->user()->getRoleNames(),
         ];
 
         return Inertia::render('Home', $homeParams);
