@@ -92,7 +92,6 @@ export default {
         }
     },
     data() {
-        console.log('settings',  usePage().props.settings?.ageGroups)
         return {
             settings: usePage().props.settings?.ageGroups
         }
