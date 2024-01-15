@@ -151,7 +151,6 @@ export default {
                 batchId: this.batchId
             }))
                 .then(response => {
-                    console.log('progress', this.progress);
                     this.progress = {
                         percent: response.data.progress?.processedJobs,
                         success: response.data.progress?.processedJobs,

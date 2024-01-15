@@ -92,6 +92,7 @@ export default {
         }
     },
     data() {
+        console.log('settings',  usePage().props.settings?.ageGroups)
         return {
             settings: usePage().props.settings?.ageGroups
         }
@@ -106,11 +107,12 @@ export default {
                                 : 'gray-300')
         },
         ageGroupLabel(key) {
-                return key === 'youth' ? this.settings?.key ?? 'Youth'
-                    : key === 'earlyYouth' ? this.settings?.key ?? 'Teenagers'
-                    : key === 'middleAge' ? this.settings?.key ?? 'Middle Age'
-                    : key === 'middleOld' ? this.settings?.key ?? 'Middle Old'
-                    : key === 'elderly' ? this.settings?.key ?? 'Elderly'
+
+                return key === 'youth' ? this.settings !== undefined ? this.settings[key] : 'Youth'
+                    : key === 'earlyYouth' ? this.settings !== undefined ? this.settings[key] : 'Teenagers'
+                    : key === 'middleAge' ?this.settings !== undefined ?  this.settings[key]: 'Middle Age'
+                    : key === 'middleOld' ? this.settings !== undefined ? this.settings[key] : 'Middle Old'
+                    : key === 'elderly' ? this.settings !== undefined ? this.settings[key] : 'Elderly'
                     : 'gray-300'
 
         }

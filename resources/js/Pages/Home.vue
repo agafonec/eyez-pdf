@@ -670,11 +670,11 @@ export default {
             })
         },
         ageGroupLabel(key) {
-                return key === 'youth' ? this.settings?.ageGroups?.key ?? 'Youth'
-                    : key === 'earlyYouth' ? this.settings?.ageGroups?.key ?? 'Teenagers'
-                    : key === 'middleAge' ? this.settings?.ageGroups?.key ?? 'Middle Age'
-                    : key === 'middleOld' ? this.settings?.ageGroups?.key ?? 'Middle Old'
-                    : key === 'elderly' ? this.settings?.ageGroups?.key ?? 'Elderly'
+                return key === 'youth' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Youth'
+                    : key === 'earlyYouth' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Teenagers'
+                    : key === 'middleAge' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Middle Age'
+                    : key === 'middleOld' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Middle Old'
+                    : key === 'elderly' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Elderly'
                     : ''
         },
     },
@@ -700,7 +700,6 @@ export default {
             return updatedStores.length > 1;
         },
         exportAgeGender() {
-            console.log('this.storeData', this.storeData)
             let exportObject = {
                 'נשים': this.storeData.genderData?.female?.count,
                 'גברים': this.storeData.genderData?.male?.count
@@ -722,7 +721,6 @@ export default {
             const currentStoreData = this.storeData.hourlyWalkIn;
 
             return this.lineChartCategories().map(time => {
-                console.log('time', time === '00:00' ? '24:00' : time)
                 return {
                     current: {
                         title: time,
