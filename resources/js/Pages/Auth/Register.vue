@@ -11,7 +11,7 @@ const urlParams = new URLSearchParams(window.location.search);
 
 // Example: Get the value of a specific parameter
 const parentUser = urlParams.get('parent_user');
-console.log(parentUser);
+
 const form = useForm({
     name: '',
     email: '',
