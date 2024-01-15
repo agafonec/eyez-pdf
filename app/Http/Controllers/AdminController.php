@@ -11,6 +11,10 @@ use Illuminate\Support\Facades\Crypt;
 
 class AdminController extends Controller
 {
+    /**
+     * @param Request $request
+     * @return \Inertia\Response
+     */
     public function users(Request $request)
     {
         $users = User::where('parent_user_id', null)
@@ -45,7 +49,32 @@ class AdminController extends Controller
         return Inertia::render('Profile/Edit', $profile);
     }
 
+    /**
+     * @param Request $request
+     * @param User $user
+     * @return \Inertia\Response
+     */
     public function syncStore(Request $request, User $user)
+    {
+        if ($user && $user->hasRole('main_user') || ($this->user() && $this->user()->hasRole('admin'))) {
+            $hiddenStores = $user?->settings['hiddenStores'] ?? [];
+            $stores = $user->stores?->toArray();
+            $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
+
+            $inertiaParams = [
+                'stores' => $filteredStores,
+            ];
+        } else {
+            $inertiaParams = [
+                'errors' => true,
+                'messages' => 'You are not allowed to sync stores. Contact support or the main account manager.'
+            ];
+        }
+
+        return Inertia::render('Profile/SyncOpretail', $inertiaParams);
+    }
+
+    public function previewUserDashboard(Request $request, User $user)
     {
         if ($user && $user->hasRole('main_user') || ($this->user() && $this->user()->hasRole('admin'))) {
             $hiddenStores = $user?->settings['hiddenStores'] ?? [];

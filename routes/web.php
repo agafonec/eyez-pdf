@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\IndexController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\SyncOpretailController;
 use Illuminate\Foundation\Application;
@@ -51,6 +52,7 @@ Route::middleware('auth')->group(function () {
         $router->get('/users/{user}')->uses('AdminController@singleUser')->name('admin.single-user');
         $router->get('/users/{user}/sync-store')->uses('AdminController@syncStore')->name('admin.sync-store');
         $router->post('/users/{user}/delete')->uses('AdminController@destroyProfile')->name('admin.profile.destroy');
+        $router->get('/dashboard/{user}', [IndexController::class, 'adminShow'])->name('profile.dashboard.view');
 
     });
 

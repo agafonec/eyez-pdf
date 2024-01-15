@@ -7,6 +7,7 @@ namespace App\Services\Opretail;
 use App\Contracts\CustomersFlowInterface;
 use App\Http\Controllers\Controller;
 use App\Models\Store;
+use App\Models\User;
 use App\Traits\HasDateMap;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -20,6 +21,18 @@ class OpretailService extends Controller implements CustomersFlowInterface
     public array|null $summary;
     public float|null $avgWalkIn;
     public array $storeSalesReport;
+    private User $user;
+
+    /**
+     * @param User $user
+     * @return $this
+     */
+    public function setUser(User $user)
+    {
+        $this->user = $user;
+
+        return $this;
+    }
 
     /**
      * @param Request $request
@@ -27,7 +40,7 @@ class OpretailService extends Controller implements CustomersFlowInterface
     public function getReportData(Request $request, Store|array $stores)
     {
         $this->reportType = 'hours';
-        $opretail = $this->user()->opretailCredentials;
+        $opretail = $this->user?->opretailCredentials;
 
         // Transform query date to date from/to parameters.
         $dateRange = $this->getDateRange($request);
@@ -73,7 +86,7 @@ class OpretailService extends Controller implements CustomersFlowInterface
     public function getWalkInCount($dateRange, $stores)
     {
         return (new OpretailApi(
-            $this->user()->opretailCredentials,
+            $this->user->opretailCredentials,
             $stores,
             Carbon::parse($dateRange->start)->startOfMonth()->startOfDay(),
             Carbon::parse($dateRange->start)->endOfMonth()->endOfDay(),
@@ -96,7 +109,7 @@ class OpretailService extends Controller implements CustomersFlowInterface
             $to->endOfDay()
         );
 
-        $workdays = $this->user()?->settings['workdays'] ?? [];
+        $workdays = $this->user?->settings['workdays'] ?? [];
 
         // Set the end date as today
         $diffInDays = $to->diffInDays($from);

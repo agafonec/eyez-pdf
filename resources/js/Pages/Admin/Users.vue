@@ -57,6 +57,7 @@
                                         <a :href="`/users/${user.id}`" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
                                         <a href="#" @click="deleteUser(user.id)" class="font-medium text-red-600 dark:text-red-500 hover:underline me-4">Delete</a>
                                         <a href="#" @click="$inertia.visit(route('register', {parent_user: user.id}))"  class="font-medium text-red-600 dark:text-blue-500 hover:underline me-4">Add User</a>
+                                        <a href="#" @click="$inertia.visit(route('profile.dashboard.view', {user: user.id}))"  class="font-medium text-red-600 dark:text-blue-500 hover:underline me-4">Dashboard</a>
                                     </td>
                                 </tr>
 

@@ -9,6 +9,7 @@ use App\Http\Controllers\Controller;
 use App\Models\AgeGenderFlow;
 use App\Models\HourlyPassengerFlow;
 use App\Models\Store;
+use App\Models\User;
 use App\Traits\HasDateMap;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
@@ -19,6 +20,13 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     public string $reportType;
     public array|null $summary;
     public array $storeSalesReport;
+    public User $user;
+
+    public function setUser(User $user)
+    {
+        $this->user = $user;
+        return $this;
+    }
 
     public function getReportData(Request $request, Store|array $stores)
     {
@@ -50,10 +58,12 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      * @param $dateTo
      * @return mixed
      */
-    public function getWalkInCount($storeIds, $dateFrom, $dateTo)
+    public function getWalkInCount($dateRange, $stores)
     {
+        $storeIds = $this->getStoreIds($stores);
+
         return HourlyPassengerFlow::whereIn('store_id', $storeIds)
-            ->whereBetween('time', [$dateFrom, $dateTo])
+            ->whereBetween('time', [$dateRange->start, $dateRange->end])
             ->sum('passengerFlow');
     }
 
@@ -63,24 +73,26 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getSummary(Store|array $stores)
     {
-        $storeIds = $this->getStoreIds($stores);
-
         return [
             "week" => [
                 "current" => [
                     "title" => "השבוע",
                     "value" => $this->getWalkInCount(
-                        $storeIds,
-                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->addSecond()->startOfDay(),
-                        Carbon::now()->addSecond()->endOfDay()
+                        (object)[
+                            'start' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->addSecond()->startOfDay(),
+                            'end' => Carbon::now()->addSecond()->endOfDay()
+                        ],
+                        $stores,
                     )
                 ],
                 "previous" => [
                     "title" => 'שבוע שעבר',
                     "value" => $this->getWalkInCount(
-                        $storeIds,
-                        Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->addSecond()->startOfDay(),
-                        Carbon::now()->subWeek()->addSecond()->endOfDay()
+                        (object)[
+                            'start' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->addSecond()->startOfDay(),
+                            'end' => Carbon::now()->subWeek()->addSecond()->endOfDay()
+                        ],
+                        $stores
                     ),
                 ]
             ],
@@ -88,17 +100,21 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                 "current" => [
                     "title" => 'החודש',
                     "value" => $this->getWalkInCount(
-                        $storeIds,
-                        Carbon::now()->startOfMonth()->addSecond()->startOfDay(),
-                        Carbon::now()->addSecond()->endOfDay()
+                        (object)[
+                            'start' => Carbon::now()->startOfMonth()->addSecond()->startOfDay(),
+                            'end' => Carbon::now()->addSecond()->endOfDay()
+                        ],
+                        $stores,
                     )
                 ],
                 "previous" => [
                     "title" => 'חודש שעבר',
                     "value" => $this->getWalkInCount(
-                        $storeIds,
-                        Carbon::now()->startOfMonth()->subMonth()->addSecond()->startOfDay(),
-                        Carbon::now()->subMonth()->addSecond()->endOfDay()
+                        (object)[
+                            'start' => Carbon::now()->startOfMonth()->subMonth()->addSecond()->startOfDay(),
+                            'end' => Carbon::now()->subMonth()->addSecond()->endOfDay()
+                        ],
+                        $stores
                     )
                 ]
             ],
@@ -106,17 +122,21 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                 "current" => [
                     "title" => 'השנה',
                     "value" => $this->getWalkInCount(
-                        $storeIds,
-                        Carbon::now()->startOfYear()->addSecond()->startOfDay(),
-                        Carbon::now()->addSecond()->endOfDay()
+                        (object)[
+                            'start' => Carbon::now()->startOfYear()->addSecond()->startOfDay(),
+                            'end' => Carbon::now()->addSecond()->endOfDay()
+                        ],
+                        $stores
                     )
                 ],
                 "previous" => [
                     "title" => 'שנה שעברה',
                     "value" => $this->getWalkInCount(
-                        $storeIds,
-                        Carbon::now()->subYear()->startOfYear()->addSecond()->startOfDay(),
-                        Carbon::now()->subYear()->addSecond()->endOfDay()
+                        (object)[
+                            'start' => Carbon::now()->subYear()->startOfYear()->addSecond()->startOfDay(),
+                            'end' => Carbon::now()->subYear()->addSecond()->endOfDay()
+                        ],
+                        $stores
                     )
                 ],
             ],
@@ -137,6 +157,10 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             ->whereBetween('date', [$dateFrom, $dateTo])
             ->sum('people_count');
 
+        $dateRange = (object) [
+            'start' => $dateFrom,
+            'end' => $dateTo
+        ];
         return (object)[
             'genderData' => $this->getGenderData($storeIds, $dateFrom, $dateTo, $totalWalkIn),
             'ageData' => $this->getAgeData($storeIds, $dateFrom, $dateTo, $totalWalkIn),
@@ -145,7 +169,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             'dateFrom' => $dateFrom,
             'dateTo' => $dateTo,
             'reportType' => $this->reportType,
-            'walkInCount' => $this->getWalkInCount($storeIds, $dateFrom, $dateTo)
+            'walkInCount' => $this->getWalkInCount($dateRange, $stores)
         ];
     }
 
@@ -246,7 +270,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
          if (!is_array($stores)) {
             $storeIds = [$stores->id];
         } else {
-             $storeIds = $this->user()
+             $storeIds = $this->user
                  ->stores()
                  ->whereIn('dep_id', $stores)
                  ->get()
@@ -263,20 +287,20 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     private function avgWalkIn($stores, $dateFrom)
     {
-        $storeIds = $this->getStoreIds($stores);
-
         $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
         $to = Carbon::now()->month !== Carbon::parse($dateFrom)->subDays(1)->month
             ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()->endOfDay()
             : Carbon::now()->subDays(1)->endOfDay();
-
+        $dateRange = (object) [
+            'start' => $from,
+            'end' => $to
+        ];
         $walkInCount = $this->getWalkInCount(
-            $storeIds,
-            $from,
-            $to
+            $dateRange,
+            $stores
         );
 
-        $workdays = $this->user()?->settings['workdays'] ?? [];
+        $workdays = $this->user?->settings['workdays'] ?? [];
 
         $diffInDays = $to->diffInDays($from);
 
