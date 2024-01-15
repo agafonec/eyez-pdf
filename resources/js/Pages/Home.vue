@@ -112,8 +112,10 @@
 
             <div class="py-5 md:p-5">
                 <div class="mb-0 md:mb-5 bg-white p-4 rounded-t-[10px] sm:rounded-[10px] flex items-center justify-center flex-col md:flex-row gap-5 md:gap-10">
-                    <div class="bg-green-100 w-full md:w-1/3 pt-10 pb-4 sm:py-10 rounded-[10px] relative flex justify-center">
-                        <div class="flex items-center flex-col pt-8 sm:pt-0 sm:flex-row">
+                    <div class="bg-green-100 w-full md:w-1/3 pt-10 pb-4 sm:py-10 rounded-[10px] relative text-center">
+                        <div class="text-3xl mr-2.5 text-green-400 font-medium pt-8 mb-3 sm:mb-0 sm:pt-0">סה״כ מבקרים</div>
+
+                        <div class="flex items-center justify-center flex-col sm:flex-row">
                             <div class="flex items-center">
                                 <icon-people class="text-green-400"/>
                                 <span class="text-3xl mr-2.5 text-green-400 font-medium">{{ storeData.walkInCount.toLocaleString() }}</span>
@@ -132,7 +134,7 @@
                             </div>
                             <span v-if="reportType === 'hours'"
                                   class="w-[90%] bg-green-300 text-white text-sm absolute rounded-md py-2 text-center top-4 left-4 md:py-0 md:top-2 md:left-2 md:bg-transparent md:text-green-300 md:w-auto">
-                                חנות AVG: {{ avgWalkIn }}
+                                ממוצע מבקרים: {{ avgWalkIn }}
                             </span>
                         </div>
                     </div>
