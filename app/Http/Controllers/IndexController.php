@@ -179,7 +179,10 @@ class IndexController extends Controller
                 "previous" => [
                     "title" => 'ממוצע',
                     "value" => $instance->closeRate(
-                        $this->customersFlow->setUser($user)->getWalkInCount($dateRange, $stores),
+                        $this->customersFlow->setUser($user)->getWalkInCount((object)[
+                            'start' => Carbon::parse($dateRange->start)->startOfMonth()->startOfDay()->addSecond(),
+                            'end' => Carbon::parse($dateRange->start)->endOfMonth()->endOfDay()->addSecond()
+                        ], $stores),
                         Carbon::parse($dateRange->start)->startOfMonth()->startOfDay(),
                         Carbon::parse($dateRange->start)->endOfMonth()->endOfDay(),
                         true
