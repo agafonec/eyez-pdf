@@ -236,6 +236,7 @@ class Store extends Model
 
         $totalSales = $this->totalSales($dateFrom, $dateTo);
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
+
         return $totalOrders ? round($totalSales / $totalOrders, 0) : 0;
     }
 
@@ -277,6 +278,12 @@ class Store extends Model
             ->whereBetween('order_date', [$dateFrom, $dateTo]);
     }
 
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param $value
+     * @return float
+     */
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
         $workdays = $this->opretail?->settings['workdays'] ?? [];
@@ -292,13 +299,24 @@ class Store extends Model
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $endDate->copy()->subDays($i);
 
-            if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+            if (!in_array($currentDate->dayOfWeek, $workdays) && $currentDate->gt($this->firstAvailableDate())) {
                 $count++;
             }
         }
-
+        \Log::info('count', ['c' => $count]);
         $avg = $count === 0 ? $value : $value / $count;
 
         return round($avg, 1);
+    }
+
+    /**
+     * @return Carbon
+     */
+    public function firstAvailableDate()
+    {
+        $firstAvailableDate = $this->orders()->pluck('order_date')->first()
+            ?? $this->passengerFlow()->pluck('time')->first()
+            ?? Carbon::now();
+        return Carbon::parse($firstAvailableDate);
     }
 }

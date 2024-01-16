@@ -108,9 +108,20 @@ class Opretail extends Model
         return $this->stores()->pluck('id')->toArray();
     }
 
+    /**
+     * @return mixed
+     */
     public function allStoresOrders()
     {
         return Order::whereIn('store_id', $this->getStoreIdsArray());
+    }
+
+    /**
+     * @return mixed
+     */
+    public function allStoresPassengerData()
+    {
+        return HourlyPassengerFlow::whereIn('store_id', $this->getStoreIdsArray());
     }
 
     /**
@@ -256,6 +267,12 @@ class Opretail extends Model
             ->whereBetween('order_date', [$dateFrom, $dateTo]);
     }
 
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param $value
+     * @return float
+     */
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
         $workdays = $this->user?->settings['workdays'] ?? [];
@@ -270,12 +287,23 @@ class Opretail extends Model
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $endDate->copy()->subDays($i);
 
-            if ( !in_array($currentDate->dayOfWeek, $workdays) ) {
+            if (!in_array($currentDate->dayOfWeek, $workdays) && $currentDate->gt($this->firstAvailableDate())) {
                 $count++;
             }
         }
         $avg = $count === 0 ? $value : $value / $count;
 
         return round($avg, 1);
+    }
+
+    /**
+     * @return Carbon
+     */
+    public function firstAvailableDate()
+    {
+        $firstAvailableDate = $this->allStoresOrders()()->pluck('order_date')->first()
+            ?? $this->allStoresPassengerData()->pluck('time')->first()
+            ?? Carbon::now();
+        return Carbon::parse($firstAvailableDate);
     }
 }
