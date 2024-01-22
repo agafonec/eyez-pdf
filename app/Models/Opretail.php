@@ -287,7 +287,7 @@ class Opretail extends Model
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $endDate->copy()->subDays($i);
 
-            if (!in_array($currentDate->dayOfWeek, $workdays) && $currentDate->gt($this->firstAvailableDate())) {
+            if (!in_array($currentDate->dayOfWeek, $workdays)) {
                 $count++;
             }
         }
@@ -301,8 +301,8 @@ class Opretail extends Model
      */
     public function firstAvailableDate()
     {
-        $firstAvailableDate = $this->allStoresOrders()()->pluck('order_date')->first()
-            ?? $this->allStoresPassengerData()->pluck('time')->first()
+        $firstAvailableDate = $this->allStoresOrders()->orderBy('order_date')->pluck('order_date')->first()
+            ?? $this->allStoresPassengerData()->orderBy('time')->pluck('time')->first()
             ?? Carbon::now();
         return Carbon::parse($firstAvailableDate);
     }

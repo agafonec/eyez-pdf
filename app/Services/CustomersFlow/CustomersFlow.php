@@ -79,8 +79,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => "השבוע",
                     "value" => $this->getWalkInCount(
                         (object)[
-                            'start' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->addSecond()->startOfDay(),
-                            'end' => Carbon::now()->addSecond()->endOfDay()
+                            'start' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->startOfDay()->addSecond(),
+                            'end' => Carbon::now()->endOfDay()->addSecond()
                         ],
                         $stores,
                     )
@@ -89,8 +89,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'שבוע שעבר',
                     "value" => $this->getWalkInCount(
                         (object)[
-                            'start' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->addSecond()->startOfDay(),
-                            'end' => Carbon::now()->subWeek()->addSecond()->endOfDay()
+                            'start' => Carbon::now()->startOfWeek(Carbon::SUNDAY)->subWeeks(1)->startOfDay()->addSecond(),
+                            'end' => Carbon::now()->subWeek()->endOfDay()->addSecond()
                         ],
                         $stores
                     ),
@@ -101,8 +101,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'החודש',
                     "value" => $this->getWalkInCount(
                         (object)[
-                            'start' => Carbon::now()->startOfMonth()->addSecond()->startOfDay(),
-                            'end' => Carbon::now()->addSecond()->endOfDay()
+                            'start' => Carbon::now()->startOfMonth()->startOfDay()->addSecond(),
+                            'end' => Carbon::now()->endOfDay()->addSecond()
                         ],
                         $stores,
                     )
@@ -111,8 +111,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'חודש שעבר',
                     "value" => $this->getWalkInCount(
                         (object)[
-                            'start' => Carbon::now()->startOfMonth()->subMonth()->addSecond()->startOfDay(),
-                            'end' => Carbon::now()->subMonth()->addSecond()->endOfDay()
+                            'start' => Carbon::now()->startOfMonth()->subMonth()->startOfDay()->addSecond(),
+                            'end' => Carbon::now()->subMonth()->endOfDay()->addSecond()
                         ],
                         $stores
                     )
@@ -123,8 +123,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'השנה',
                     "value" => $this->getWalkInCount(
                         (object)[
-                            'start' => Carbon::now()->startOfYear()->addSecond()->startOfDay(),
-                            'end' => Carbon::now()->addSecond()->endOfDay()
+                            'start' => Carbon::now()->startOfYear()->startOfDay()->addSecond(),
+                            'end' => Carbon::now()->endOfDay()->addSecond()
                         ],
                         $stores
                     )
@@ -133,8 +133,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
                     "title" => 'שנה שעברה',
                     "value" => $this->getWalkInCount(
                         (object)[
-                            'start' => Carbon::now()->subYear()->startOfYear()->addSecond()->startOfDay(),
-                            'end' => Carbon::now()->subYear()->addSecond()->endOfDay()
+                            'start' => Carbon::now()->subYear()->startOfYear()->startOfDay()->addSecond(),
+                            'end' => Carbon::now()->subYear()->endOfDay()->addSecond()
                         ],
                         $stores
                     )

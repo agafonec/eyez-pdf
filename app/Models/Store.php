@@ -299,11 +299,11 @@ class Store extends Model
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $endDate->copy()->subDays($i);
 
-            if (!in_array($currentDate->dayOfWeek, $workdays) && $currentDate->gt($this->firstAvailableDate())) {
+            if (!in_array($currentDate->dayOfWeek, $workdays)) {
                 $count++;
             }
         }
-        \Log::info('count', ['c' => $count]);
+
         $avg = $count === 0 ? $value : $value / $count;
 
         return round($avg, 1);
@@ -314,8 +314,8 @@ class Store extends Model
      */
     public function firstAvailableDate()
     {
-        $firstAvailableDate = $this->orders()->pluck('order_date')->first()
-            ?? $this->passengerFlow()->pluck('time')->first()
+        $firstAvailableDate = $this->orders()->orderBy('order_date')->pluck('order_date')->first()
+            ?? $this->passengerFlow()->orderBy('time')->pluck('time')->first()
             ?? Carbon::now();
         return Carbon::parse($firstAvailableDate);
     }
