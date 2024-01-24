@@ -24,9 +24,29 @@ class Store extends Model
         'organize_id'
     ];
 
+    protected $casts = [
+        'settings' => 'json'
+    ];
+
     public function opretail()
     {
         return $this->belongsTo(Opretail::class, 'user_id', 'user_id');
+    }
+
+    public function getSchedule()
+    {
+        if ($this->settings && $this->settings['workdays']) {
+            $workdays = $this->settings['workdays'];
+
+            foreach ($this->settings['workdays'] as $key => $workday) {
+                $workdays[$key]['timeStart'] = Carbon::createFromTimestampMs($workday['timeStart'])->format('H:i:s');
+                $workdays[$key]['timeEnd'] = Carbon::createFromTimestampMs($workday['timeEnd'])->format('H:i:s');
+            }
+
+            return $workdays;
+        } else {
+            return $this->settings;
+        }
     }
 
     /**
@@ -286,7 +306,7 @@ class Store extends Model
      */
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
-        $workdays = $this->opretail?->settings['workdays'] ?? [];
+        $workdays = $this->user?->settings['workdays'] ?? [];
 
         // Set the end date as today
         $startDate = Carbon::parse($dateFrom);

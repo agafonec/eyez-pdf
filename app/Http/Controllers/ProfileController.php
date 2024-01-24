@@ -182,11 +182,17 @@ class ProfileController extends Controller
     public function updateSettings(Request $request)
     {
         $user = $request->json('user.id') ? User::find($request->json('user.id')) : $this->user();
+        $storesSettings = $request->json('storesSettings');
 
         $settings = $user->settings ?? [];
-        $settings['workdays'] = $request->json('workdays');
         $settings['ageGroups'] = $request->json('ageGroups');
         $settings['hiddenStores'] = $request->json('hiddenStores');
+
+        foreach ($storesSettings as $s) {
+            $store = Store::find($s['id']);
+            $store->settings = $s['settings'];
+            $store->save();
+        }
 
         $user->settings = $settings;
         $user->save();
