@@ -33,20 +33,40 @@ class Store extends Model
         return $this->belongsTo(Opretail::class, 'user_id', 'user_id');
     }
 
+    /**
+     * @return array|mixed
+     */
     public function getSchedule()
     {
         if ($this->settings && $this->settings['workdays']) {
             $workdays = $this->settings['workdays'];
 
             foreach ($this->settings['workdays'] as $key => $workday) {
-                $workdays[$key]['timeStart'] = Carbon::createFromTimestampMs($workday['timeStart'])->format('H:i:s');
-                $workdays[$key]['timeEnd'] = Carbon::createFromTimestampMs($workday['timeEnd'])->format('H:i:s');
+                $workdays[$key]['timeStart'] = Carbon::parse($workday['timeStart'])->format('H:i:s');
+                $workdays[$key]['timeEnd'] = Carbon::parse($workday['timeEnd'])->format('H:i:s');
             }
 
             return $workdays;
         } else {
             return $this->settings;
         }
+    }
+
+    /**
+     * @param $date
+     * @return bool
+     */
+    public function workingDay($date)
+    {
+        $carbonDate = Carbon::parse($date);
+
+        \Log::info('workingDay', [
+            'date' => $date,
+            'bool' => !($this->settings && isset($this->settings['daysoff']))
+                || !in_array($carbonDate->dayOfWeek, $this->settings['daysoff'])
+        ]);
+        return !($this->settings && isset($this->settings['daysoff']))
+            || !in_array($carbonDate->dayOfWeek, $this->settings['daysoff']);
     }
 
     /**
@@ -306,7 +326,7 @@ class Store extends Model
      */
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
-        $workdays = $this->user?->settings['workdays'] ?? [];
+        $daysoff = $this->settings['daysoff'] ?? [];
 
         // Set the end date as today
         $startDate = Carbon::parse($dateFrom);
@@ -319,7 +339,7 @@ class Store extends Model
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $endDate->copy()->subDays($i);
 
-            if (!in_array($currentDate->dayOfWeek, $workdays)) {
+            if (!in_array($currentDate->dayOfWeek, $daysoff)) {
                 $count++;
             }
         }

@@ -4,7 +4,6 @@ namespace App\Http\Controllers;
 
 use App\Jobs\OrderBulkImportJob;
 use App\Jobs\OrderCreateJob;
-use App\Jobs\OrderUpsertJob;
 use App\Models\OrdersSummary;
 use App\Models\Store;
 use Carbon\Carbon;
@@ -13,37 +12,6 @@ use Illuminate\Support\Facades\Validator;
 
 class EyezApi extends Controller
 {
-    public function upsertOrderSummary(Request $request)
-    {
-        $validator = $this->validateOrderSummary($request);
-
-        if ($validator->fails()) {
-            return response()->json([
-                'errors' => true,
-                'message' => $validator->errors()
-            ]);
-        }
-
-        if ($store = Store::where('dep_id', $request->input('store_id'))->first()) {
-            $data = (object)[
-                'orders_count' => $request->input('orders_count'),
-                'orders_total' => $request->input('orders_total'),
-                'summary_date' => $request->input('summary_date')
-            ];
-            OrderUpsertJob::dispatch($store, $data);
-
-            return [
-                'errors' => false,
-                'message' => 'Successfully upserted.'
-            ];
-        } else {
-            return response()->json([
-                'errors' => true,
-                'message' => 'Need to complete eyez settings in profile settings first.'
-            ]);
-        }
-    }
-
     public function createOrUpdateOrderSummary(Request $request)
     {
         $validator = $this->validateOrderSummary($request);

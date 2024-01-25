@@ -64,7 +64,7 @@ class ImportController extends Controller
     public function cleanStatus(Request $request)
     {
         $this->user()->forgetCached('last_import');
-        \Log::info('CLEANED STATUS');
+
         return true;
     }
 }
