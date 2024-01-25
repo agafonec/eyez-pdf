@@ -18,7 +18,7 @@
                     <progress-bar v-if="progress && batchId"
                                   :completed="progress.percent"
                                   :success="progress.success"
-                                  :failes="progress.error"
+                                  :failed="progress.error"
                                   label="Syncing store" />
 
                     <div v-else class="max-w-md">
@@ -154,10 +154,11 @@ export default {
                     this.progress = {
                         percent: response.data.progress?.processedJobs,
                         success: response.data.progress?.processedJobs,
-                        error: response.data.progress?.failedJobs,
+                        error: response.data.progress.failedJobs,
                         total: response.data.progress?.totalJobs,
-                        totalCompleted: response.data.progress?.processedJobs + response.data.progress?.failedJobs,
+                        totalCompleted: response.data.progress?.processedJobs + response.data.progress.failedJobs,
                     }
+
                     this.progress.percent = Math.round((this.progress.totalCompleted / this.progress.total) * 100)
 
                     if (this.progress.totalCompleted === this.progress.total) {
