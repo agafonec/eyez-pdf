@@ -43,9 +43,10 @@ class SyncOpretailJob implements ShouldQueue
     {
         $this->limitedDates = $this->modifyDate($this->date, $this->store);
 
+        \Log::info("=================- STARTED SYNC FOR STORE {$this->store->id} ======================");
+        \Log::info('dates limits', $this->limitedDates);
+
         if ($this->store->workingDay($this->date)) {
-            \Log::info("=================- STARTED SYNC FOR STORE {$this->store->id} ======================");
-            \Log::info('dates limits', $this->limitedDates);
             $opretail = new OpretailApi(
                 $this->store->opretailCredentials,
                 $this->store,

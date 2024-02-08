@@ -49,6 +49,7 @@ class SyncOpretailController extends Controller
         $startDate  = Carbon::parse($startDate);
         $diffInDays = Carbon::now()->diffInDays($startDate);
 
+        \Log::info('started the sync process', ['daysDiff' => $diffInDays]);
         $batch = Bus::batch([])->onQueue('syncopretail')->dispatch();
 
         for ($i = 0; $i <= $diffInDays; $i++) {

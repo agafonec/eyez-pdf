@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\Store;
+use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -15,7 +16,7 @@ use Illuminate\Queue\SerializesModels;
 
 class OrderBulkImportJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, HasStoreDateFilter;
 
     /**
      * Create a new job instance.

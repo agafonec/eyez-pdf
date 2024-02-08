@@ -42,8 +42,8 @@ class Store extends Model
             $workdays = $this->settings['workdays'];
 
             foreach ($this->settings['workdays'] as $key => $workday) {
-                $workdays[$key]['timeStart'] = Carbon::parse($workday['timeStart'])->format('H:i:s');
-                $workdays[$key]['timeEnd'] = Carbon::parse($workday['timeEnd'])->format('H:i:s');
+                $workdays[$key]['timeStart'] = Carbon::parse($workday['timeStart'])->setTimezone('Asia/Jerusalem')->format('H:i:s');
+                $workdays[$key]['timeEnd'] = Carbon::parse($workday['timeEnd'])->setTimezone('Asia/Jerusalem')->format('H:i:s');
             }
 
             return $workdays;

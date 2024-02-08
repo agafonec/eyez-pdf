@@ -209,7 +209,7 @@ class OpretailApi
             "startTime" => date('Y-m-d H:i:s', strtotime($this->dateFrom)),
             "endTime" => date('Y-m-d H:i:s', strtotime($this->dateTo)),
             "startHour" => (int) date('H', strtotime($this->dateFrom)),
-            "endHour" => (int) date('H', strtotime($this->dateTo)) - 1
+            "endHour" => (int) date('H', strtotime($this->dateTo))
         ]);
         $data = [
             "id" => $storeIds,
@@ -217,7 +217,7 @@ class OpretailApi
             "endTime" => date('Y-m-d H:i:s', strtotime($this->dateTo)),
             "timeType" => 1,
             "startHour" => (int) date('H', strtotime($this->dateFrom)),
-            "endHour" => (int) date('H', strtotime($this->dateTo)) - 1
+            "endHour" => (int) date('H', strtotime($this->dateTo))
         ];
 
         $params = $this->getRqParams('open.passengerflow.getManyShopsPassengerIndicatorData', $data, "POST");
