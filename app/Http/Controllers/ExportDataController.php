@@ -129,10 +129,10 @@ class ExportDataController extends Controller
         }
 
         foreach ($result as $time => $value) {
-            $averageItemsPerOrder = round($value['itemsCount'] / $value['ordersCount'], 1);
-            $averageItemPrice = round($value['totalSales'] / $value['itemsCount'], 0);
+            $averageItemsPerOrder = $value['ordersCount'] ? round($value['itemsCount'] / $value['ordersCount'], 1) : 0;
+            $averageItemPrice = $value['itemsCount'] ? round($value['totalSales'] / $value['itemsCount'], 0) : 0;
             $conversion = $value['walkInCount'] ? round($value['ordersCount'] / $value['walkInCount'] * 100, 0) : 0;
-            $atv = round($value['totalSales'] / $value['ordersCount'], 0);
+            $atv = $value['ordersCount'] ? round($value['totalSales'] / $value['ordersCount'], 0) : 0;
 
             $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;
             $result[$time]['averageItemPrice'] = (int) $averageItemPrice;
