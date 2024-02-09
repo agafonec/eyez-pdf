@@ -25,4 +25,19 @@ class AgeGroup extends Model
     {
         return $this->belongsTo(AgeGenderFlow::class);
     }
+
+    public function getGroupNameAttribute()
+    {
+        $groupNames = [
+            0 => 'earlyYouth',
+            1 => 'youth',
+            2 => 'middleAge',
+            3 => 'middleOld',
+            4 => 'elderly',
+        ];
+
+        $groupId = $this->attributes['group_id'];
+
+        return $groupNames[$groupId] ?? null;
+    }
 }

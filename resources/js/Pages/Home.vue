@@ -9,19 +9,7 @@
                 <PrimaryButton class="w-full block justify-center h-full"
                                @click="printPage">Print PDF</PrimaryButton>
 
-                <json-excel class="w-full block"
-                            :fetch="fetchExportData"
-                            :stringifyLongNum="true"
-                            :fields="exportHeaders">
-
-                    <PrimaryButton class="w-full justify-center h-full">ייצוא לאקסל</PrimaryButton>
-                </json-excel>
-
-                <json-excel class="w-full block"
-                            :stringifyLongNum="true"
-                            :data="exportAgeGender">
-                    <PrimaryButton class="w-full justify-center h-full">ייצוא נתונים דמוגרפים</PrimaryButton>
-                </json-excel>
+                <PrimaryButton class="w-full justify-center h-full" @click="exportExcel">ייצוא לאקסל</PrimaryButton>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
                 <pdf-logo  class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain"/>
@@ -307,7 +295,6 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import JsonExcel from "vue-json-excel3";
 import Checkbox from '@/Components/Checkbox.vue';
 import html2canvas from 'html2canvas';
 
@@ -336,7 +323,6 @@ export default {
         SecondaryButton,
         AuthenticatedLayout,
         Head,
-        JsonExcel,
         Checkbox,
         AgeGenderChart
     },
@@ -382,16 +368,6 @@ export default {
     },
     data() {
         return {
-            exportHeaders: {
-                "Date": "date",
-                "Time": "time",
-                "Walk-in Count": "walkInCount",
-                "Sales": "salesTotal",
-                "Total Items": "itemsCount",
-                "Order q-ty": "ordersCount",
-                "Close Rate(%)": "closeRate",
-                "ATV": "atv"
-            },
             showPastPeriod: {
                 chartLegend: false,
                 salesReport: false,
@@ -556,41 +532,13 @@ export default {
                 this.saveImage(imageData);
             });
         },
-        async fetchExportData() {
-            let exportData = [];
-
-            await axios.post(route('report.export', {
+        exportExcel() {
+            window.location.href = route('report.export', {
                 store: this.currentStore.id !== undefined ? this.currentStore.id : this.currentStore
-            }), {
+            },{
                 dateFrom: this.storeData?.dateFrom,
-                dateTo: this.storeData?.dateTo,
+                dateTo: this.storeData?.dateTo
             })
-            .then(response => {
-                let orders = response.data.orders;
-
-                if (this.reportType === 'days' || this.currentStore.id !== undefined) {
-                    const walkinByDate = this.storeData.hourlyWalkIn.reduce((accumulator, obj) => {
-                        const key = obj.date;
-                        if (!accumulator[key]) {
-                            accumulator[key] = [];
-                        }
-
-                        accumulator[key].push(obj);
-                        return accumulator;
-                    }, {});
-                    Object.keys(walkinByDate).forEach((date) => {
-                        let dailyReport = this.excelMapRows(walkinByDate[date], orders, date);
-
-                        exportData.push(...dailyReport);
-                    })
-                } else {
-                    let selectedDate =  moment(this.storeData?.dateFrom).format('YYYY-MM-DD').toString();
-
-                    exportData = this.excelMapRows(this.storeData.hourlyWalkIn, orders, selectedDate);
-                }
-            })
-
-            return exportData
         },
         excelMapRows(dayilyWalkIn, orders, selectedDate) {
             let exportData = [];
