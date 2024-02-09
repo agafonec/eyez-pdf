@@ -33,7 +33,7 @@ class SyncAllStores extends Command
         foreach ($stores as $store) {
             SyncOpretailJob::dispatch(
                 $store,
-                Carbon::now(),
+                Carbon::now()->setTimezone('Asia/Jerusalem'),
                 'update'
             )->onQueue('syncopretail');
         }

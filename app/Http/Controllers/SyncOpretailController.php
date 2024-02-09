@@ -59,7 +59,7 @@ class SyncOpretailController extends Controller
                 new SyncOpretailJob(
                     $store,
                     $currentDate,
-                    'update'
+                    'create'
                 )
             );
         }

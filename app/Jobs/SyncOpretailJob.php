@@ -44,18 +44,45 @@ class SyncOpretailJob implements ShouldQueue
         $this->limitedDates = $this->modifyDate($this->date, $this->store);
 
         \Log::info("=================- STARTED SYNC FOR STORE {$this->store->id} ======================");
-        \Log::info('dates limits', $this->limitedDates);
 
         if ($this->store->workingDay($this->date)) {
-            $opretail = new OpretailApi(
-                $this->store->opretailCredentials,
-                $this->store,
-                $this->limitedDates['startDate'],
-                $this->limitedDates['endDate']
-            );
+            if ($this->type === 'create') {
+                $startDate = Carbon::parse($this->limitedDates['startDate']);
+                $diffInHours = $startDate->diffInHours($this->limitedDates['endDate']);
 
-            $this->setPassengerFlow($opretail);
-            $this->setAgeGenderData($opretail);
+                for ($i = 0; $i < $diffInHours; $i++) {
+                    $currentDate = $startDate->copy()->addHours($i);
+                    $endDate = $startDate->copy()->addHours($i + 1);
+
+                    $opretail = new OpretailApi(
+                        $this->store->opretailCredentials,
+                        $this->store,
+                        $currentDate,
+                        $endDate
+                    );
+
+                    $this->setPassengerFlow($opretail);
+                    $this->setAgeGenderData($opretail, $endDate);
+                }
+            } else {
+                if (
+                    Carbon::parse($this->date)->greaterThanOrEqualTo($this->limitedDates['startDate'])
+                    && Carbon::parse($this->date)->lessThanOrEqualTo($this->limitedDates['endDate'])
+                ) {
+                    $startDate = Carbon::parse($this->date)->startOfHour();
+                    $endDate = Carbon::parse($this->date)->addHour()->startOfHour();
+
+                    $opretail = new OpretailApi(
+                        $this->store->opretailCredentials,
+                        $this->store,
+                        $startDate,
+                        $endDate
+                    );
+
+                    $this->setPassengerFlow($opretail);
+                    $this->setAgeGenderData($opretail, $endDate);
+                }
+            }
         }
     }
 
@@ -63,40 +90,49 @@ class SyncOpretailJob implements ShouldQueue
      * @param OpretailApi $opretail
      * @param $date
      */
-    protected function setAgeGenderData(OpretailApi $opretail)
+    protected function setAgeGenderData(OpretailApi $opretail, $date)
     {
         $ageGenderFlow = $opretail->getAgeGenderData();
 
         if (isset($ageGenderFlow['ageDistribution'])) {
-            foreach ($ageGenderFlow['ageDistribution'] as $flow) {
+            $this->singlePeriodAgeGender($ageGenderFlow['ageDistribution'], $date);
+        }
+    }
 
-                $ageGroup = call_user_func([AgeGroup::class, $this->method],
+    /**
+     * @param $ageDistribution
+     * @param $date
+     */
+    protected function singlePeriodAgeGender($ageDistribution, $date)
+    {
+        foreach ($ageDistribution as $flow) {
+
+            $ageGroup = call_user_func([AgeGroup::class, $this->method],
+                [
+                    'store_id' => $this->store->id,
+                    'group_id' => $flow['ageDivisionType']
+                ],
+                [
+                    'ageFrom' => $flow['ageFrom'],
+                    'ageTo' => $flow['ageTo'],
+                ]
+            );
+
+            foreach ($flow['genderDistribution'] as $genderFlow) {
+                if ($genderFlow['gender'] === 0 || $genderFlow['peopleNum'] === 0)
+                    continue;
+
+                call_user_func([AgeGenderFlow::class, $this->method],
                     [
                         'store_id' => $this->store->id,
-                        'group_id' => $flow['ageDivisionType']
+                        'date' => $date,
+                        'age_group_id' => $ageGroup->id,
+                        'gender' => $genderFlow['gender'] === 1 ? 'male' : 'female',
                     ],
                     [
-                        'ageFrom' => $flow['ageFrom'],
-                        'ageTo' => $flow['ageTo'],
+                        'people_count' => $genderFlow['peopleNum']
                     ]
                 );
-
-                foreach ($flow['genderDistribution'] as $genderFlow) {
-                    if ($genderFlow['gender'] === 0 || $genderFlow['peopleNum'] === 0)
-                        continue;
-
-                    call_user_func([AgeGenderFlow::class, $this->method],
-                        [
-                            'store_id' => $this->store->id,
-                            'date' => Carbon::parse($this->date)->endOfDay(),
-                            'age_group_id' => $ageGroup->id,
-                            'gender' => $genderFlow['gender'] === 1 ? 'male' : 'female',
-                        ],
-                        [
-                            'people_count' => $genderFlow['peopleNum']
-                        ]
-                    );
-                }
             }
         }
     }

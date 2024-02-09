@@ -96,7 +96,12 @@ class EyezApi extends Controller
             ]);
         }
 
-        if ($store = Store::where('dep_id', $orders[0]['store_id'])->first()) {
+        \Log::info('Order bulk import',['o' => $orders]);
+
+        $store = Store::where('dep_id', $orders[0]['store_id'])->first();
+        $store = $store ?? Store::find($orders[0]['store_id']);
+
+        if ($store) {
             OrderBulkImportJob::dispatch($store, $orders);
 
             return [
