@@ -3,7 +3,7 @@
 
     <AuthenticatedLayout>
         <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-            <div class="text-center grid md:grid-cols-4 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
+            <div class="text-center grid md:grid-cols-3 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
                 <PrimaryButton class="w-full block justify-center h-full"
                                @click="clearSummaryCache" >ריענון</PrimaryButton>
                 <PrimaryButton class="w-full block justify-center h-full"
@@ -67,8 +67,8 @@
                                 <button
                                     class="flex items-center text-white"
                                     @click="() => togglePopover()">
-                                    <span class="hidden md:block" v-html="dateRangeText()"></span>
-                                    <icon-calendar class="mr-4" color="#ffffff"/>
+                                    <span class="hidden md:block font-medium text-xl" v-html="dateRangeText()"></span>
+                                    <icon-calendar class="mr-4" color="#ffffff" :width="20" :height="20"/>
                                 </button>
                                 <input
                                     :value="inputValue"
@@ -165,7 +165,7 @@
                                 <Checkbox name="toggle_past_period"
                                           v-model:checked="showPastPeriod.salesReport" />
 
-                                <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
+                                <span class="ms-2 text-sm text-gray-600">הצגת ממוצע חודשי</span>
                             </label>
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
                             <stat-box :stat="storeSales.totalSales"
@@ -243,7 +243,7 @@
                                     <Checkbox name="toggle_past_period"
                                               v-model:checked="showPastPeriod.chartLegend" />
 
-                                    <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
+                                    <span class="ms-2 text-sm text-gray-600">הצגת ממוצע חודשי</span>
                                 </label>
 
                                 <chart-stat-box v-for="stat in lineChartHistory"
@@ -533,12 +533,10 @@ export default {
             });
         },
         exportExcel() {
+            console.log(this.storeData?.dateTo);
             window.location.href = route('report.export', {
                 store: this.currentStore.id !== undefined ? this.currentStore.id : this.currentStore
-            },{
-                dateFrom: this.storeData?.dateFrom,
-                dateTo: this.storeData?.dateTo
-            })
+            }) + '?dateTo=' + this.storeData?.dateTo
         },
         excelMapRows(dayilyWalkIn, orders, selectedDate) {
             let exportData = [];
