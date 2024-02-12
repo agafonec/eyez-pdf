@@ -23,7 +23,7 @@ class ExportDataController extends Controller
      */
     public function exportReport(Request $request, Store $store)
     {
-        $date = Carbon::parse($request->dateTo)->format('Y-m-d');
+        $date = Carbon::parse($request->query('dateTo'))->format('Y-m-d');
 
         $limitedDates = $this->modifyDate($date, $store);
 
