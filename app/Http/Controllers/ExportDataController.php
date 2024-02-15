@@ -28,7 +28,7 @@ class ExportDataController extends Controller
         $limitedDates = $this->modifyDate($date, $store);
 
         $result = [];
-        $ageGenderFlow = $this->getWalkInReport($store, $date);
+        $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
         $salesReport = $this->getSalesReport($store, $date, $limitedDates);
 
         $result = $this->mapTableFields($result, $ageGenderFlow);
@@ -47,10 +47,11 @@ class ExportDataController extends Controller
      * @param $selectedDate
      * @return mixed
      */
-    public function getWalkInReport($store, $selectedDate)
+    public function getWalkInReport($store, $selectedDate, $limitedDates)
     {
         $ageGenderFlow = $store->ageGenderFlow()
             ->whereDate('date', '=', $selectedDate)
+            ->whereBetween('date', [$limitedDates['startDate'], $limitedDates['endDate']])
             ->with('ageGroup')
             ->get();
 
