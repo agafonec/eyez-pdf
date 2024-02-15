@@ -107,7 +107,7 @@ class SyncOpretailJob implements ShouldQueue
     {
         foreach ($ageDistribution as $flow) {
 
-            $ageGroup = call_user_func([AgeGroup::class, $this->method],
+            $ageGroup = call_user_func([AgeGroup::class, 'updateOrCreate'],
                 [
                     'store_id' => $this->store->id,
                     'group_id' => $flow['ageDivisionType']
