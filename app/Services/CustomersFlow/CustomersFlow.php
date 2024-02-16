@@ -11,12 +11,13 @@ use App\Models\HourlyPassengerFlow;
 use App\Models\Store;
 use App\Models\User;
 use App\Traits\HasDateMap;
+use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 
 class CustomersFlow extends Controller implements CustomersFlowInterface
 {
-    use HasDateMap;
+    use HasDateMap, HasStoreDateFilter;
     public string $reportType;
     public array|null $summary;
     public array $storeSalesReport;

@@ -124,9 +124,11 @@ class ExportDataController extends Controller
             $itemsCount = $entry["itemsCount"];
             $orderTotal = $entry["orderTotal"];
 
-            $result[$time]['ordersCount'] += 1;
-            $result[$time]['itemsCount'] += $itemsCount === 0 ? 1 : $itemsCount;
-            $result[$time]['totalSales'] += $orderTotal;
+            if (isset($result[$time])) {
+                $result[$time]['ordersCount'] += 1;
+                $result[$time]['itemsCount'] += $itemsCount === 0 ? 1 : $itemsCount;
+                $result[$time]['totalSales'] += $orderTotal;
+            }
         }
 
         foreach ($result as $time => $value) {
