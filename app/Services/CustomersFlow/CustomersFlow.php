@@ -253,6 +253,11 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getGenderData($storeIds, $dateFrom, $dateTo, $total)
     {
+        \Log::info('GET GENDER DATA', [
+            'storeIds' => $storeIds,
+            'dateFrom' => $dateFrom,
+            'dateTo' => $dateTo
+        ]);
         $genderData = AgeGenderFlow::select('gender', \DB::raw('SUM(people_count) as total_people_count'))
             ->whereBetween('date', [$dateFrom, $dateTo])
             ->where(function ($query) use ($storeIds) {
@@ -293,6 +298,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     public function getAgeData($storeIds, $dateFrom, $dateTo, $total)
     {
         $ageData = AgeGenderFlow::select('age_group_id', \DB::raw('SUM(people_count) as total_people_count'))
+            ->whereBetween('date', [$dateFrom, $dateTo])
             ->where(function ($query) use ($storeIds) {
                 $iteration = 0;
                 foreach ($storeIds as $storeId) {
