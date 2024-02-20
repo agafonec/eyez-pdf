@@ -3,9 +3,7 @@
 
     <AuthenticatedLayout>
         <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-            <div class="text-center grid md:grid-cols-3 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
-                <PrimaryButton class="w-full block justify-center h-full"
-                               @click="clearSummaryCache" >ריענון</PrimaryButton>
+            <div class="text-center grid md:grid-cols-2 grid-cols-2 justify-center mb-2 gap-4 max-w-xl mx-auto">
                 <PrimaryButton class="w-full block justify-center h-full"
                                @click="printPage">Print PDF</PrimaryButton>
 
@@ -536,7 +534,7 @@ export default {
             console.log(this.storeData?.dateTo);
             window.location.href = route('report.export', {
                 store: this.currentStore.id !== undefined ? this.currentStore.id : this.currentStore
-            }) + '?dateTo=' + this.storeData?.dateTo
+            }) + '?dateTo=' + this.storeData?.dateTo + '&dateFrom=' + this.storeData?.dateFrom
         },
         excelMapRows(dayilyWalkIn, orders, selectedDate) {
             let exportData = [];

@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ReportExport;
+use App\Exports\ReportExportDaily;
 use App\Models\Store;
 use App\Traits\HasDateMap;
 use App\Traits\HasStoreDateFilter;
@@ -24,18 +25,33 @@ class ExportDataController extends Controller
     public function exportReport(Request $request, Store $store)
     {
         $date = Carbon::parse($request->query('dateTo'))->format('Y-m-d');
+        $dateFrom = Carbon::parse($request->query('dateFrom'))->setTimezone('Asia/Jerusalem');
+        $dateTo = Carbon::parse($request->query('dateTo'))->setTimezone('Asia/Jerusalem');
+        $diffInDays = $dateFrom->diffInDays($dateTo);
 
-        $limitedDates = $this->modifyDate($date, $store);
+        \Log::info('dates for export', [
+            $dateFrom,
+            $dateTo
+        ]);
+        $dataToExport = [];
 
-        $result = [];
-        $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
-        $salesReport = $this->getSalesReport($store, $date, $limitedDates);
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $result = [];
+            $currentDate = $dateFrom->copy()->addDays($i);
+            $date = $currentDate->format('Y-m-d');
+            $limitedDates = $this->modifyDate($date, $store);
 
-        $result = $this->mapTableFields($result, $ageGenderFlow);
-        $result = $this->mapWalkInCount($result, $ageGenderFlow);
-        $result = $this->mapSalesReport($result, $salesReport);
+            $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
+            $salesReport = $this->getSalesReport($store, $date, $limitedDates);
 
-        $dataToExport = array_values($result);
+            $result = $this->mapTableFields($result, $ageGenderFlow);
+            $result = $this->mapWalkInCount($result, $ageGenderFlow);
+            $result = $this->mapSalesReport($result, $salesReport);
+
+            $dataToExport[$date] = array_values($result);
+        }
+
+
 
         $fileName = "report_$date.xlsx";
 
@@ -49,6 +65,7 @@ class ExportDataController extends Controller
      */
     public function getWalkInReport($store, $selectedDate, $limitedDates)
     {
+        \Log::info('limited dates', $limitedDates);
         $ageGenderFlow = $store->ageGenderFlow()
             ->whereDate('date', '=', $selectedDate)
             ->whereBetween('date', [$limitedDates['startDate'], $limitedDates['endDate']])
