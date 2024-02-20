@@ -53,20 +53,22 @@ class SyncOpretailController extends Controller
         \Log::info("=================- STARTED SYNC FOR STORE {$store->id} ======================");
 
         for ($i = 0; $i <= $diffInDays; $i++) {
-            $currentDate = $startDate->copy()->addDays($i);
+            $currentDate = $startDate->copy()->addDays($i)->startOfDay();
 
-            $startDate = Carbon::parse($currentDate)->startOfDay();
-            \Log::info('started the sync process', ['currentDate' => $currentDate]);
+            \Log::info('started the sync process', [
+                'i' => $i,
+                'currentDate' => $currentDate
+            ]);
 
             for ($j = 0; $j < 24; $j++) {
-                $currentHour = $startDate->copy()->addHours($j);
+                $currentHour = $currentDate->copy()->addHours($j);
 
                 $batch->add(
-                    new SyncOpretailJob(
+                    (new SyncOpretailJob(
                         $store,
                         $currentHour,
                         'create'
-                    )
+                    ))->delay(now()->addMilliseconds( $i*$j * 300))
                 );
             }
         }
