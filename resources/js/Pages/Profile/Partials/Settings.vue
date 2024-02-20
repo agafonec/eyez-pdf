@@ -38,6 +38,11 @@
     </header>
 
     <div class="max-w-lg mt-4">
+        <label class="flex items-center mb-4">
+            <Checkbox name="hide_age_description" @update:checked="hideAgeDescription = !hideAgeDescription" :checked="hideAgeDescription" />
+
+            <span class="ms-2 text-sm text-gray-600">Hide age description. (age range)</span>
+        </label>
         <div class="mb-2">
             <InputLabel for="earlyYouth" value="Early Youth" />
 
@@ -124,6 +129,7 @@ export default {
             processing: false,
             hiddenStores: this.settings?.hiddenStores ?? [],
             workDays: this.settings?.workdays ?? [],
+            hideAgeDescription: this.settings?.hideAgeDescription ?? false,
             ageGroups: this.settings?.ageGroups ?? {
                 earlyYouth: 'Early Youth',
                 youth: 'Youth',
@@ -145,6 +151,7 @@ export default {
             axios.post(route('profile.settings.update'), {
                 workdays: this.workDays,
                 ageGroups: this.ageGroups,
+                hideAgeDescription: this.hideAgeDescription,
                 hiddenStores: this.hiddenStores,
                 user: this.user
             })

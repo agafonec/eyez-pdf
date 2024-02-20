@@ -185,6 +185,7 @@ class ProfileController extends Controller
 
         $settings = $user->settings ?? [];
         $settings['workdays'] = $request->json('workdays');
+        $settings['hideAgeDescription'] = $request->json('hideAgeDescription');
         $settings['ageGroups'] = $request->json('ageGroups');
         $settings['hiddenStores'] = $request->json('hiddenStores');
 

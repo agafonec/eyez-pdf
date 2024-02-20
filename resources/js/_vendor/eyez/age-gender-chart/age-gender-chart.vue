@@ -10,7 +10,9 @@
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
 
         <div class="flex justify-center gap-8">
-            <bar-stat-box :stat="genderData.female" color-class="text-blue-400" title="נשים">
+            <bar-stat-box :stat="genderData.female"
+                          :hide-description="hideAgeDescription"
+                          color-class="text-blue-400" title="נשים">
                 <template #icon>
                     <icon-female />
                 </template>
@@ -89,6 +91,10 @@ export default {
         genderData: {
             type: Object,
             default: {},
+        },
+        hideAgeDescription: {
+            type: Boolean,
+            default: false,
         }
     },
     data() {

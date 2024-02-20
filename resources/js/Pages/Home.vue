@@ -244,6 +244,7 @@
 
                         <div class="mt-5 bg-white p-6 rounded-[10px] relative">
                             <age-gender-chart :age-data="storeData.ageData"
+                                              :hide-age-description="this.settings?.hideAgeDescription"
                                               :gender-data="storeData.genderData"
                             />
                         </div>
