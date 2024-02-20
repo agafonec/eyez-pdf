@@ -595,8 +595,14 @@ export default {
         },
         onDateRangeChange(dateRange) {
             let endpoint = this.roles.includes('admin') ? 'profile.dashboard.view' : 'home.show'
+            console.log('date range change', {
+                user: this.stores[0]?.user_id,
+                stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
+                dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
+                dateTo: moment(dateRange.end).format('YYYY-MM-DD')
+            })
             this.$inertia.visit(route(endpoint, {
-                user: this.currentStore.user_id,
+                user: this.stores[0]?.user_id,
                 stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
                 dateTo: moment(dateRange.end).format('YYYY-MM-DD')

@@ -25,7 +25,6 @@ class SyncOpretailJob implements ShouldQueue
      * Create a new job instance.
      */
     public string $method;
-    public array $limitedDates;
     public function __construct(
         public Store $store,
         public $date,
@@ -41,48 +40,20 @@ class SyncOpretailJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->limitedDates = $this->modifyDate($this->date, $this->store);
-
-        \Log::info("=================- STARTED SYNC FOR STORE {$this->store->id} ======================");
 
         if ($this->store->workingDay($this->date)) {
-            if ($this->type === 'create') {
-                $startDate = Carbon::parse($this->limitedDates['startDate']);
-                $diffInHours = $startDate->diffInHours($this->limitedDates['endDate']);
+            $startDate = Carbon::parse($this->date)->startOfHour();
+            $endDate = Carbon::parse($this->date)->addHour()->startOfHour();
 
-                for ($i = 0; $i < $diffInHours; $i++) {
-                    $currentDate = $startDate->copy()->addHours($i);
-                    $endDate = $startDate->copy()->addHours($i + 1);
+            $opretail = new OpretailApi(
+                $this->store->opretailCredentials,
+                $this->store,
+                $startDate,
+                $endDate
+            );
 
-                    $opretail = new OpretailApi(
-                        $this->store->opretailCredentials,
-                        $this->store,
-                        $currentDate,
-                        $endDate
-                    );
-
-                    $this->setPassengerFlow($opretail);
-                    $this->setAgeGenderData($opretail, $endDate);
-                }
-            } else {
-                if (
-                    Carbon::parse($this->date)->greaterThanOrEqualTo($this->limitedDates['startDate'])
-                    && Carbon::parse($this->date)->lessThanOrEqualTo($this->limitedDates['endDate'])
-                ) {
-                    $startDate = Carbon::parse($this->date)->startOfHour();
-                    $endDate = Carbon::parse($this->date)->addHour()->startOfHour();
-
-                    $opretail = new OpretailApi(
-                        $this->store->opretailCredentials,
-                        $this->store,
-                        $startDate,
-                        $endDate
-                    );
-
-                    $this->setPassengerFlow($opretail);
-                    $this->setAgeGenderData($opretail, $endDate);
-                }
-            }
+            $this->setPassengerFlow($opretail, $endDate);
+            $this->setAgeGenderData($opretail, $endDate);
         }
     }
 
@@ -140,36 +111,27 @@ class SyncOpretailJob implements ShouldQueue
     /**
      * @param OpretailApi $opretail
      */
-    protected function setPassengerFlow(OpretailApi $opretail)
+    protected function setPassengerFlow(OpretailApi $opretail, $date)
     {
-        $hourlyFlow = $opretail->getStoreData();
-        $hourlyWalkIn = [];
-
-        foreach ($hourlyFlow['data'] as $data) {
-            $hourlyWalkIn = array_merge($hourlyWalkIn, $data['dataList']);
-        }
-        $hourlyWalkIn = $opretail->mapHourlyWalkIn($hourlyWalkIn);
+        $ageGenderFlow = $opretail->getAgeGenderData();
+        $hourlyWalkIn = $opretail->mapHourlyWalkInFromAgeGender($ageGenderFlow['genderDistribution'], $date);
 
         foreach ($hourlyWalkIn as $flow) {
             if ($flow['passengerFlow'] > 0) {
-                $flowTime = Carbon::parse("{$flow['date']} {$flow['time']}");
+                $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
+                    [
+                        'store_id' => $this->store->id,
+                        'time' => $date->format('Y-m-d H:i:s')
+                    ],
+                    [
+                        'passengerFlow' => $flow['passengerFlow']
+                    ]
+                );
 
-                if ($flowTime->lessThanOrEqualTo($this->limitedDates['endDate']) && $flowTime->greaterThanOrEqualTo($this->limitedDates['startDate'])) {
-                    $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
-                        [
-                            'store_id' => $this->store->id,
-                            'time' => $flowTime->format('Y-m-d H:i:s')
-                        ],
-                        [
-                            'passengerFlow' => $flow['passengerFlow']
-                        ]
-                    );
-
-                    \Log::info('HOURLY FLOW CREATE', [
-                        'timeAfterPArse' => Carbon::parse("{$flow['date']} {$flow['time']}")->format('Y-m-d H:i:s'),
-                        'c' => $hourlyFlowCreate
-                    ]);
-                }
+                \Log::info('HOURLY FLOW CREATE', [
+                    'timeAfterPArse' => $date->format('Y-m-d H:i:s'),
+                    'c' => $hourlyFlowCreate
+                ]);
             }
         }
     }

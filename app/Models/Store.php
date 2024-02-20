@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Store extends Model
 {
-    use HasFactory;
+    use HasFactory, HasStoreDateFilter;
 
     protected $fillable = [
         'user_id',
@@ -60,11 +61,6 @@ class Store extends Model
     {
         $carbonDate = Carbon::parse($date);
 
-        \Log::info('workingDay', [
-            'date' => $date,
-            'bool' => !($this->settings && isset($this->settings['daysoff']))
-                || !in_array($carbonDate->dayOfWeek, $this->settings['daysoff'])
-        ]);
         return !($this->settings && isset($this->settings['daysoff']))
             || !in_array($carbonDate->dayOfWeek, $this->settings['daysoff']);
     }
@@ -107,6 +103,33 @@ class Store extends Model
     public function passengerFlow()
     {
         return $this->hasMany(HourlyPassengerFlow::class);
+    }
+
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param $store
+     * @param string $dateParamName
+     * @return string
+     */
+    public function getDateQuery($dateFrom, $dateTo, $dateParamName = 'date')
+    {
+        $startDate  = Carbon::parse($dateFrom);
+        $diffInDays = Carbon::parse($dateTo)->diffInDays($startDate);
+
+        $query = '';
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $currentDate = $startDate->copy()->addDays($i);
+            $limitedDates = $this->modifyDate($currentDate, $this);
+            $query .= empty($query)
+                ? "({$dateParamName} BETWEEN '{$limitedDates['startDate']}' AND '{$limitedDates['endDate']}')"
+                : " OR ({$dateParamName} BETWEEN '{$limitedDates['startDate']}' AND '{$limitedDates['endDate']}')";
+        }
+
+        $query .= " AND store_id = {$this->id}";
+
+        \Log::info('store date query', ['q' => $query]);
+        return $query;
     }
 
     /**
@@ -188,13 +211,16 @@ class Store extends Model
                 ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
                 : Carbon::now()->subDays(1)->endOfDay();
 
+            $query = $this->getDateQuery($from, $to, 'order_date');
             $totalOrders = $this->orders()
-                ->whereBetween('order_date', [$from, $to])
+                ->whereRaw($query)
                 ->count();
             return round($this->getAvarageValue($from, $to, $totalOrders), 0);
         } else {
+            $query = $this->getDateQuery($dateFrom, $dateTo, 'order_date');
+
             return $this->orders()
-                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->whereRaw($query)
                 ->count();
         }
     }
@@ -215,14 +241,18 @@ class Store extends Model
                 ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
                 : Carbon::now()->subDays(1)->endOfDay();
 
+            $query = $this->getDateQuery($from, $to, 'order_date');
+
             $totalSales = $this->orders()
-                ->whereBetween('order_date', [$from, $to])
+                ->whereRaw($query)
                 ->sum('order_total');
 
             return round($this->getAvarageValue($from, $to, $totalSales), 0);
         } else {
+            $query = $this->getDateQuery($dateFrom, $dateTo, 'order_date');
+
             return round($this->orders()
-                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->whereRaw($query)
                 ->sum('order_total'), 0);
         }
     }
@@ -243,14 +273,18 @@ class Store extends Model
                 ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
                 : Carbon::now()->subDays(1)->endOfDay();
 
+            $query = $this->getDateQuery($from, $to, 'order_date');
+
             $itemsCount = $this->orders()
-                ->whereBetween('order_date', [$from, $to])
+                ->whereRaw($query)
                 ->sum('items_count');
 
             return round($this->getAvarageValue($from, $to, $itemsCount), 0);
         } else {
+            $query = $this->getDateQuery($dateFrom, $dateTo, 'order_date');
+
             return $this->orders()
-                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->whereRaw($query)
                 ->sum('items_count');
         }
     }
@@ -313,9 +347,10 @@ class Store extends Model
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        $query = $this->getDateQuery($dateFrom, $dateTo, 'order_date');
 
         return $this->orders()
-            ->whereBetween('order_date', [$dateFrom, $dateTo]);
+            ->whereRaw($query);
     }
 
     /**

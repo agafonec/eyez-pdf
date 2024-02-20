@@ -54,17 +54,17 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     }
 
     /**
-     * @param $storeIds
-     * @param $dateFrom
-     * @param $dateTo
+     * @param $dateRange
+     * @param $stores
      * @return mixed
      */
     public function getWalkInCount($dateRange, $stores)
     {
         $storeIds = $this->getStoreIds($stores);
 
-        return HourlyPassengerFlow::whereIn('store_id', $storeIds)
-            ->whereBetween('time', [$dateRange->start, $dateRange->end])
+        $query = $this->getQuery($dateRange->start, $dateRange->end, $storeIds, 'time');
+
+        return HourlyPassengerFlow::whereRaw($query)
             ->sum('passengerFlow');
     }
 
@@ -154,8 +154,9 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     {
         $storeIds = $this->getStoreIds($stores);
 
-        $totalWalkIn = AgeGenderFlow::whereIn('store_id', $storeIds)
-            ->whereBetween('date', [$dateFrom, $dateTo])
+        $dateQuery = $this->getQuery($dateFrom, $dateTo, $storeIds);
+
+        $totalWalkIn = AgeGenderFlow::whereRaw($dateQuery)
             ->sum('people_count');
 
         $dateRange = (object) [
@@ -175,6 +176,28 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     }
 
     /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param array $stores
+     * @param string $dateParamName
+     * @return string
+     */
+    protected function getQuery($dateFrom, $dateTo, array $stores, $dateParamName = 'date')
+    {
+        $query = '';
+        foreach ($stores as $store) {
+            $storeObject = Store::find($store);
+            $singleQuery = $storeObject->getDateQuery($dateFrom, $dateTo, $dateParamName);
+
+            $query .= empty($query)
+                ? "({$singleQuery})"
+                : "OR ({$singleQuery})";
+        }
+
+        return $query;
+    }
+
+    /**
      * @param $storeIds
      * @param $dateFrom
      * @param $dateTo
@@ -182,8 +205,9 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getHourlyWalkIn($storeIds, $dateFrom, $dateTo)
     {
-        return HourlyPassengerFlow::whereIn('store_id', $storeIds)
-            ->whereBetween('time', [$dateFrom, $dateTo])
+        $dateQuery = $this->getQuery($dateFrom, $dateTo, $storeIds, 'time');
+
+        return HourlyPassengerFlow::whereRaw($dateQuery)
             ->get()
             ->map(function ($item) {
                 return [
@@ -203,9 +227,10 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getGenderData($storeIds, $dateFrom, $dateTo, $total)
     {
+        $query = $this->getQuery($dateFrom, $dateTo, $storeIds);
+
         $genderData = AgeGenderFlow::select('gender', \DB::raw('SUM(people_count) as total_people_count'))
-            ->whereIn('store_id', $storeIds)
-            ->whereBetween('date', [$dateFrom, $dateTo])
+            ->whereRaw($query)
             ->groupBy('gender')
             ->get();
 
@@ -225,9 +250,10 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
 
     public function getAgeData($storeIds, $dateFrom, $dateTo, $total)
     {
+        $query = $this->getQuery($dateFrom, $dateTo, $storeIds);
+
         $ageData = AgeGenderFlow::select('age_group_id', \DB::raw('SUM(people_count) as total_people_count'))
-            ->whereIn('store_id', $storeIds)
-            ->whereBetween('date', [$dateFrom, $dateTo])
+            ->whereRaw($query)
             ->with('ageGroup')
             ->groupBy('age_group_id')
             ->get()
