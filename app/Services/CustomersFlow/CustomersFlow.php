@@ -377,7 +377,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     private function avgWalkIn($stores, $dateFrom)
     {
-        $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
+        $from = $this->getStartingDate($stores, $dateFrom);
         $to = Carbon::now()->month !== Carbon::parse($dateFrom)->subDays(1)->month
             ? Carbon::parse($dateFrom)->subDays(1)->endOfMonth()->endOfDay()
             : Carbon::now()->subDays(1)->endOfDay();
@@ -405,5 +405,25 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
         $avg = $count === 0 ? $walkInCount : $walkInCount / $count;
 
         return round($avg, 0);
+    }
+
+    /**
+     * @param $stores
+     * @param $dateFrom
+     * @return Carbon|mixed
+     */
+    protected function getStartingDate($stores, $dateFrom)
+    {
+        $storeIds = $this->getStoreIds($stores);
+        $startDate = Carbon::parse($dateFrom)->startOfMonth()->startOfDay();
+
+        foreach ($storeIds as $storeId) {
+            $store = Store::find($storeId);
+            $firstDate = $store->passengerFlow()->orderBy('time')->pluck('time')->first();
+            $firstDate = Carbon::parse($firstDate)->startOfDay();
+            $startDate = $firstDate->greaterThanOrEqualTo($startDate) ? $firstDate : $startDate;
+        }
+
+        return $startDate;
     }
 }

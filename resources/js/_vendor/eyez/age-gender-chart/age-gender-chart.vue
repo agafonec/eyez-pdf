@@ -10,7 +10,8 @@
         <div class="w-full h-[1px] bg-gray-separator my-4"></div>
 
         <div class="flex justify-center gap-8">
-            <bar-stat-box :stat="genderData.female" color-class="text-blue-400" title="נשים">
+            <bar-stat-box :stat="genderData.female"
+                          color-class="text-blue-400" title="נשים">
                 <template #icon>
                     <icon-female />
                 </template>
@@ -40,6 +41,7 @@
             <template v-for="(ageGroup, key) in ageData" >
                 <div v-if="ageGroup.count > 0" class="basis-0 grow">
                     <bar-stat-box :stat="ageGroup"
+                                  :hide-description="hideAgeDescription"
                                   :color-class="ageGroupClass(key)"
                                   :title="ageGroupLabel(key)">
                         <template #icon>
@@ -89,6 +91,10 @@ export default {
         genderData: {
             type: Object,
             default: {},
+        },
+        hideAgeDescription: {
+            type: Boolean,
+            default: false,
         }
     },
     data() {

@@ -3,11 +3,25 @@
 
     <AuthenticatedLayout>
         <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-            <div class="text-center grid md:grid-cols-2 grid-cols-2 justify-center mb-2 gap-4 max-w-xl mx-auto">
+            <div class="text-center grid md:grid-cols-4 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
+                <PrimaryButton class="w-full block justify-center h-full"
+                               @click="clearSummaryCache" >ריענון</PrimaryButton>
                 <PrimaryButton class="w-full block justify-center h-full"
                                @click="printPage">Print PDF</PrimaryButton>
 
-                <PrimaryButton class="w-full justify-center h-full" @click="exportExcel">ייצוא לאקסל</PrimaryButton>
+                <json-excel class="w-full block"
+                            :fetch="fetchExportData"
+                            :stringifyLongNum="true"
+                            :fields="exportHeaders">
+
+                    <PrimaryButton class="w-full justify-center h-full">ייצוא לאקסל</PrimaryButton>
+                </json-excel>
+
+                <json-excel class="w-full block"
+                            :stringifyLongNum="true"
+                            :data="exportAgeGender">
+                    <PrimaryButton class="w-full justify-center h-full">ייצוא נתונים דמוגרפים</PrimaryButton>
+                </json-excel>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
                 <pdf-logo  class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain"/>
@@ -21,7 +35,7 @@
                                     text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                                 >
 <!--                                    <span v-if="currentStore.id !== undefined">{{ currentStore.name }}</span>-->
-                                    <span v-if="currentStore.id !== undefined">Eyez Store</span>
+                                    <span v-if="currentStore.id !== undefined">{{ currentStore.name }}</span>
                                     <span v-else>All stores</span>
                                     <svg class="ms-2 -me-0.5 h-8 w-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -34,13 +48,13 @@
                                 <DropdownLink
                                     :href="route('profile.dashboard.view', {user: store.user_id, stores: store.dep_id})"
                                     v-if="!settings?.hiddenStores?.includes(store.dep_id)"
-                                    align="center">Eyez Store {{ index }}</DropdownLink>
+                                    align="center">{{ store.name }}</DropdownLink>
                             </template>
                             <template v-else v-for="(store, index) in availableStores">
                                 <DropdownLink
                                     :href="route('home.show', {stores: store.dep_id})"
                                     v-if="!settings?.hiddenStores?.includes(store.dep_id)"
-                                    align="center">Eyez Store {{ index }}</DropdownLink>
+                                    align="center">{{ store.name }}</DropdownLink>
                             </template>
 
                             <DropdownLink v-if="showAllStoresLink && roles.includes('admin')"
@@ -65,8 +79,8 @@
                                 <button
                                     class="flex items-center text-white"
                                     @click="() => togglePopover()">
-                                    <span class="hidden md:block font-medium text-xl" v-html="dateRangeText()"></span>
-                                    <icon-calendar class="mr-4" color="#ffffff" :width="20" :height="20"/>
+                                    <span class="hidden md:block" v-html="dateRangeText()"></span>
+                                    <icon-calendar class="mr-4" color="#ffffff"/>
                                 </button>
                                 <input
                                     :value="inputValue"
@@ -163,7 +177,7 @@
                                 <Checkbox name="toggle_past_period"
                                           v-model:checked="showPastPeriod.salesReport" />
 
-                                <span class="ms-2 text-sm text-gray-600">הצגת ממוצע חודשי</span>
+                                <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
                             </label>
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
                             <stat-box :stat="storeSales.totalSales"
@@ -230,6 +244,7 @@
 
                         <div class="mt-5 bg-white p-6 rounded-[10px] relative">
                             <age-gender-chart :age-data="storeData.ageData"
+                                              :hide-age-description="this.settings?.hideAgeDescription"
                                               :gender-data="storeData.genderData"
                             />
                         </div>
@@ -241,7 +256,7 @@
                                     <Checkbox name="toggle_past_period"
                                               v-model:checked="showPastPeriod.chartLegend" />
 
-                                    <span class="ms-2 text-sm text-gray-600">הצגת ממוצע חודשי</span>
+                                    <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
                                 </label>
 
                                 <chart-stat-box v-for="stat in lineChartHistory"
@@ -293,6 +308,7 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
+import JsonExcel from "vue-json-excel3";
 import Checkbox from '@/Components/Checkbox.vue';
 import html2canvas from 'html2canvas';
 
@@ -321,6 +337,7 @@ export default {
         SecondaryButton,
         AuthenticatedLayout,
         Head,
+        JsonExcel,
         Checkbox,
         AgeGenderChart
     },
@@ -366,6 +383,16 @@ export default {
     },
     data() {
         return {
+            exportHeaders: {
+                "Date": "date",
+                "Time": "time",
+                "Walk-in Count": "walkInCount",
+                "Sales": "salesTotal",
+                "Total Items": "itemsCount",
+                "Order q-ty": "ordersCount",
+                "Close Rate(%)": "closeRate",
+                "ATV": "atv"
+            },
             showPastPeriod: {
                 chartLegend: false,
                 salesReport: false,
@@ -530,11 +557,41 @@ export default {
                 this.saveImage(imageData);
             });
         },
-        exportExcel() {
-            console.log(this.storeData?.dateTo);
-            window.location.href = route('report.export', {
+        async fetchExportData() {
+            let exportData = [];
+
+            await axios.post(route('report.export', {
                 store: this.currentStore.id !== undefined ? this.currentStore.id : this.currentStore
-            }) + '?dateTo=' + this.storeData?.dateTo + '&dateFrom=' + this.storeData?.dateFrom
+            }), {
+                dateFrom: this.storeData?.dateFrom,
+                dateTo: this.storeData?.dateTo,
+            })
+            .then(response => {
+                let orders = response.data.orders;
+
+                if (this.reportType === 'days' || this.currentStore.id !== undefined) {
+                    const walkinByDate = this.storeData.hourlyWalkIn.reduce((accumulator, obj) => {
+                        const key = obj.date;
+                        if (!accumulator[key]) {
+                            accumulator[key] = [];
+                        }
+
+                        accumulator[key].push(obj);
+                        return accumulator;
+                    }, {});
+                    Object.keys(walkinByDate).forEach((date) => {
+                        let dailyReport = this.excelMapRows(walkinByDate[date], orders, date);
+
+                        exportData.push(...dailyReport);
+                    })
+                } else {
+                    let selectedDate =  moment(this.storeData?.dateFrom).format('YYYY-MM-DD').toString();
+
+                    exportData = this.excelMapRows(this.storeData.hourlyWalkIn, orders, selectedDate);
+                }
+            })
+
+            return exportData
         },
         excelMapRows(dayilyWalkIn, orders, selectedDate) {
             let exportData = [];
@@ -593,14 +650,8 @@ export default {
         },
         onDateRangeChange(dateRange) {
             let endpoint = this.roles.includes('admin') ? 'profile.dashboard.view' : 'home.show'
-            console.log('date range change', {
-                user: this.stores[0]?.user_id,
-                stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
-                dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
-                dateTo: moment(dateRange.end).format('YYYY-MM-DD')
-            })
             this.$inertia.visit(route(endpoint, {
-                user: this.stores[0]?.user_id,
+                user: this.currentStore.user_id,
                 stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
                 dateTo: moment(dateRange.end).format('YYYY-MM-DD')
