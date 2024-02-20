@@ -62,9 +62,25 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     {
         $storeIds = $this->getStoreIds($stores);
 
-        $query = $this->getQuery($dateRange->start, $dateRange->end, $storeIds, 'time');
+        return HourlyPassengerFlow::whereBetween('time', [$dateRange->start, $dateRange->end])
+            ->where(function ($query) use ($storeIds) {
+                $iteration = 0;
+                foreach ($storeIds as $storeId) {
+                    if ($iteration === 0) {
+                        $query->where(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'time');
+                        });
+                    } else {
+                        $query->orWhere(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'time');
+                        });
+                    }
 
-        return HourlyPassengerFlow::whereRaw($query)
+                    $iteration++;
+                }
+            })
             ->sum('passengerFlow');
     }
 
@@ -154,9 +170,25 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     {
         $storeIds = $this->getStoreIds($stores);
 
-        $dateQuery = $this->getQuery($dateFrom, $dateTo, $storeIds);
+        $totalWalkIn = AgeGenderFlow::whereBetween('date', [$dateFrom, $dateTo])
+            ->where(function ($query) use ($storeIds) {
+                $iteration = 0;
+                foreach ($storeIds as $storeId) {
+                    if ($iteration === 0) {
+                        $query->where(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'date');
+                        });
+                    } else {
+                        $query->orWhere(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'date');
+                        });
+                    }
 
-        $totalWalkIn = AgeGenderFlow::whereRaw($dateQuery)
+                    $iteration++;
+                }
+            })
             ->sum('people_count');
 
         $dateRange = (object) [
@@ -176,28 +208,6 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     }
 
     /**
-     * @param $dateFrom
-     * @param $dateTo
-     * @param array $stores
-     * @param string $dateParamName
-     * @return string
-     */
-    protected function getQuery($dateFrom, $dateTo, array $stores, $dateParamName = 'date')
-    {
-        $query = '';
-        foreach ($stores as $store) {
-            $storeObject = Store::find($store);
-            $singleQuery = $storeObject->getDateQuery($dateFrom, $dateTo, $dateParamName);
-
-            $query .= empty($query)
-                ? "({$singleQuery})"
-                : "OR ({$singleQuery})";
-        }
-
-        return $query;
-    }
-
-    /**
      * @param $storeIds
      * @param $dateFrom
      * @param $dateTo
@@ -205,9 +215,25 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getHourlyWalkIn($storeIds, $dateFrom, $dateTo)
     {
-        $dateQuery = $this->getQuery($dateFrom, $dateTo, $storeIds, 'time');
+        return HourlyPassengerFlow::whereBetween('time', [$dateFrom, $dateTo])
+            ->where(function ($query) use ($storeIds) {
+                $iteration = 0;
+                foreach ($storeIds as $storeId) {
+                    if ($iteration === 0) {
+                        $query->where(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'time');
+                        });
+                    } else {
+                        $query->orWhere(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'time');
+                        });
+                    }
 
-        return HourlyPassengerFlow::whereRaw($dateQuery)
+                    $iteration++;
+                }
+            })
             ->get()
             ->map(function ($item) {
                 return [
@@ -227,10 +253,26 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getGenderData($storeIds, $dateFrom, $dateTo, $total)
     {
-        $query = $this->getQuery($dateFrom, $dateTo, $storeIds);
-
         $genderData = AgeGenderFlow::select('gender', \DB::raw('SUM(people_count) as total_people_count'))
-            ->whereRaw($query)
+            ->whereBetween('date', [$dateFrom, $dateTo])
+            ->where(function ($query) use ($storeIds) {
+                $iteration = 0;
+                foreach ($storeIds as $storeId) {
+                    if ($iteration === 0) {
+                        $query->where(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'date');
+                        });
+                    } else {
+                        $query->orWhere(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'date');
+                        });
+                    }
+
+                    $iteration++;
+                }
+            })
             ->groupBy('gender')
             ->get();
 
@@ -250,10 +292,25 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
 
     public function getAgeData($storeIds, $dateFrom, $dateTo, $total)
     {
-        $query = $this->getQuery($dateFrom, $dateTo, $storeIds);
-
         $ageData = AgeGenderFlow::select('age_group_id', \DB::raw('SUM(people_count) as total_people_count'))
-            ->whereRaw($query)
+            ->where(function ($query) use ($storeIds) {
+                $iteration = 0;
+                foreach ($storeIds as $storeId) {
+                    if ($iteration === 0) {
+                        $query->where(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'date');
+                        });
+                    } else {
+                        $query->orWhere(function ($query) use ($storeId) {
+                            $store = Store::find($storeId);
+                            $store->applyTimeRangeConstraints($query, 'date');
+                        });
+                    }
+
+                    $iteration++;
+                }
+            })
             ->with('ageGroup')
             ->groupBy('age_group_id')
             ->get()
