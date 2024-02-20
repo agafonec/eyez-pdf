@@ -237,19 +237,21 @@
                     </div>
                     <div class="md:col-span-7">
                         <div class="h-full md:bg-white md:rounded-[10px]">
-                            <div class="grid grid-cols-2 gap-5 mb-5 bg-white p-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-4 md:gap-x-2 md:gap-y-5">
+                            <div class="bg-white p-4">
                                 <label class="flex items-center col-span-2 md:col-span-4">
                                     <Checkbox name="toggle_past_period"
                                               v-model:checked="showPastPeriod.chartLegend" />
 
-                                    <span class="ms-2 text-sm text-gray-600">הצגת ממוצע חודשי</span>
+                                    <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
                                 </label>
 
-                                <chart-stat-box v-for="stat in lineChartHistory"
-                                                :stat="stat"
-                                                :show-past-period="showPastPeriod.chartLegend"
-                                                :class="['max-md:w-full max-md:bg-gray-50 max-md:p-4 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
-                                />
+                                <div class="grid grid-cols-2 gap-5 mb-5 bg-white py-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-3 md:gap-x-2 md:gap-y-5">
+                                    <chart-stat-box v-for="stat in lineChartHistory"
+                                                    :stat="stat"
+                                                    :show-past-period="showPastPeriod.chartLegend"
+                                                    :class="['max-md:w-full max-md:bg-gray-50 max-md:p-2 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
+                                    />
+                                </div>
                             </div>
 
                             <div  class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0">
@@ -621,16 +623,16 @@ export default {
             return previous === 0 ? '100%' :( (difference / previous ) * 100).toFixed(1) + '%'
         },
         lineChartCategories() {
-            this.prevStoreData.hourlyWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
+            let previousWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '24:00' : obj.time
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
             }))
 
-            this.storeData.hourlyWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
+            let currentWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '24:00' : obj.time
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
             }))
-            return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
+            return [...new Set([...previousWalkIn, ...currentWalkIn].map(item => item.time))].sort()
         },
         lineChartArray(main) {
             return this.lineChartCategories().map(time => {
@@ -669,23 +671,6 @@ export default {
 
             return updatedStores.length > 1;
         },
-        exportAgeGender() {
-            let exportObject = {
-                'נשים': this.storeData.genderData?.female?.count,
-                'גברים': this.storeData.genderData?.male?.count
-            };
-
-            for (let key in this.storeData.ageData) {
-                if (this.storeData.ageData.hasOwnProperty(key)) {
-                    let ageGroup = this.storeData.ageData[key];
-                    exportObject[this.ageGroupLabel(key)] = ageGroup.count
-                }
-            }
-
-            return [
-                exportObject
-            ]
-        },
         lineChartHistory() {
             const prevStoreData = this.prevStoreData.hourlyWalkIn;
             const currentStoreData = this.storeData.hourlyWalkIn;
@@ -693,7 +678,7 @@ export default {
             return this.lineChartCategories().map(time => {
                 return {
                     current: {
-                        title: time,
+                        title: time + ' - ' + moment('2023-12-12 ' + time).add(1, 'hours').format('HH:mm'),
                         value: currentStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
                             return accumulator + currentValue.passengerFlow;
                         }, 0)
