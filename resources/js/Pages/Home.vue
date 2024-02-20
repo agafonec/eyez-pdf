@@ -3,25 +3,11 @@
 
     <AuthenticatedLayout>
         <div ref="componentToPrint" class="p-5 max-w-pdf-container mx-auto" dir="rtl">
-            <div class="text-center grid md:grid-cols-4 grid-cols-2 justify-center mb-2 gap-4 max-w-3xl mx-auto">
-                <PrimaryButton class="w-full block justify-center h-full"
-                               @click="clearSummaryCache" >ריענון</PrimaryButton>
+            <div class="text-center grid md:grid-cols-2 grid-cols-2 justify-center mb-2 gap-4 max-w-xl mx-auto">
                 <PrimaryButton class="w-full block justify-center h-full"
                                @click="printPage">Print PDF</PrimaryButton>
 
-                <json-excel class="w-full block"
-                            :fetch="fetchExportData"
-                            :stringifyLongNum="true"
-                            :fields="exportHeaders">
-
-                    <PrimaryButton class="w-full justify-center h-full">ייצוא לאקסל</PrimaryButton>
-                </json-excel>
-
-                <json-excel class="w-full block"
-                            :stringifyLongNum="true"
-                            :data="exportAgeGender">
-                    <PrimaryButton class="w-full justify-center h-full">ייצוא נתונים דמוגרפים</PrimaryButton>
-                </json-excel>
+                <PrimaryButton class="w-full justify-center h-full" @click="exportExcel">ייצוא לאקסל</PrimaryButton>
             </div>
             <div class="relative bg-gradient-to-r from-green-200 to-green-500 text-white p-4 md:p-8 rounded-[10px] relative flex flex-col md:flex-row items-center justify-center md:justify-between">
                 <pdf-logo  class="w-[100px] md:w-[225px] h-[36px] md:h-[81px] object-contain"/>
@@ -43,7 +29,7 @@
                         </template>
 
                         <template #content>
-<!--                            {{ store.name }}-->
+                            <!--                            {{ store.name }}-->
                             <template v-if="roles.includes('admin')" v-for="(store, index) in availableStores">
                                 <DropdownLink
                                     :href="route('profile.dashboard.view', {user: store.user_id, stores: store.dep_id})"
@@ -79,8 +65,8 @@
                                 <button
                                     class="flex items-center text-white"
                                     @click="() => togglePopover()">
-                                    <span class="hidden md:block" v-html="dateRangeText()"></span>
-                                    <icon-calendar class="mr-4" color="#ffffff"/>
+                                    <span class="hidden md:block font-medium text-xl" v-html="dateRangeText()"></span>
+                                    <icon-calendar class="mr-4" color="#ffffff" :width="20" :height="20"/>
                                 </button>
                                 <input
                                     :value="inputValue"
@@ -177,7 +163,7 @@
                                 <Checkbox name="toggle_past_period"
                                           v-model:checked="showPastPeriod.salesReport" />
 
-                                <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
+                                <span class="ms-2 text-sm text-gray-600">הצגת ממוצע חודשי</span>
                             </label>
                             <div class="hidden md:block bg-gray-100 h-full w-[1px] absolute left-1/2 top-0"></div>
                             <stat-box :stat="storeSales.totalSales"
@@ -244,13 +230,14 @@
 
                         <div class="mt-5 bg-white p-6 rounded-[10px] relative">
                             <age-gender-chart :age-data="storeData.ageData"
+                                              :hide-age-description="this.settings?.hideAgeDescription"
                                               :gender-data="storeData.genderData"
                             />
                         </div>
                     </div>
                     <div class="md:col-span-7">
                         <div class="h-full md:bg-white md:rounded-[10px]">
-                            <div class="grid grid-cols-2 gap-5 mb-5 bg-white p-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-4 md:gap-x-2 md:gap-y-5">
+                            <div class="bg-white p-4">
                                 <label class="flex items-center col-span-2 md:col-span-4">
                                     <Checkbox name="toggle_past_period"
                                               v-model:checked="showPastPeriod.chartLegend" />
@@ -258,19 +245,21 @@
                                     <span class="ms-2 text-sm text-gray-600">הצג תקופה קודמת</span>
                                 </label>
 
-                                <chart-stat-box v-for="stat in lineChartHistory"
-                                                :stat="stat"
-                                                :show-past-period="showPastPeriod.chartLegend"
-                                                :class="['max-md:w-full max-md:bg-gray-50 max-md:p-4 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
-                                />
+                                <div class="grid grid-cols-2 gap-5 mb-5 bg-white py-4 max-md:rounded-[10px] md:mb-0 md:rounded-t-[10px] md:grid-cols-3 md:gap-x-2 md:gap-y-5">
+                                    <chart-stat-box v-for="stat in lineChartHistory"
+                                                    :stat="stat"
+                                                    :show-past-period="showPastPeriod.chartLegend"
+                                                    :class="['max-md:w-full max-md:bg-gray-50 max-md:p-2 max-md:rounded-[5px]  ' , { 'max-md:last:w-1/2 max-md:last:col-span-2 max-md:mx-auto' : lineChartHistory.length % 2 === 1}]"
+                                    />
+                                </div>
                             </div>
 
                             <div  class="w-full bg-white py-4 md:p-4 max-md:rounded-[10px] md:rounded-b-[10px] sm:rounded-t-0">
-                            <apexchart
-                                type="line"
-                                :options="lineChart.chartOptions"
-                                :series="lineChart.series"></apexchart>
-                        </div>
+                                <apexchart
+                                    type="line"
+                                    :options="lineChart.chartOptions"
+                                    :series="lineChart.series"></apexchart>
+                            </div>
                         </div>
 
                     </div>
@@ -307,7 +296,6 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import SecondaryButton from '@/Components/SecondaryButton.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
-import JsonExcel from "vue-json-excel3";
 import Checkbox from '@/Components/Checkbox.vue';
 import html2canvas from 'html2canvas';
 
@@ -336,7 +324,6 @@ export default {
         SecondaryButton,
         AuthenticatedLayout,
         Head,
-        JsonExcel,
         Checkbox,
         AgeGenderChart
     },
@@ -382,16 +369,6 @@ export default {
     },
     data() {
         return {
-            exportHeaders: {
-                "Date": "date",
-                "Time": "time",
-                "Walk-in Count": "walkInCount",
-                "Sales": "salesTotal",
-                "Total Items": "itemsCount",
-                "Order q-ty": "ordersCount",
-                "Close Rate(%)": "closeRate",
-                "ATV": "atv"
-            },
             showPastPeriod: {
                 chartLegend: false,
                 salesReport: false,
@@ -556,41 +533,11 @@ export default {
                 this.saveImage(imageData);
             });
         },
-        async fetchExportData() {
-            let exportData = [];
-
-            await axios.post(route('report.export', {
+        exportExcel() {
+            console.log(this.storeData?.dateTo);
+            window.location.href = route('report.export', {
                 store: this.currentStore.id !== undefined ? this.currentStore.id : this.currentStore
-            }), {
-                dateFrom: this.storeData?.dateFrom,
-                dateTo: this.storeData?.dateTo,
-            })
-            .then(response => {
-                let orders = response.data.orders;
-
-                if (this.reportType === 'days' || this.currentStore.id !== undefined) {
-                    const walkinByDate = this.storeData.hourlyWalkIn.reduce((accumulator, obj) => {
-                        const key = obj.date;
-                        if (!accumulator[key]) {
-                            accumulator[key] = [];
-                        }
-
-                        accumulator[key].push(obj);
-                        return accumulator;
-                    }, {});
-                    Object.keys(walkinByDate).forEach((date) => {
-                        let dailyReport = this.excelMapRows(walkinByDate[date], orders, date);
-
-                        exportData.push(...dailyReport);
-                    })
-                } else {
-                    let selectedDate =  moment(this.storeData?.dateFrom).format('YYYY-MM-DD').toString();
-
-                    exportData = this.excelMapRows(this.storeData.hourlyWalkIn, orders, selectedDate);
-                }
-            })
-
-            return exportData
+            }) + '?dateTo=' + this.storeData?.dateTo + '&dateFrom=' + this.storeData?.dateFrom
         },
         excelMapRows(dayilyWalkIn, orders, selectedDate) {
             let exportData = [];
@@ -614,9 +561,9 @@ export default {
 
                 let ordersCount = matchingOrders.length;
                 let passengerFlow = dayilyWalkIn.filter(wi => walkIn.time === wi.time)
-                                                .reduce((accumulator, wi) => {
-                                                    return accumulator + wi.passengerFlow;
-                                                }, 0)
+                    .reduce((accumulator, wi) => {
+                        return accumulator + wi.passengerFlow;
+                    }, 0)
                 let excelRow = {
                     "storeName": "",
                     "date": selectedDate,
@@ -641,16 +588,22 @@ export default {
             axios.post(route('summary.clear-cache'), {
                 storeId: this.currentStore.dep_id ?? null,
             })
-            .then(response => {
-                alert(response.data.message);
+                .then(response => {
+                    alert(response.data.message);
 
-                window.location.reload();
-            })
+                    window.location.reload();
+                })
         },
         onDateRangeChange(dateRange) {
             let endpoint = this.roles.includes('admin') ? 'profile.dashboard.view' : 'home.show'
+            console.log('date range change', {
+                user: this.stores[0]?.user_id,
+                stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
+                dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
+                dateTo: moment(dateRange.end).format('YYYY-MM-DD')
+            })
             this.$inertia.visit(route(endpoint, {
-                user: this.currentStore.user_id,
+                user: this.stores[0]?.user_id,
                 stores: this.currentStore.dep_id !== undefined ? this.currentStore.dep_id : this.currentStore,
                 dateFrom: moment(dateRange.start).format('YYYY-MM-DD'),
                 dateTo: moment(dateRange.end).format('YYYY-MM-DD')
@@ -670,16 +623,16 @@ export default {
             return previous === 0 ? '100%' :( (difference / previous ) * 100).toFixed(1) + '%'
         },
         lineChartCategories() {
-            this.prevStoreData.hourlyWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
+            let previousWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '24:00' : obj.time
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
             }))
 
-            this.storeData.hourlyWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
+            let currentWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '24:00' : obj.time
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
             }))
-            return [...new Set([...this.storeData.hourlyWalkIn, ...this.prevStoreData.hourlyWalkIn].map(item => item.time))].sort()
+            return [...new Set([...previousWalkIn, ...currentWalkIn].map(item => item.time))].sort()
         },
         lineChartArray(main) {
             return this.lineChartCategories().map(time => {
@@ -689,12 +642,12 @@ export default {
             })
         },
         ageGroupLabel(key) {
-                return key === 'youth' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Youth'
-                    : key === 'earlyYouth' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Teenagers'
+            return key === 'youth' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Youth'
+                : key === 'earlyYouth' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Teenagers'
                     : key === 'middleAge' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Middle Age'
-                    : key === 'middleOld' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Middle Old'
-                    : key === 'elderly' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Elderly'
-                    : ''
+                        : key === 'middleOld' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Middle Old'
+                            : key === 'elderly' ? this.settings?.ageGroups !== undefined ? this.settings?.ageGroups?.key : 'Elderly'
+                                : ''
         },
     },
     computed: {
@@ -718,23 +671,6 @@ export default {
 
             return updatedStores.length > 1;
         },
-        exportAgeGender() {
-            let exportObject = {
-                'נשים': this.storeData.genderData?.female?.count,
-                'גברים': this.storeData.genderData?.male?.count
-            };
-
-            for (let key in this.storeData.ageData) {
-                if (this.storeData.ageData.hasOwnProperty(key)) {
-                    let ageGroup = this.storeData.ageData[key];
-                    exportObject[this.ageGroupLabel(key)] = ageGroup.count
-                }
-            }
-
-            return [
-                exportObject
-            ]
-        },
         lineChartHistory() {
             const prevStoreData = this.prevStoreData.hourlyWalkIn;
             const currentStoreData = this.storeData.hourlyWalkIn;
@@ -742,7 +678,7 @@ export default {
             return this.lineChartCategories().map(time => {
                 return {
                     current: {
-                        title: time,
+                        title: time + ' - ' + moment('2023-12-12 ' + time).add(1, 'hours').format('HH:mm'),
                         value: currentStoreData.filter(obj => obj.time === time).reduce((accumulator, currentValue) => {
                             return accumulator + currentValue.passengerFlow;
                         }, 0)
