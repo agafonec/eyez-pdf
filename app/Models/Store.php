@@ -131,12 +131,6 @@ class Store extends Model
                     ->setTimezone('Asia/Jerusalem')
                     ->addSecond()
                     ->format('H:i:s');
-                \Log::info('WORKDAY', [
-                    $daysOff,
-                    $dayOfWeek,
-                    $start,
-                    $end
-                ]);
 
                 if ($iteration === 0) {
                     $query->where(function ($q) use ($dateParamName, $dayOfWeek, $start, $end) {
