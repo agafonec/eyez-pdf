@@ -11,7 +11,6 @@
 
         <div class="flex justify-center gap-8">
             <bar-stat-box :stat="genderData.female"
-                          :hide-description="hideAgeDescription"
                           color-class="text-blue-400" title="נשים">
                 <template #icon>
                     <icon-female />
@@ -42,6 +41,7 @@
             <template v-for="(ageGroup, key) in ageData" >
                 <div v-if="ageGroup.count > 0" class="basis-0 grow">
                     <bar-stat-box :stat="ageGroup"
+                                  :hide-description="hideAgeDescription"
                                   :color-class="ageGroupClass(key)"
                                   :title="ageGroupLabel(key)">
                         <template #icon>
