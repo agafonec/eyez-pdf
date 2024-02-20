@@ -52,16 +52,8 @@ class OrdersImport implements ToModel, WithHeadingRow, WithBatchInserts, WithEve
                     $datetime = new \DateTime($dateString, new \DateTimeZone('Asia/Jerusalem'));
                 }
                 $orderDate = $datetime->format('Y-m-d H:i:s');
-                $carbonDate = Carbon::parse($orderDate);
 
-                $limitedDates = $this->modifyDate($orderDate, $this->store);
-
-                if (
-                    $carbonDate->lessThanOrEqualTo($limitedDates['endDate'])
-                    && $carbonDate->greaterThanOrEqualTo($limitedDates['startDate'])
-                    && $this->store->workingDay($orderDate)
-                ) {
-
+                if ($this->store->workingDay($orderDate)) {
                     return new Order([
                         'store_id' => $this->storeId,
                         'order_id'    => $row['order_id'],

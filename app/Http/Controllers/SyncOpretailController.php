@@ -49,19 +49,26 @@ class SyncOpretailController extends Controller
         $startDate  = Carbon::parse($startDate);
         $diffInDays = Carbon::now()->diffInDays($startDate);
 
-        \Log::info('started the sync process', ['daysDiff' => $diffInDays]);
         $batch = Bus::batch([])->onQueue('syncopretail')->dispatch();
+        \Log::info("=================- STARTED SYNC FOR STORE {$store->id} ======================");
 
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $startDate->copy()->addDays($i);
 
-            $batch->add(
-                new SyncOpretailJob(
-                    $store,
-                    $currentDate,
-                    'create'
-                )
-            );
+            $startDate = Carbon::parse($currentDate)->startOfDay();
+            \Log::info('started the sync process', ['currentDate' => $currentDate]);
+
+            for ($j = 0; $j < 24; $j++) {
+                $currentHour = $startDate->copy()->addHours($j);
+
+                $batch->add(
+                    new SyncOpretailJob(
+                        $store,
+                        $currentHour,
+                        'create'
+                    )
+                );
+            }
         }
 
         return response()->json(['batchId' => $batch->id]);

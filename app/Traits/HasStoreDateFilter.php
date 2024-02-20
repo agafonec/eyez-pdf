@@ -26,19 +26,19 @@ trait HasStoreDateFilter
                 $endDate = $this->matchDateWithStore($carbonDate, $foundSchedule['timeEnd']);
 
                 return [
-                    'startDate' => $startDate->format('Y-m-d H:i:s'),
-                    'endDate' => $endDate->format('Y-m-d H:i:s')
+                    'startDate' => $startDate->addSecond()->format('Y-m-d H:i:s'),
+                    'endDate' => $endDate->addSecond()->format('Y-m-d H:i:s')
                 ];
             } else {
                 return [
-                    'startDate' => Carbon::parse($date)->startOfDay(),
-                    'endDate' => Carbon::parse($date)->endOfDay()
+                    'startDate' => Carbon::parse($date)->startOfDay()->addSecond(),
+                    'endDate' => Carbon::parse($date)->endOfDay()->addSecond()
                 ];
             }
         } else {
             return [
-                'startDate' => Carbon::parse($date)->startOfDay(),
-                'endDate' => Carbon::parse($date)->endOfDay()
+                'startDate' => Carbon::parse($date)->startOfDay()->addSecond(),
+                'endDate' => Carbon::parse($date)->endOfDay()->addSecond()
             ];
         }
     }

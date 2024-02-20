@@ -31,6 +31,8 @@ class SyncAllStores extends Command
         $stores = Store::all();
         \Log::info('Syncing stores', ['s' => $stores]);
         foreach ($stores as $store) {
+            \Log::info("=================- STARTED SYNC FOR STORE {$store->id} ======================");
+
             SyncOpretailJob::dispatch(
                 $store,
                 Carbon::now()->setTimezone('Asia/Jerusalem'),
