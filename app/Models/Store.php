@@ -123,13 +123,20 @@ class Store extends Model
 
             foreach($workdays as $workday) {
                 $dayOfWeek = (int)$workday['dayOfWeek'] + 1;
-                $start = Carbon::parse($workday['timeStart'])->setTimezone('Asia/Jerusalem')->format('H:i:s');
-                $end = Carbon::parse($workday['timeEnd'])->setTimezone('Asia/Jerusalem')->format('H:i:s');
-//                \Log::info('WORKDAY', [
-//                    $dayOfWeek,
-//                    $start,
-//                    $end
-//                ]);
+                $start = Carbon::parse($workday['timeStart'])
+                    ->setTimezone('Asia/Jerusalem')
+                    ->addSecond()
+                    ->format('H:i:s');
+                $end = Carbon::parse($workday['timeEnd'])
+                    ->setTimezone('Asia/Jerusalem')
+                    ->addSecond()
+                    ->format('H:i:s');
+                \Log::info('WORKDAY', [
+                    $daysOff,
+                    $dayOfWeek,
+                    $start,
+                    $end
+                ]);
 
                 if ($iteration === 0) {
                     $query->where(function ($q) use ($dateParamName, $dayOfWeek, $start, $end) {
