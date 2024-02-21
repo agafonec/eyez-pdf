@@ -10,7 +10,7 @@ class ReportExport implements WithMultipleSheets
 {
     use Exportable;
 
-    public function __construct(public $data)
+    public function __construct(public $data, public $store)
     {
     }
 
@@ -20,11 +20,29 @@ class ReportExport implements WithMultipleSheets
     public function sheets(): array
     {
         $sheets = [];
-        \Log::info('DATA FOR EXPORT', ['d' => $this->data]);
         foreach ($this->data as $key => $value) {
-            $sheets[] = new ReportExportDaily($value, $key);
+            $ageLabels = $this->getAgeGroupTitles();
+            $sheets[] = new ReportExportDaily($value, $key, $ageLabels);
         }
 
         return $sheets;
+    }
+
+    /**
+     * @param $singleReportData
+     * @return array
+     */
+    protected function getAgeGroupTitles()
+    {
+        $settings = $this->store->user->settings;
+        $ageGroups = $settings['ageGroups'] ?? [];
+
+        return [
+            "earlyYouth" => $ageGroups['earlyYouth'] ?? 'Early Youth',
+            "youth" => $ageGroups->youth ?? 'Youth',
+            "middleAge" => $ageGroups['middleAge'] ?? 'Middle Age',
+            "middleOld" => $ageGroups['middleOld'] ?? 'Middle Old',
+            "elderly" => $ageGroups['elderly'] ?? 'Elderly'
+        ];
     }
 }

@@ -3,7 +3,6 @@
 namespace App\Http\Controllers;
 
 use App\Exports\ReportExport;
-use App\Exports\ReportExportDaily;
 use App\Models\Store;
 use App\Traits\HasDateMap;
 use App\Traits\HasStoreDateFilter;
@@ -29,33 +28,71 @@ class ExportDataController extends Controller
         $dateTo = Carbon::parse($request->query('dateTo'))->setTimezone('Asia/Jerusalem');
         $diffInDays = $dateFrom->diffInDays($dateTo);
 
-        \Log::info('dates for export', [
-            $dateFrom,
-            $dateTo
-        ]);
+        $daysoff = $store->settings['daysoff'] ?? [];
+
         $dataToExport = [];
 
         for ($i = 0; $i <= $diffInDays; $i++) {
             $result = [];
             $currentDate = $dateFrom->copy()->addDays($i);
-            $date = $currentDate->format('Y-m-d');
-            $limitedDates = $this->modifyDate($date, $store);
+            if (!in_array($currentDate->dayOfWeek, $daysoff)) {
 
-            $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
-            $salesReport = $this->getSalesReport($store, $date, $limitedDates);
+                $date = $currentDate->format('Y-m-d');
+                $limitedDates = $this->modifyDate($date, $store);
 
-            $result = $this->mapTableFields($result, $ageGenderFlow);
-            $result = $this->mapWalkInCount($result, $ageGenderFlow);
-            $result = $this->mapSalesReport($result, $salesReport);
+                $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
+                $salesReport = $this->getSalesReport($store, $date, $limitedDates);
 
-            $dataToExport[$date] = array_values($result);
+                $result = $this->mapTableFields($result, $ageGenderFlow);
+                $result = $this->mapWalkInCount($result, $ageGenderFlow);
+                $result = $this->mapSalesReport($result, $salesReport);
+
+                $dataToExport[$date] = array_values($result);
+            }
         }
 
-
+        if ($diffInDays > 0) {
+            $dataToExport['summary'] = $this->getSummaryReport($dataToExport);
+        }
 
         $fileName = "report_$date.xlsx";
 
-        return Excel::download(new ReportExport($dataToExport), $fileName);
+        return Excel::download(new ReportExport($dataToExport, $store), $fileName);
+    }
+
+    /**
+     * @param $dataToExport
+     * @return array
+     */
+    public function getSummaryReport($dataToExport)
+    {
+        $reports = array_values($dataToExport);
+        $mergedReports = array_merge(...$reports);
+
+        $collection = collect($mergedReports);
+        $groupedData = $collection->groupBy('time');
+
+        $summaryReport = [];
+        foreach ($groupedData as $key => $value) {
+            $collection = collect($value);
+            $summedObject = new \stdClass();
+            $summedObject->time = $key;
+
+            $properties = $collection->flatMap(function ($item) {
+                return array_keys($item);
+            })->unique();
+
+            foreach ($properties as $property) {
+
+                if ($property !== 'time') {
+                    $summedObject->{$property} = $collection->sum($property);
+                }
+            }
+
+            $summaryReport[$key] = $summedObject;
+        }
+
+        return $summaryReport;
     }
 
     /**
@@ -65,7 +102,6 @@ class ExportDataController extends Controller
      */
     public function getWalkInReport($store, $selectedDate, $limitedDates)
     {
-        \Log::info('limited dates', $limitedDates);
         $ageGenderFlow = $store->ageGenderFlow()
             ->whereDate('date', '=', $selectedDate)
             ->whereBetween('date', [$limitedDates['startDate'], $limitedDates['endDate']])
@@ -156,7 +192,7 @@ class ExportDataController extends Controller
 
             $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;
             $result[$time]['averageItemPrice'] = (int) $averageItemPrice;
-            $result[$time]['conversion'] = $conversion . '%';
+            $result[$time]['conversion'] = $conversion;
             $result[$time]['atv'] = (int) $atv;
         }
 
@@ -175,34 +211,46 @@ class ExportDataController extends Controller
             $time = $entry["time"];
 
             if (!isset($result[$time])) {
-                $result[$time] = [
-                    'time' => $time,
-                    'walkInCount' => 0,
-                    'female' => 0,
-                    'male' => 0,
-                    'ordersCount' => 0,
-                    'conversion' => 0,
-                    'totalSales' => 0,
-                    'atv' => 0,
-                    'itemsCount' => 0,
-                    'averageItemsPerOrder' => 1,
-                    'averageItemPrice' => 0,
-                    'earlyYouth' => 0,
-                    'youth' => 0,
-                    'middleAge' => 0,
-                    'elderly' => 0,
-                    'male_earlyYouth' => 0,
-                    'male_youth' => 0,
-                    'male_middleAge' => 0,
-                    'male_elderly' => 0,
-                    'female_earlyYouth' => 0,
-                    'female_youth' => 0,
-                    'female_middleAge' => 0,
-                    'female_elderly' => 0,
-                ];
+                $result[$time] = $this->emptyTableObject($time);
             }
         }
 
         return $result;
+    }
+
+    /**
+     * @param $time
+     * @return array
+     */
+    protected function emptyTableObject($time)
+    {
+        return [
+            'time' => $time,
+            'walkInCount' => 0,
+            'female' => 0,
+            'male' => 0,
+            'ordersCount' => 0,
+            'conversion' => 0,
+            'totalSales' => 0,
+            'atv' => 0,
+            'itemsCount' => 0,
+            'averageItemsPerOrder' => 1,
+            'averageItemPrice' => 0,
+            'earlyYouth' => 0,
+            'youth' => 0,
+            'middleAge' => 0,
+            'middleOld' => 0,
+            'elderly' => 0,
+            'male_earlyYouth' => 0,
+            'male_youth' => 0,
+            'male_middleAge' => 0,
+            'male_middleOld' => 0,
+            'male_elderly' => 0,
+            'female_earlyYouth' => 0,
+            'female_youth' => 0,
+            'female_middleAge' => 0,
+            'female_middleOld' => 0,
+            'female_elderly' => 0,
+        ];
     }
 }

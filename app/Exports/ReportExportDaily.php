@@ -9,7 +9,7 @@ use Maatwebsite\Excel\Concerns\WithTitle;
 class ReportExportDaily implements FromArray, WithHeadings, WithTitle
 {
 
-    public function __construct(public $data, public $date) {
+    public function __construct(public $report, public $date, public $ageLabels) {
     }
 
     /**
@@ -17,64 +17,38 @@ class ReportExportDaily implements FromArray, WithHeadings, WithTitle
      */
     public function array(): array
     {
-        return $this->data;
-    }
-
-    public function map($row): array
-    {
-        return [
-            $row->time,
-            (string) $row->walkInCount,
-            (string) $row->female,
-            (string) $row->male,
-            (string) $row->ordersCount,
-            (string) $row->conversion,
-            (string) $row->totalSales,
-            (string) $row->atv,
-            (string) $row->itemsCount,
-            (string) $row->averageItemsPerOrder,
-            (string) $row->averageItemPrice,
-            (string) $row->earlyYouth,
-            (string) $row->youth,
-            (string) $row->middleAge,
-            (string) $row->elderly,
-            (string) $row->male_earlyYouth,
-            (string) $row->male_youth,
-            (string) $row->male_middleAge,
-            (string) $row->male_elderly,
-            (string) $row->female_earlyYouth,
-            (string) $row->female_youth,
-            (string) $row->female_middleAge,
-            (string) $row->female_elderly,
-        ];
+        return $this->report;
     }
 
     public function headings(): array
     {
         return [
-            'שעה',
-            'מבקרים',
-            'מבקרים גברים',
-            'מבקרים נשים',
-            'כמות עסקאות',
-            'יחס המרה',
-            'מכירות ₪',
-            'ממוצע עסקה',
-            'כמות פריטים',
-            'ממוצע פריטים בעסקה',
-            'ממוצע שווי פריט',
-            'מבקרים ילדים',
-            'מבקרים צעירים',
-            'מבקרים בוגרים',
-            'מבקרים מבוגרים',
-            'מבקרים מבוגרים',
-            'גברים ילדים',
-            'גברים צעירים',
-            'גברים בוגרים',
-            'גברים מבוגרים',
-            'נשים ילדים',
-            'נשים צעירים',
-            'נשים מבוגרים'
+            "שעה",
+            "מבקרים",
+            "מבקרים גברים",
+            "מבקרים נשים",
+            "כמות עסקאות",
+            "יחס המרה",
+            "מכירות ₪",
+            "ממוצע עסקה",
+            "כמות פריטים",
+            "ממוצע פריטים בעסקה",
+            "ממוצע שווי פריט",
+            "מבקרים {$this->ageLabels['earlyYouth']}",
+            "מבקרים {$this->ageLabels['youth']}",
+            "מבקרים {$this->ageLabels['middleAge']}",
+            "מבקרים {$this->ageLabels['middleOld']}",
+            "מבקרים {$this->ageLabels['elderly']}",
+            "גברים {$this->ageLabels['earlyYouth']}",
+            "גברים {$this->ageLabels['youth']}",
+            "גברים {$this->ageLabels['middleAge']}",
+            "גברים {$this->ageLabels['middleOld']}",
+            "גברים {$this->ageLabels['elderly']}",
+            "נשים {$this->ageLabels['earlyYouth']}",
+            "נשים {$this->ageLabels['youth']}",
+            "נשים {$this->ageLabels['middleAge']}",
+            "נשים {$this->ageLabels['middleOld']}",
+            "נשים {$this->ageLabels['elderly']}"
         ];
     }
 
