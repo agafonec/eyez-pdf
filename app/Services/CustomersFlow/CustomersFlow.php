@@ -63,6 +63,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
         $storeIds = $this->getStoreIds($stores);
 
         return HourlyPassengerFlow::whereBetween('time', [$dateRange->start, $dateRange->end])
+            ->whereIn('store_id', $storeIds)
             ->where(function ($query) use ($storeIds) {
                 $iteration = 0;
                 foreach ($storeIds as $storeId) {
@@ -171,6 +172,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
         $storeIds = $this->getStoreIds($stores);
 
         $totalWalkIn = AgeGenderFlow::whereBetween('date', [$dateFrom, $dateTo])
+            ->whereIn('store_id', $storeIds)
             ->where(function ($query) use ($storeIds) {
                 $iteration = 0;
                 foreach ($storeIds as $storeId) {
@@ -216,6 +218,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     public function getHourlyWalkIn($storeIds, $dateFrom, $dateTo)
     {
         return HourlyPassengerFlow::whereBetween('time', [$dateFrom, $dateTo])
+            ->whereIn('store_id', $storeIds)
             ->where(function ($query) use ($storeIds) {
                 $iteration = 0;
                 foreach ($storeIds as $storeId) {
@@ -253,13 +256,9 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
      */
     public function getGenderData($storeIds, $dateFrom, $dateTo, $total)
     {
-        \Log::info('GET GENDER DATA', [
-            'storeIds' => $storeIds,
-            'dateFrom' => $dateFrom,
-            'dateTo' => $dateTo
-        ]);
         $genderData = AgeGenderFlow::select('gender', \DB::raw('SUM(people_count) as total_people_count'))
             ->whereBetween('date', [$dateFrom, $dateTo])
+            ->whereIn('store_id', $storeIds)
             ->where(function ($query) use ($storeIds) {
                 $iteration = 0;
                 foreach ($storeIds as $storeId) {
@@ -280,7 +279,9 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             })
             ->groupBy('gender')
             ->get();
-
+        \Log::info('GET GENDER DATA', [
+            'g' => $genderData
+        ]);
         $genderGrouped = [];
         if ($genderData) {
             foreach ($genderData as $genderSingle) {
@@ -299,6 +300,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
     {
         $ageData = AgeGenderFlow::select('age_group_id', \DB::raw('SUM(people_count) as total_people_count'))
             ->whereBetween('date', [$dateFrom, $dateTo])
+            ->whereIn('store_id', $storeIds)
             ->where(function ($query) use ($storeIds) {
                 $iteration = 0;
                 foreach ($storeIds as $storeId) {
@@ -321,6 +323,8 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             ->groupBy('age_group_id')
             ->get()
             ->toArray();
+
+        \Log::info('AGE DATA', ['a' => $ageData]);
 
         $groupedAgeData = [];
         foreach ($ageData as $ageSingle) {

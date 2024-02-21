@@ -108,8 +108,8 @@ class Store extends Model
 
     public function applyTimeRangeConstraints($query, $dateParamName = 'date')
     {
-        $workdays = $this->settings['workdays'];
-        $daysOff = $this->settings['daysoff'];
+        $workdays = $this->settings['workdays'] ?? [];
+        $daysOff = $this->settings['daysoff'] ??[];
 
         $query->where(function ($query) use ($dateParamName, $workdays, $daysOff) {
             $iteration = 0;
