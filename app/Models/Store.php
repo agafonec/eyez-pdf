@@ -125,11 +125,13 @@ class Store extends Model
                 $dayOfWeek = (int)$workday['dayOfWeek'] + 1;
                 $start = Carbon::parse($workday['timeStart'])
                     ->setTimezone('Asia/Jerusalem')
-                    ->addSecond()
+                    ->setMinute(0)
+                    ->setSecond(1)
                     ->format('H:i:s');
                 $end = Carbon::parse($workday['timeEnd'])
                     ->setTimezone('Asia/Jerusalem')
-                    ->addSecond()
+                    ->setMinute(0)
+                    ->setSecond(1)
                     ->format('H:i:s');
 
                 if ($iteration === 0) {

@@ -411,10 +411,12 @@ export default {
                             formatter: (index) =>  {
                                 let values = this.lineChartCategories();
                                 // console.log(this.lineChartCategories())
-                                if (index === 1) {
-                                    return `until ${values[index -1]}`
+                                if (index === values.length) {
+                                    let lastHour = this.getLastHour(values[index - 1])
+
+                                    return `${lastHour} - ${values[index - 1]}`
                                 } else {
-                                    return `${values[index -1]} - ${values[index - 2]}`
+                                    return `${values[index]} - ${values[index - 1]}`
                                 }
                             },
                         },
@@ -520,6 +522,15 @@ export default {
         }
     },
     methods: {
+        getLastHour(time) {
+            let [hours, minutes] = time.split(':').map(Number)
+            hours++
+            // Format the hours and minutes into a string
+            let formattedHours = String(hours).padStart(2, '0')
+            let formattedMinutes = String(minutes).padStart(2, '0')
+
+            return `${formattedHours}:${formattedMinutes}`
+        },
         saveImage(data) {
             // You can save the image data or display it as needed
             const link = document.createElement('a');
@@ -625,12 +636,12 @@ export default {
         lineChartCategories() {
             let previousWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).format('HH:mm')
             }))
 
             let currentWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).format('HH:mm')
             }))
             return [...new Set([...previousWalkIn, ...currentWalkIn].map(item => item.time))].sort()
         },
