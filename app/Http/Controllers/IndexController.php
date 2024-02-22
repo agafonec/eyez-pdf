@@ -87,6 +87,7 @@ class IndexController extends Controller
             $this->getDateRange($request),
             $reports->currentReport?->walkInCount,
         );
+
         $homeParams = [
             'currentStore' => is_array($currentStore) ? implode(',', $currentStore) : $currentStore,
             'reportType' => $reports->reportType,

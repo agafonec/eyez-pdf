@@ -25,8 +25,8 @@ class ReportExportDaily implements FromArray, WithHeadings, WithTitle
         return [
             "שעה",
             "מבקרים",
-            "מבקרים גברים",
             "מבקרים נשים",
+            "מבקרים גברים",
             "כמות עסקאות",
             "יחס המרה",
             "מכירות ₪",

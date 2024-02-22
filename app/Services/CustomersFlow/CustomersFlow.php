@@ -241,7 +241,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             ->map(function ($item) {
                 return [
                     "date" => date('Y-m-d', strtotime($item['time'])),
-                    "time" => date('H:i', strtotime($item['time'])),
+                    "time" => Carbon::parse($item['time'])->subHour()->format('H:i'),
                     "passengerFlow" => $item['passengerFlow'],
                 ];
             });
@@ -279,9 +279,7 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             })
             ->groupBy('gender')
             ->get();
-        \Log::info('GET GENDER DATA', [
-            'g' => $genderData
-        ]);
+
         $genderGrouped = [];
         if ($genderData) {
             foreach ($genderData as $genderSingle) {
@@ -323,8 +321,6 @@ class CustomersFlow extends Controller implements CustomersFlowInterface
             ->groupBy('age_group_id')
             ->get()
             ->toArray();
-
-        \Log::info('AGE DATA', ['a' => $ageData]);
 
         $groupedAgeData = [];
         foreach ($ageData as $ageSingle) {
