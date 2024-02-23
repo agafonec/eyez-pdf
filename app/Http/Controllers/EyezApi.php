@@ -82,6 +82,28 @@ class EyezApi extends Controller
 
     /**
      * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function validateApi(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->stores) {
+            return response()->json([
+                'errors' => false,
+                'message' => 'API token is valid',
+                'data' => $user->stores()->select('id', 'dep_id', 'name')->get()
+            ]);
+        } else {
+            return response()->json([
+                'errors' => true,
+                'message' => 'API token is not valid',
+            ], 404);
+        }
+    }
+
+    /**
+     * @param Request $request
      * @return array|\Illuminate\Http\JsonResponse
      */
     public function orderBulkImport(Request $request)
@@ -116,11 +138,15 @@ class EyezApi extends Controller
         }
     }
 
+    /**
+     * @param Request|array $request
+     * @return \Illuminate\Validation\Validator
+     */
     private function validateOrder(Request|array $request)
     {
         $rules = [
             'store_id' => 'required|integer',
-            'order_id' => 'required|integer|string',
+            'order_id' => 'required|string',
             'order_date' => 'required|date',
             'items_count' => 'required|integer',
             'order_total' => 'required|numeric'
