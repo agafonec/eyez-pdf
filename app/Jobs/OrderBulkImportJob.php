@@ -35,14 +35,7 @@ class OrderBulkImportJob implements ShouldQueue
         foreach ($this->ordersData as $data) {
             $data = (object) $data;
 
-            $carbonDate = Carbon::parse($data->order_date);
-            $limitedDates = $this->modifyDate($data->order_date, $this->store);
-
-            if (
-                $carbonDate->lessThanOrEqualTo($limitedDates['endDate'])
-                && $carbonDate->greaterThanOrEqualTo($limitedDates['startDate'])
-                && $this->store->workingDay($data->order_date)
-            ) {
+            if ($this->store->workingDay($data->order_date)) {
                 Order::firstOrCreate(
                     [
                         "store_id" => $this->store->getID(),
