@@ -59,32 +59,15 @@ class AdminController extends Controller
     public function syncStore(Request $request, User $user)
     {
         if ($user && $user->hasRole('main_user') || ($this->user() && $this->user()->hasRole('admin'))) {
-            $hiddenStores = $user?->settings['hiddenStores'] ?? [];
-            $stores = $user->stores?->toArray();
+            $currentUser = $user ?? $this->user();
+            $hiddenStores = $currentUser?->settings['hiddenStores'] ?? [];
+            $stores = $currentUser->stores?->toArray();
             $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
 
             $inertiaParams = [
                 'stores' => $filteredStores,
-            ];
-        } else {
-            $inertiaParams = [
-                'errors' => true,
-                'messages' => 'You are not allowed to sync stores. Contact support or the main account manager.'
-            ];
-        }
-
-        return Inertia::render('Profile/SyncOpretail', $inertiaParams);
-    }
-
-    public function previewUserDashboard(Request $request, User $user)
-    {
-        if ($user && $user->hasRole('main_user') || ($this->user() && $this->user()->hasRole('admin'))) {
-            $hiddenStores = $user?->settings['hiddenStores'] ?? [];
-            $stores = $user->stores?->toArray();
-            $filteredStores = array_filter($stores, fn($store) => !in_array((int)$store['dep_id'], $hiddenStores));
-
-            $inertiaParams = [
-                'stores' => $filteredStores,
+                'user' => $currentUser->id,
+                'syncBatchId' => $currentUser->cached('syncBatchId')
             ];
         } else {
             $inertiaParams = [

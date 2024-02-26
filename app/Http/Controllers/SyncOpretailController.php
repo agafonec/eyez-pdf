@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Jobs\SyncOpretailJob;
 use App\Models\Store;
+use App\Models\User;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Bus;
@@ -73,12 +74,18 @@ class SyncOpretailController extends Controller
             }
         }
 
+        $store->user->cache('syncBatchId', $batch->id, 360);
+
         return response()->json(['batchId' => $batch->id]);
     }
 
-    public function getProgress(Request $request, $batchId)
+    public function getProgress(Request $request, User $user, $batchId)
     {
         $batch = Bus::findBatch($batchId);
+
+        if ($batch?->pendingJobs === 0) {
+            $user->forgetCached('syncBatchId');
+        }
 
         return response()->json([
             'progress' => $batch,
