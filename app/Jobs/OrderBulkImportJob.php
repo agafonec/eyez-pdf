@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\Store;
+use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
@@ -15,7 +16,7 @@ use Illuminate\Queue\SerializesModels;
 
 class OrderBulkImportJob implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels, HasStoreDateFilter;
 
     /**
      * Create a new job instance.
@@ -34,14 +35,7 @@ class OrderBulkImportJob implements ShouldQueue
         foreach ($this->ordersData as $data) {
             $data = (object) $data;
 
-            $carbonDate = Carbon::parse($data->order_date);
-            $limitedDates = $this->modifyDate($data->order_date, $this->store);
-
-            if (
-                $carbonDate->lessThanOrEqualTo($limitedDates['endDate'])
-                && $carbonDate->greaterThanOrEqualTo($limitedDates['startDate'])
-                && $this->store->workingDay($data->order_date)
-            ) {
+            if ($this->store->workingDay($data->order_date)) {
                 Order::firstOrCreate(
                     [
                         "store_id" => $this->store->getID(),

@@ -87,6 +87,7 @@ class IndexController extends Controller
             $this->getDateRange($request),
             $reports->currentReport?->walkInCount,
         );
+
         $homeParams = [
             'currentStore' => is_array($currentStore) ? implode(',', $currentStore) : $currentStore,
             'reportType' => $reports->reportType,
@@ -143,7 +144,7 @@ class IndexController extends Controller
             ],
             "totalSales" => [
                 "current" => [
-                    "title" => 'מכירות',
+                    "title" => 'הכנסות',
                     "value" => $totalSales
                 ],
                 "previous" => [
@@ -153,7 +154,7 @@ class IndexController extends Controller
             ],
             "totalSalesCount" => [
                 "current" => [
-                    "title" => 'עסקאות',
+                    "title" => 'כמות עסקאות',
                     "value" => $instance->totalOrders($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [
@@ -163,7 +164,7 @@ class IndexController extends Controller
             ],
             "atv" => [
                 "current" => [
-                    "title" => 'שווי עסקה',
+                    "title" => 'ממוצע עסקה',
                     "value" => $instance->getATV($dateRange->start, $dateRange->end)
                 ],
                 "previous" => [

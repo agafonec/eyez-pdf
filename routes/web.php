@@ -39,7 +39,9 @@ Route::middleware('auth')->group(function () {
         $router->get('/dashboard')->uses('IndexController@show')->name('home.show');
         $router->get('/importOrders')->uses('ImportController@ordersView')->name('view.orders-import');
 
-        $router->post('/export-report/{store}')->uses('ExportDataController@getReportHistory')->name('report.export');
+        $router->get('/view-report/{store}')->uses('ExportDataController@view')->name('report.view.test');
+
+        $router->get('/export-report/{store}')->uses('ExportDataController@exportReport')->name('report.export');
         $router->post('/import-orders')->uses('ImportController@orders')->name('orders.import');
         $router->get('/import-orders/get-status')->uses('ImportController@getStatus')->name('orders.import.status');
         $router->get('/import-orders/clean-status')->uses('ImportController@cleanStatus')->name('orders.import.clean-status');

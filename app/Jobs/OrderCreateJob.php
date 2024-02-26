@@ -29,14 +29,8 @@ class OrderCreateJob implements ShouldQueue
     public function handle(): void
     {
         \Log::info('handle OrderCreate');
-        $carbonDate = Carbon::parse($this->data->order_date);
-        $limitedDates = $this->modifyDate($this->data->order_date, $this->store);
 
-        if (
-            $carbonDate->lessThanOrEqualTo($limitedDates['endDate'])
-            && $carbonDate->greaterThanOrEqualTo($limitedDates['startDate'])
-            && $this->store->workingDay($this->data->order_date)
-        ) {
+        if ($this->store->workingDay($this->data->order_date)) {
             Order::firstOrCreate(
                 [
                     "store_id" => $this->store->getID(),

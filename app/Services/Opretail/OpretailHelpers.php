@@ -88,4 +88,32 @@ trait OpretailHelpers
 
         return $return;
     }
+
+    /**
+     * @param array $data
+     * @param $date
+     * @return array
+     */
+    public static function mapHourlyWalkInFromAgeGender(Array $data, $date)
+    {
+        if (!$data) die('No hourly data has been received.');
+        $return = [];
+        $passengerFlow = 0;
+
+        foreach ($data as $single) {
+            if (isset($single['gender']) && $single['gender'] !== 0) {
+                $passengerFlow += $single['peopleNum'];
+            }
+        }
+
+        if ($passengerFlow > 0) {
+            $return[] = [
+                "date" => date('Y-m-d', strtotime($date)),
+                "time" => date('H:i', strtotime($date)),
+                "passengerFlow" => $passengerFlow,
+            ];
+        }
+
+        return $return;
+    }
 }

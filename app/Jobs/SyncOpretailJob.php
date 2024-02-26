@@ -25,7 +25,6 @@ class SyncOpretailJob implements ShouldQueue
      * Create a new job instance.
      */
     public string $method;
-    public array $limitedDates;
     public function __construct(
         public Store $store,
         public $date,
@@ -41,20 +40,20 @@ class SyncOpretailJob implements ShouldQueue
      */
     public function handle(): void
     {
-        $this->limitedDates = $this->modifyDate($this->date, $this->store);
 
         if ($this->store->workingDay($this->date)) {
-            \Log::info("=================- STARTED SYNC FOR STORE {$this->store->id} ======================");
-            \Log::info('dates limits', $this->limitedDates);
+            $startDate = Carbon::parse($this->date)->startOfHour();
+            $endDate = Carbon::parse($this->date)->addHour()->startOfHour();
+
             $opretail = new OpretailApi(
                 $this->store->opretailCredentials,
                 $this->store,
-                $this->limitedDates['startDate'],
-                $this->limitedDates['endDate']
+                $startDate,
+                $endDate
             );
 
-            $this->setPassengerFlow($opretail);
-            $this->setAgeGenderData($opretail);
+            $this->setPassengerFlow($opretail, $endDate);
+            $this->setAgeGenderData($opretail, $endDate);
         }
     }
 
@@ -62,40 +61,49 @@ class SyncOpretailJob implements ShouldQueue
      * @param OpretailApi $opretail
      * @param $date
      */
-    protected function setAgeGenderData(OpretailApi $opretail)
+    protected function setAgeGenderData(OpretailApi $opretail, $date)
     {
         $ageGenderFlow = $opretail->getAgeGenderData();
 
         if (isset($ageGenderFlow['ageDistribution'])) {
-            foreach ($ageGenderFlow['ageDistribution'] as $flow) {
+            $this->singlePeriodAgeGender($ageGenderFlow['ageDistribution'], $date);
+        }
+    }
 
-                $ageGroup = call_user_func([AgeGroup::class, $this->method],
+    /**
+     * @param $ageDistribution
+     * @param $date
+     */
+    protected function singlePeriodAgeGender($ageDistribution, $date)
+    {
+        foreach ($ageDistribution as $flow) {
+
+            $ageGroup = call_user_func([AgeGroup::class, 'updateOrCreate'],
+                [
+                    'store_id' => $this->store->id,
+                    'group_id' => $flow['ageDivisionType']
+                ],
+                [
+                    'ageFrom' => $flow['ageFrom'],
+                    'ageTo' => $flow['ageTo'],
+                ]
+            );
+
+            foreach ($flow['genderDistribution'] as $genderFlow) {
+                if ($genderFlow['gender'] === 0 || $genderFlow['peopleNum'] === 0)
+                    continue;
+
+                call_user_func([AgeGenderFlow::class, $this->method],
                     [
                         'store_id' => $this->store->id,
-                        'group_id' => $flow['ageDivisionType']
+                        'date' => $date,
+                        'age_group_id' => $ageGroup->id,
+                        'gender' => $genderFlow['gender'] === 1 ? 'male' : 'female',
                     ],
                     [
-                        'ageFrom' => $flow['ageFrom'],
-                        'ageTo' => $flow['ageTo'],
+                        'people_count' => $genderFlow['peopleNum']
                     ]
                 );
-
-                foreach ($flow['genderDistribution'] as $genderFlow) {
-                    if ($genderFlow['gender'] === 0 || $genderFlow['peopleNum'] === 0)
-                        continue;
-
-                    call_user_func([AgeGenderFlow::class, $this->method],
-                        [
-                            'store_id' => $this->store->id,
-                            'date' => Carbon::parse($this->date)->endOfDay(),
-                            'age_group_id' => $ageGroup->id,
-                            'gender' => $genderFlow['gender'] === 1 ? 'male' : 'female',
-                        ],
-                        [
-                            'people_count' => $genderFlow['peopleNum']
-                        ]
-                    );
-                }
             }
         }
     }
@@ -103,36 +111,27 @@ class SyncOpretailJob implements ShouldQueue
     /**
      * @param OpretailApi $opretail
      */
-    protected function setPassengerFlow(OpretailApi $opretail)
+    protected function setPassengerFlow(OpretailApi $opretail, $date)
     {
-        $hourlyFlow = $opretail->getStoreData();
-        $hourlyWalkIn = [];
-
-        foreach ($hourlyFlow['data'] as $data) {
-            $hourlyWalkIn = array_merge($hourlyWalkIn, $data['dataList']);
-        }
-        $hourlyWalkIn = $opretail->mapHourlyWalkIn($hourlyWalkIn);
+        $ageGenderFlow = $opretail->getAgeGenderData();
+        $hourlyWalkIn = $opretail->mapHourlyWalkInFromAgeGender($ageGenderFlow['genderDistribution'], $date);
 
         foreach ($hourlyWalkIn as $flow) {
             if ($flow['passengerFlow'] > 0) {
-                $flowTime = Carbon::parse("{$flow['date']} {$flow['time']}");
+                $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
+                    [
+                        'store_id' => $this->store->id,
+                        'time' => $date->format('Y-m-d H:i:s')
+                    ],
+                    [
+                        'passengerFlow' => $flow['passengerFlow']
+                    ]
+                );
 
-                if ($flowTime->lessThanOrEqualTo($this->limitedDates['endDate']) && $flowTime->greaterThanOrEqualTo($this->limitedDates['startDate'])) {
-                    $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
-                        [
-                            'store_id' => $this->store->id,
-                            'time' => $flowTime->format('Y-m-d H:i:s')
-                        ],
-                        [
-                            'passengerFlow' => $flow['passengerFlow']
-                        ]
-                    );
-
-                    \Log::info('HOURLY FLOW CREATE', [
-                        'timeAfterPArse' => Carbon::parse("{$flow['date']} {$flow['time']}")->format('Y-m-d H:i:s'),
-                        'c' => $hourlyFlowCreate
-                    ]);
-                }
+                \Log::info('HOURLY FLOW CREATE', [
+                    'timeAfterPArse' => $date->format('Y-m-d H:i:s'),
+                    'c' => $hourlyFlowCreate
+                ]);
             }
         }
     }

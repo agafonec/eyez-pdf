@@ -82,40 +82,71 @@ class EyezApi extends Controller
 
     /**
      * @param Request $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function getStores(Request $request)
+    {
+        $user = $request->user();
+
+        if ($user->stores) {
+            return response()->json([
+                'errors' => false,
+                'message' => 'Stores found.',
+                'stores' => $user->stores()->select('id', 'dep_id', 'name')->get()
+            ]);
+        } else {
+            return response()->json([
+                'errors' => true,
+                'message' => 'Stores not found.',
+            ], 404);
+        }
+    }
+
+    /**
+     * @param Request $request
      * @return array|\Illuminate\Http\JsonResponse
      */
     public function orderBulkImport(Request $request)
     {
-        $orders = $request->json()->all();
+        $storeId = $request->json('store_id');
+        $orders = $request->json('orders');
+        $user = $request->user();
+
         $validator = $this->validateOrder($orders[0]);
 
         if ($validator->fails()) {
             return response()->json([
                 'errors' => true,
                 'message' => $validator->errors()
-            ]);
+            ], 403);
         }
 
-        if ($store = Store::where('dep_id', $orders[0]['store_id'])->first()) {
+        $store = $user->stores()->find($storeId);
+        \Log::info('Order bulk import',['store' => $store, 'orders' => $orders]);
+
+        if ($store) {
             OrderBulkImportJob::dispatch($store, $orders);
 
-            return [
+            return response()->json([
                 'errors' => false,
                 'message' => 'Order successfully created.'
-            ];
+            ], 200);
         } else {
             return response()->json([
                 'errors' => true,
-                'message' => 'Need to complete eyez settings in profile settings first.'
-            ]);
+                'message' => 'No store has been found for this account.'
+            ], 404);
         }
     }
 
+    /**
+     * @param Request|array $request
+     * @return \Illuminate\Validation\Validator
+     */
     private function validateOrder(Request|array $request)
     {
         $rules = [
-            'store_id' => 'required|integer',
-            'order_id' => 'required|integer|string',
+            'order_id' => 'required|string',
             'order_date' => 'required|date',
             'items_count' => 'required|integer',
             'order_total' => 'required|numeric'

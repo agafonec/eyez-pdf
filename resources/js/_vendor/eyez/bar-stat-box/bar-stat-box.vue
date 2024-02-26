@@ -7,7 +7,7 @@
                 </div>
                 <span class="font-semibold">{{ title }}</span>
             </div>
-            <div class="text-md text-gray-300">{{ stat.description }}</div>
+            <div v-if="!hideDescription" class="text-md text-gray-300">{{ stat.description }}</div>
             <div class="text-center">
                 <span class="text-2xl font-semibold">{{ stat.count }}</span>
             </div>
@@ -30,6 +30,9 @@ export default {
         },
         colorClass: {
             type: String,
+        },
+        hideDescription: {
+            type: Boolean
         }
     }
 }

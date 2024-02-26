@@ -21,7 +21,7 @@
                                     text-xl md:text-3xl font-semibold uppercase hover:text-gray-700 focus:outline-none transition"
                                 >
 <!--                                    <span v-if="currentStore.id !== undefined">{{ currentStore.name }}</span>-->
-                                    <span v-if="currentStore.id !== undefined">Eyez Store</span>
+                                    <span v-if="currentStore.id !== undefined">{{ currentStore.name }}</span>
                                     <span v-else>All stores</span>
                                     <svg class="ms-2 -me-0.5 h-8 w-8" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd"></path></svg>
                                 </button>
@@ -34,13 +34,13 @@
                                 <DropdownLink
                                     :href="route('profile.dashboard.view', {user: store.user_id, stores: store.dep_id})"
                                     v-if="!settings?.hiddenStores?.includes(store.dep_id)"
-                                    align="center">Eyez Store {{ index }}</DropdownLink>
+                                    align="center">{{ store.name }}</DropdownLink>
                             </template>
                             <template v-else v-for="(store, index) in availableStores">
                                 <DropdownLink
                                     :href="route('home.show', {stores: store.dep_id})"
                                     v-if="!settings?.hiddenStores?.includes(store.dep_id)"
-                                    align="center">Eyez Store {{ index }}</DropdownLink>
+                                    align="center">{{ store.name }}</DropdownLink>
                             </template>
 
                             <DropdownLink v-if="showAllStoresLink && roles.includes('admin')"
@@ -411,10 +411,12 @@ export default {
                             formatter: (index) =>  {
                                 let values = this.lineChartCategories();
                                 // console.log(this.lineChartCategories())
-                                if (index === 1) {
-                                    return `until ${values[index -1]}`
+                                if (index === values.length) {
+                                    let lastHour = this.getLastHour(values[index - 1])
+
+                                    return `${lastHour} - ${values[index - 1]}`
                                 } else {
-                                    return `${values[index -1]} - ${values[index - 2]}`
+                                    return `${values[index]} - ${values[index - 1]}`
                                 }
                             },
                         },
@@ -520,6 +522,15 @@ export default {
         }
     },
     methods: {
+        getLastHour(time) {
+            let [hours, minutes] = time.split(':').map(Number)
+            hours++
+            // Format the hours and minutes into a string
+            let formattedHours = String(hours).padStart(2, '0')
+            let formattedMinutes = String(minutes).padStart(2, '0')
+
+            return `${formattedHours}:${formattedMinutes}`
+        },
         saveImage(data) {
             // You can save the image data or display it as needed
             const link = document.createElement('a');
@@ -625,12 +636,12 @@ export default {
         lineChartCategories() {
             let previousWalkIn = this.prevStoreData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).format('HH:mm')
             }))
 
             let currentWalkIn = this.storeData.hourlyWalkIn.map(obj => ({
                 ...obj,
-                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).subtract(1, 'hours').format('HH:mm')
+                time: obj.time === '00:00' ? '23:00' : moment('2023-12-12 ' + obj.time).format('HH:mm')
             }))
             return [...new Set([...previousWalkIn, ...currentWalkIn].map(item => item.time))].sort()
         },

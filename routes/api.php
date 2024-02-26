@@ -24,5 +24,6 @@ Route::middleware('auth:sanctum')->group(function () {
         $router->post('/createOrUpdateOrderSummary')->uses('EyezApi@createOrUpdateOrderSummary')->name('api.createOrUpdateOrderSummary');
         $router->post('/orderCreate')->uses('EyezApi@orderCreate')->name('api.createOrder');
         $router->post('/orderBulkImport')->uses('EyezApi@orderBulkImport')->name('api.bulkImportOrders');
+        $router->post('/getStores')->uses('EyezApi@getStores')->name('api.getStores');
     });
 });

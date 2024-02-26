@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Store;
 use App\Models\User;
+use Carbon\Carbon;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Redirect;
 use Illuminate\Support\Facades\Validator;
@@ -34,9 +35,6 @@ class AdminController extends Controller
      */
     public function singleUser(Request $request, User $user)
     {
-        $store = Store::find(2);
-        \Log::info('Schedules', ['s' => $store->getSchedule()]);
-
         $profile = [
             'currentUser' => $user,
             'roles' => $this->user()->getRoleNames(),
