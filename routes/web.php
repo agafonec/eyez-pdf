@@ -67,7 +67,7 @@ Route::middleware('auth')->group(function () {
     Route::get('/profile/sync_store', [SyncOpretailController::class, 'view'])->name('profile.sync-opretail');
     Route::post('/profile/sync_store/{store}', [SyncOpretailController::class, 'start'])->name('profile.sync.start');
 
-    Route::get('/jobs/progress/{batchId}', [SyncOpretailController::class, 'getProgress'])->name('jobs.progress');
+    Route::get('/jobs/progress/{user}/{batchId}', [SyncOpretailController::class, 'getProgress'])->name('jobs.progress');
 
     Route::post('/profile_opretail', [ProfileController::class, 'opretailUpdate'])->name('profile.opretail.update');
     Route::post('/profile_settings', [ProfileController::class, 'updateSettings'])->name('profile.settings.update');

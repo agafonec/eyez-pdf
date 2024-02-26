@@ -105,6 +105,12 @@ export default {
         stores: {
             type: [Object, Array]
         },
+        syncBatchId: {
+            type: String
+        },
+        user: {
+            type: Number
+        },
         errors: [Object, Boolean],
         messages: [Array, String]
     },
@@ -115,8 +121,14 @@ export default {
             selectedDate: new Date(),
             syncing: false,
             fetchInterval: null,
-            batchId: null,
+            batchId: this.syncBatchId ?? null,
             progress: null,
+        }
+    },
+    mounted() {
+        console.log('batch id', this.batchId);
+        if (this.batchId !== null) {
+            this.fetchInterval = setInterval(this.fetchProgress, 300);
         }
     },
     methods: {
@@ -158,7 +170,8 @@ export default {
         },
         fetchProgress() {
             axios.get(route('jobs.progress', {
-                batchId: this.batchId
+                batchId: this.batchId,
+                user: this.user
             }))
                 .then(response => {
                     this.progress = {
