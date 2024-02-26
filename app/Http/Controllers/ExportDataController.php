@@ -40,6 +40,8 @@ class ExportDataController extends Controller
                 $date = $currentDate->format('Y-m-d');
                 $limitedDates = $this->modifyDate($date, $store);
 
+                \Log::info('Limited dates for export file', ['d' => $limitedDates]);
+
                 $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
                 $salesReport = $this->getSalesReport($store, $date, $limitedDates);
 
@@ -83,11 +85,20 @@ class ExportDataController extends Controller
             })->unique();
 
             foreach ($properties as $property) {
-
                 if ($property !== 'time') {
                     $summedObject->{$property} = $collection->sum($property);
                 }
             }
+
+            $averageItemsPerOrder = $summedObject->ordersCount ? round($summedObject->itemsCount / $summedObject->ordersCount, 1) : 0;
+            $averageItemPrice = $summedObject->itemsCount ? round($summedObject->totalSales / $summedObject->itemsCount, 0) : 0;
+            $conversion = $summedObject->walkInCount ? round($summedObject->ordersCount / $summedObject->walkInCount * 100, 0) : 0;
+            $atv = $summedObject->ordersCount ? round($summedObject->totalSales / $summedObject->ordersCount, 0) : 0;
+
+            $summedObject->averageItemsPerOrder = $averageItemsPerOrder;
+            $summedObject->averageItemPrice = (int) $averageItemPrice;
+            $summedObject->conversion = $conversion;
+            $summedObject->atv = (int) $atv;
 
             $summaryReport[$key] = $summedObject;
         }
