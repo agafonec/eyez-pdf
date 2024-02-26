@@ -109,6 +109,56 @@ class Opretail extends Model
     }
 
     /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param array $stores
+     * @param string $dateParamName
+     * @return string
+     */
+    protected function getQuery($dateFrom, $dateTo, $dateParamName = 'date')
+    {
+        $stores = $this->getStoreIdsArray();
+        $query = '';
+        foreach ($stores as $store) {
+            $storeObject = Store::find($store);
+            $singleQuery = $storeObject->getDateQuery($dateFrom, $dateTo, $dateParamName);
+
+            $query .= empty($query)
+                ? "({$singleQuery})"
+                : "OR ({$singleQuery})";
+        }
+
+        return $query;
+    }
+
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param $store
+     * @param string $dateParamName
+     * @return string
+     */
+    public function getDateQuery($dateFrom, $dateTo, $dateParamName = 'date')
+    {
+        $startDate  = Carbon::parse($dateFrom);
+        $diffInDays = Carbon::parse($dateTo)->diffInDays($startDate);
+
+        $query = '';
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $currentDate = $startDate->copy()->addDays($i);
+            $limitedDates = $this->modifyDate($currentDate, $this);
+            $query .= empty($query)
+                ? "({$dateParamName} BETWEEN '{$limitedDates['startDate']}' AND '{$limitedDates['endDate']}')"
+                : " OR ({$dateParamName} BETWEEN '{$limitedDates['startDate']}' AND '{$limitedDates['endDate']}')";
+        }
+
+        $query .= " AND store_id = {$this->id}";
+
+        \Log::info('store date query', ['q' => $query]);
+        return $query;
+    }
+
+    /**
      * @return mixed
      */
     public function allStoresOrders()
@@ -140,13 +190,17 @@ class Opretail extends Model
                 ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
                 : Carbon::now()->subDays(1)->endOfDay();
 
+            $query = $this->getQuery($from, $to, 'order_date');
+
             $totalOrders = $this->allStoresOrders()
-                ->whereBetween('order_date', [$from, $to])
+                ->whereRaw($query)
                 ->count();
             return round($this->getAvarageValue($from, $to, $totalOrders), 0);
         } else {
+            $query = $this->getQuery($dateFrom, $dateTo, 'order_date');
+
             return $this->allStoresOrders()
-                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->whereRaw($query)
                 ->count();
         }
     }
@@ -167,14 +221,18 @@ class Opretail extends Model
                 ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
                 : Carbon::now()->subDays(1)->endOfDay();
 
+            $query = $this->getQuery($from, $to, 'order_date');
+
             $totalSales = $this->allStoresOrders()
-                ->whereBetween('order_date', [$from, $to])
+                ->whereRaw($query)
                 ->sum('order_total');
 
             return round($this->getAvarageValue($from, $to, $totalSales), 0);
         } else {
+            $query = $this->getQuery($dateFrom, $dateTo, 'order_date');
+
             return round($this->allStoresOrders()
-                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->whereRaw($query)
                 ->sum('order_total'), 0);
         }
     }
@@ -195,14 +253,18 @@ class Opretail extends Model
                 ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
                 : Carbon::now()->subDays(1)->endOfDay();
 
+            $query = $this->getQuery($from, $to, 'order_date');
+
             $itemsCount = $this->allStoresOrders()
-                ->whereBetween('order_date', [$from, $to])
+                ->whereRaw($query)
                 ->sum('items_count');
 
             return round($this->getAvarageValue($from, $to, $itemsCount), 0);
         } else {
+            $query = $this->getQuery($dateFrom, $dateTo, 'order_date');
+
             return $this->allStoresOrders()
-                ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->whereRaw($query)
                 ->sum('items_count');
         }
     }
@@ -263,8 +325,10 @@ class Opretail extends Model
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
 
+        $query = $this->getQuery($dateFrom, $dateTo, 'order_date');
+
         return $this->allStoresOrders()
-            ->whereBetween('order_date', [$dateFrom, $dateTo]);
+            ->whereRaw($query);
     }
 
     /**

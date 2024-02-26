@@ -4,6 +4,7 @@ namespace App\Jobs;
 
 use App\Models\Order;
 use App\Models\Store;
+use Carbon\Carbon;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldBeUnique;
 use Illuminate\Contracts\Queue\ShouldQueue;
@@ -28,16 +29,19 @@ class OrderCreateJob implements ShouldQueue
     public function handle(): void
     {
         \Log::info('handle OrderCreate');
-        Order::firstOrCreate(
-            [
-                "store_id" => $this->store->getID(),
-                "order_id" => $this->data->order_id
-            ],
-            [
-                "order_date" => $this->data->order_date,
-                "items_count" => $this->data->items_count,
-                "order_total" => $this->data->order_total,
-            ]
-        );
+
+        if ($this->store->workingDay($this->data->order_date)) {
+            Order::firstOrCreate(
+                [
+                    "store_id" => $this->store->getID(),
+                    "order_id" => $this->data->order_id
+                ],
+                [
+                    "order_date" => $this->data->order_date,
+                    "items_count" => $this->data->items_count,
+                    "order_total" => $this->data->order_total,
+                ]
+            );
+        }
     }
 }

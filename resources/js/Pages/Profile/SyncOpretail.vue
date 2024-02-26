@@ -15,55 +15,62 @@
                     </header>
                     <p v-if="messages?.length > 0" :class="`${errors === true ? 'text-red-500' : 'text-green-500'}`">{{ messages }}</p>
 
-                    <progress-bar v-if="progress && batchId"
-                                  :completed="progress.percent"
-                                  :success="progress.success"
-                                  :failes="progress.error"
-                                  label="Syncing store" />
+                    <div v-if="syncing" class="flex items-center mt-2">
+                        <span>Preparing syncing, be patient...</span>
+                        <page-loader width="30" height="30"/>
+                    </div>
+                    <div v-else>
+                        <progress-bar v-if="progress && batchId"
+                                      :completed="progress.percent"
+                                      :success="progress.success"
+                                      :failed="progress.error"
+                                      label="Syncing store" />
 
-                    <div v-else class="max-w-md">
-                        <div v-if="storesOptions.length > 0">
-                            <div class="mb-4">
-                                <base-select :options="storesOptions"
-                                             id="store"
-                                             label="נא לבחור חנות"
-                                             :currentValue="selectedStore"
-                                             @changed="(data) => selectedStore = data"
-                                />
-                            </div>
-                            <div class="">
-                                <label class="block text-sm font-medium leading-6 text-gray-900">Select starting date you want to sync from</label>
-                                <date-picker style="direction: ltr" mode="date"
-                                             :max-date="new Date()"
-                                             v-model="selectedDate"
-                                             :popover="{
+                        <div v-else class="max-w-md">
+                            <div v-if="storesOptions.length > 0">
+                                <div class="mb-4">
+                                    <base-select :options="storesOptions"
+                                                 id="store"
+                                                 label="נא לבחור חנות"
+                                                 :currentValue="selectedStore"
+                                                 @changed="(data) => selectedStore = data"
+                                    />
+                                </div>
+                                <div class="">
+                                    <label class="block text-sm font-medium leading-6 text-gray-900">Select starting date you want to sync from</label>
+                                    <date-picker style="direction: ltr" mode="date"
+                                                 :max-date="new Date()"
+                                                 v-model="selectedDate"
+                                                 :popover="{
                                           visibility: 'hover-focus',
                                           placement: 'bottom',
                                           isInteractive: true,
                                         }">
-                                    <template #default="{ togglePopover, inputValue, inputEvents }">
-                                        <div class="flex justify-center overflow-hidden w-full" >
-                                            <button
-                                                class="flex items-center justify-center text-gray-900 ring-1 ring-inset ring-gray-300 rounded-md w-full py-1.5"
-                                                @click="() => togglePopover()">
-                                                <span>{{ formattedDate() }}</span>
-                                                <icon-calendar class="mr-4"/>
-                                            </button>
-                                            <input
-                                                :value="inputValue"
-                                                v-on="inputEvents"
-                                                class="flex-grow p-0 bg-white dark:bg-gray-700 opacity-0 w-0"
-                                            />
-                                        </div>
-                                    </template>
-                                </date-picker>
+                                        <template #default="{ togglePopover, inputValue, inputEvents }">
+                                            <div class="flex justify-center overflow-hidden w-full" >
+                                                <button
+                                                    class="flex items-center justify-center text-gray-900 ring-1 ring-inset ring-gray-300 rounded-md w-full py-1.5"
+                                                    @click="() => togglePopover()">
+                                                    <span>{{ formattedDate() }}</span>
+                                                    <icon-calendar class="mr-4"/>
+                                                </button>
+                                                <input
+                                                    :value="inputValue"
+                                                    v-on="inputEvents"
+                                                    class="flex-grow p-0 bg-white dark:bg-gray-700 opacity-0 w-0"
+                                                />
+                                            </div>
+                                        </template>
+                                    </date-picker>
+                                </div>
+                                <PrimaryButton class="mt-4" @click="startSync">Start Sync</PrimaryButton>
                             </div>
-                            <PrimaryButton class="mt-4" @click="startSync">Start Sync</PrimaryButton>
-                        </div>
-                        <div v-else>
-                            You have no stores created. Contact main user or support.
+                            <div v-else>
+                                You have no stores created. Contact main user or support.
+                            </div>
                         </div>
                     </div>
+
                 </div>
             </div>
         </div>
@@ -77,7 +84,8 @@ import PrimaryButton from '@/Components/PrimaryButton.vue'
 import {
     ProgressBar,
     BaseSelect,
-    IconCalendar
+    IconCalendar,
+    PageLoader
 } from '@/_vendor/eyez/index'
 import { DatePicker } from 'v-calendar'
 import moment from "moment";
@@ -90,7 +98,8 @@ export default {
         ProgressBar,
         BaseSelect,
         DatePicker,
-        IconCalendar
+        IconCalendar,
+        PageLoader
     },
     props: {
         stores: {
@@ -122,6 +131,7 @@ export default {
                 startDate: this.selectedDate,
             })
             .then(response => {
+                this.syncing = false;
                 this.batchId = response.data.batchId
                 this.fetchInterval = setInterval(this.fetchProgress, 300);
             })
@@ -154,10 +164,11 @@ export default {
                     this.progress = {
                         percent: response.data.progress?.processedJobs,
                         success: response.data.progress?.processedJobs,
-                        error: response.data.progress?.failedJobs,
+                        error: response.data.progress.failedJobs,
                         total: response.data.progress?.totalJobs,
-                        totalCompleted: response.data.progress?.processedJobs + response.data.progress?.failedJobs,
+                        totalCompleted: response.data.progress?.processedJobs + response.data.progress.failedJobs,
                     }
+
                     this.progress.percent = Math.round((this.progress.totalCompleted / this.progress.total) * 100)
 
                     if (this.progress.totalCompleted === this.progress.total) {

@@ -99,12 +99,8 @@ export default {
     computed: {
         percent() {
             const difference = Math.abs(this.stat.current.value - this.stat.previous.value)
-                return this.stat.previous.value === 0 ? '100%' : Math.round( (difference / this.stat.previous.value  ) * 100) + '%'
+            return this.stat.previous.value === 0 ? '100%' : Math.round( (difference / this.stat.previous.value  ) * 100) + '%'
         }
     }
 }
 </script>
-
-<style scoped>
-
-</style>

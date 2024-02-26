@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
@@ -14,7 +15,7 @@ use Illuminate\Database\Eloquent\Model;
 
 class Store extends Model
 {
-    use HasFactory;
+    use HasFactory, HasStoreDateFilter;
 
     protected $fillable = [
         'user_id',
@@ -24,9 +25,44 @@ class Store extends Model
         'organize_id'
     ];
 
+    protected $casts = [
+        'settings' => 'json'
+    ];
+
     public function opretail()
     {
         return $this->belongsTo(Opretail::class, 'user_id', 'user_id');
+    }
+
+    /**
+     * @return array|mixed
+     */
+    public function getSchedule()
+    {
+        if ($this->settings && $this->settings['workdays']) {
+            $workdays = $this->settings['workdays'];
+
+            foreach ($this->settings['workdays'] as $key => $workday) {
+                $workdays[$key]['timeStart'] = Carbon::parse($workday['timeStart'])->setTimezone('Asia/Jerusalem')->format('H:i:s');
+                $workdays[$key]['timeEnd'] = Carbon::parse($workday['timeEnd'])->setTimezone('Asia/Jerusalem')->format('H:i:s');
+            }
+
+            return $workdays;
+        } else {
+            return $this->settings;
+        }
+    }
+
+    /**
+     * @param $date
+     * @return bool
+     */
+    public function workingDay($date)
+    {
+        $carbonDate = Carbon::parse($date);
+
+        return !($this->settings && isset($this->settings['daysoff']))
+            || !in_array($carbonDate->dayOfWeek, $this->settings['daysoff']);
     }
 
     /**
@@ -69,15 +105,94 @@ class Store extends Model
         return $this->hasMany(HourlyPassengerFlow::class);
     }
 
+
+    public function applyTimeRangeConstraints($query, $dateParamName = 'date')
+    {
+        $workdays = $this->settings['workdays'] ?? [];
+        $daysOff = $this->settings['daysoff'] ??[];
+
+        $query->where(function ($query) use ($dateParamName, $workdays, $daysOff) {
+            $iteration = 0;
+
+            if (count($daysOff) > 0) {
+                $daysOffString = implode(',', $daysOff);
+                $query->where(function ($q) use ($dateParamName, $daysOffString) {
+                    $q->whereRaw("DAYOFWEEK($dateParamName) NOT IN ({$daysOffString})");
+                });
+            }
+
+            foreach($workdays as $workday) {
+                $dayOfWeek = (int)$workday['dayOfWeek'] + 1;
+                $start = Carbon::parse($workday['timeStart'])
+                    ->setTimezone('Asia/Jerusalem')
+                    ->setMinute(0)
+                    ->setSecond(1)
+                    ->format('H:i:s');
+                $end = Carbon::parse($workday['timeEnd'])
+                    ->setTimezone('Asia/Jerusalem')
+                    ->setMinute(0)
+                    ->setSecond(1)
+                    ->format('H:i:s');
+
+                if ($iteration === 0) {
+                    $query->where(function ($q) use ($dateParamName, $dayOfWeek, $start, $end) {
+                        $q->whereRaw("DAYOFWEEK($dateParamName) = {$dayOfWeek}")
+                        ->whereRaw("TIME({$dateParamName}) BETWEEN '{$start}' AND '{$end}'");
+                    });
+
+                } else {
+                    $query->orWhere(function ($q) use ($dateParamName, $dayOfWeek, $start, $end) {
+                        $q->whereRaw("DAYOFWEEK($dateParamName) = {$dayOfWeek}")
+                        ->whereRaw("TIME({$dateParamName}) BETWEEN '{$start}' AND '{$end}'");
+                    });
+                }
+
+                $iteration++;
+            }
+        });
+    }
+
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @param $store
+     * @param string $dateParamName
+     * @return string
+     */
+    public function getDateQuery($dateFrom, $dateTo, $dateParamName = 'date')
+    {
+        $startDate  = Carbon::parse($dateFrom);
+        $diffInDays = Carbon::parse($dateTo)->diffInDays($startDate);
+
+        $query = '';
+        for ($i = 0; $i <= $diffInDays; $i++) {
+            $currentDate = $startDate->copy()->addDays($i);
+            $limitedDates = $this->modifyDate($currentDate, $this);
+            $query .= empty($query)
+                ? "({$dateParamName} BETWEEN '{$limitedDates['startDate']}' AND '{$limitedDates['endDate']}')"
+                : " OR ({$dateParamName} BETWEEN '{$limitedDates['startDate']}' AND '{$limitedDates['endDate']}')";
+        }
+
+        $query .= " AND store_id = {$this->id}";
+
+        \Log::info('store date query', ['q' => $query]);
+        return $query;
+    }
+
     /**
      * @param $dateFrom
      * @param $dateTo
      * @return mixed
      */
-    public function getWalkInCount($stores, $dateFrom, $dateTo)
+    public function getWalkInCount($dateFrom, $dateTo)
     {
-        return $this->passengerFlow->whereIn('store_id', $stores)
+//        $query = $this->getDateQuery($dateFrom, $dateTo, 'time');
+        $store = $this;
+        return $this->passengerFlow()
             ->whereBetween('time', [$dateFrom, $dateTo])
+            ->where(function ($query) use ($store) {
+                $store->applyTimeRangeConstraints($query, 'time');
+            })
             ->sum('passengerFlow');
     }
 
@@ -141,20 +256,25 @@ class Store extends Model
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        $store = $this;
 
         if ($average) {
-            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
-                : Carbon::now()->subDays(1)->endOfDay();
+            $from = $this->firstAvailableDate()->startOfDay();
+            $to = Carbon::now()->endOfDay();
 
             $totalOrders = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
+                ->where(function ($query) use ($store) {
+                    $store->applyTimeRangeConstraints($query, 'order_date');
+                })
                 ->count();
             return round($this->getAvarageValue($from, $to, $totalOrders), 0);
         } else {
             return $this->orders()
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->where(function ($query) use ($store) {
+                    $store->applyTimeRangeConstraints($query, 'order_date');
+                })
                 ->count();
         }
     }
@@ -168,21 +288,26 @@ class Store extends Model
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        $store = $this;
 
         if ($average) {
-            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
-                : Carbon::now()->subDays(1)->endOfDay();
+            $from = $this->firstAvailableDate()->startOfDay();
+            $to = Carbon::now()->endOfDay();
 
             $totalSales = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
+                ->where(function ($query) use ($store) {
+                    $store->applyTimeRangeConstraints($query, 'order_date');
+                })
                 ->sum('order_total');
 
             return round($this->getAvarageValue($from, $to, $totalSales), 0);
         } else {
             return round($this->orders()
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->where(function ($query) use ($store) {
+                    $store->applyTimeRangeConstraints($query, 'order_date');
+                })
                 ->sum('order_total'), 0);
         }
     }
@@ -196,21 +321,26 @@ class Store extends Model
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        $store = $this;
 
         if ($average) {
-            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
-                : Carbon::now()->subDays(1)->endOfDay();
+            $from = $this->firstAvailableDate()->startOfDay();
+            $to = Carbon::now()->endOfDay();
 
             $itemsCount = $this->orders()
                 ->whereBetween('order_date', [$from, $to])
+                ->where(function ($query) use ($store) {
+                    $store->applyTimeRangeConstraints($query, 'order_date');
+                })
                 ->sum('items_count');
 
             return round($this->getAvarageValue($from, $to, $itemsCount), 0);
         } else {
             return $this->orders()
                 ->whereBetween('order_date', [$dateFrom, $dateTo])
+                ->where(function ($query) use ($store) {
+                    $store->applyTimeRangeConstraints($query, 'order_date');
+                })
                 ->sum('items_count');
         }
     }
@@ -223,10 +353,8 @@ class Store extends Model
     public function getATV($dateFrom = null, $dateTo = null, $average = false)
     {
         if ($average) {
-            $from = Carbon::parse($dateFrom)->subDays(1)->startOfMonth()->startOfDay();
-            $to = Carbon::now()->month !== Carbon::parse($dateTo)->month
-                ? Carbon::parse($dateTo)->endOfMonth()->endOfDay()
-                : Carbon::now()->subDays(1)->endOfDay();
+            $from = $this->firstAvailableDate()->startOfDay();
+            $to = Carbon::now()->endOfDay();
 
             $totalSales = $this->totalSales($from, $to);
             $totalOrders = $this->totalOrders($from, $to);
@@ -252,11 +380,13 @@ class Store extends Model
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
         if ($average) {
-            $dateFrom = $dateFrom->startOfMonth()->startOfDay();
-            $dateTo = $dateTo->endOfMonth()->endOfDay();
-            $totalOrders = $this->totalOrders($dateFrom, $dateTo);
+            $from = $this->firstAvailableDate()->startOfDay();
+            $to = Carbon::now()->endOfDay();
+            $totalOrders = $this->totalOrders($from, $to);
 
-            return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
+            $generalWalkInCount = $this->getWalkInCount($from, $to);
+
+            return $generalWalkInCount ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;
         }
 
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
@@ -273,9 +403,13 @@ class Store extends Model
     {
         $dateFrom = $dateFrom ?? Carbon::now()->startOfDay();
         $dateTo = $dateTo ?? Carbon::now()->endOfDay();
+        $store = $this;
 
         return $this->orders()
-            ->whereBetween('order_date', [$dateFrom, $dateTo]);
+            ->whereBetween('order_date', [$dateFrom, $dateTo])
+            ->where(function ($query) use ($store) {
+                $store->applyTimeRangeConstraints($query, 'order_date');
+            });
     }
 
     /**
@@ -286,7 +420,7 @@ class Store extends Model
      */
     public function getAvarageValue($dateFrom, $dateTo, $value)
     {
-        $workdays = $this->opretail?->settings['workdays'] ?? [];
+        $daysoff = $this->settings['daysoff'] ?? [];
 
         // Set the end date as today
         $startDate = Carbon::parse($dateFrom);
@@ -299,7 +433,7 @@ class Store extends Model
         for ($i = 0; $i <= $diffInDays; $i++) {
             $currentDate = $endDate->copy()->subDays($i);
 
-            if (!in_array($currentDate->dayOfWeek, $workdays)) {
+            if (!in_array($currentDate->dayOfWeek, $daysoff)) {
                 $count++;
             }
         }
