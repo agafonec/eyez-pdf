@@ -451,6 +451,12 @@ class Store extends Model
         $firstAvailableDate = $this->orders()->orderBy('order_date')->pluck('order_date')->first()
             ?? $this->passengerFlow()->orderBy('time')->pluck('time')->first()
             ?? Carbon::now();
+
+        $startOfMonth = Carbon::now()->startOfMonth()->startOfDay();
+        $firstAvailableDate = Carbon::parse($firstAvailableDate);
+        $firstAvailableDate = $firstAvailableDate->greaterThanOrEqualTo($startOfMonth)
+            ? $firstAvailableDate : $startOfMonth;
+
         return Carbon::parse($firstAvailableDate);
     }
 }
