@@ -1,5 +1,28 @@
 <template>
     <header>
+        <h2 class="text-lg font-medium text-gray-900">Rename Stores</h2>
+    </header>
+
+    <div class="flex items-center gap-4 mt-4 mb-6">
+        <template v-for="(store, index) in storesSettings">
+            <div class="mb-2">
+                <InputLabel :for="`store-${store.id}`" :value="stores.find(obj => obj.id === store.id).name" />
+
+                <TextInput
+                    :id="`store-${store.id}`"
+                    type="text"
+                    class="mt-1 block w-full"
+                    @input="(e) => {this.formError = e.target.value < 3}"
+                    v-model="store.name"
+                    required
+                />
+
+                <p v-if="store.name.length < 3" class="text-red-500">Store name can't be less than 3 characters.</p>
+            </div>
+        </template>
+    </div>
+
+    <header>
         <h2 class="text-lg font-medium text-gray-900">Hide Stores for user</h2>
     </header>
 
@@ -131,7 +154,7 @@
         </div>
     </div>
 
-    <PrimaryButton class="mt-2" @click="saveWorkingDays" :disabled="processing">Save</PrimaryButton>
+    <PrimaryButton class="mt-2" @click="updateSettings" :disabled="processing || formError">Save</PrimaryButton>
 
     <p v-if="response.message.length > 0" :class="`${response.errors === true ? 'text-red-500' : 'text-green-500'}`">{{ response.message }}</p>
 </template>
@@ -172,6 +195,7 @@ export default {
                 middleOld: 'Middle Old',
                 elderly: 'Elderly',
             },
+            formError: false,
             response: {
                 'errors': false,
                 'message': ''
@@ -201,7 +225,7 @@ export default {
                 return store
             })
         },
-        saveWorkingDays() {
+        updateSettings() {
             this.processing = true
             this.response.message = '';
 

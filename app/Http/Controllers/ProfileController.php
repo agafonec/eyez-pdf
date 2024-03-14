@@ -192,6 +192,7 @@ class ProfileController extends Controller
         foreach ($storesSettings as $s) {
             $store = Store::find($s['id']);
             $store->settings = $s['settings'];
+            $store->name = $s['name'];
             $store->save();
         }
 

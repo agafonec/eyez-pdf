@@ -386,7 +386,7 @@ class Store extends Model
 
             $generalWalkInCount = $this->getWalkInCount($from, $to);
 
-            return $generalWalkInCount ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;
+            return $generalWalkInCount !== 0 ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;
         }
 
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
