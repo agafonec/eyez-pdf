@@ -13,12 +13,12 @@
                         </p>
                     </header>
 
-                    <div class="relative overflow-x-auto shadow-md sm:rounded-lg">
+                    <div class="relative sm:rounded-lg">
                         <div class="flex justify-end">
                             <PrimaryButton @click="$inertia.visit(route('register'))" class="mb-4 ms-auto">Register User</PrimaryButton>
                         </div>
 
-                        <table v-if="users.data.length > 0" class="w-full text-sm text-right rtl:text-right text-gray-500 dark:text-gray-400">
+                        <table v-if="users.data.length > 0" class="w-full text-sm text-right rtl:text-right text-gray-500 dark:text-gray-400 shadow-md">
                             <thead class="text-xs text-gray-700 uppercase bg-gray-50 dark:bg-gray-700 dark:text-gray-400">
                             <tr>
                                 <th scope="col" class="px-6 py-3">
@@ -44,20 +44,38 @@
                                     <th scope="row" class="px-6 py-4 font-medium text-gray-900 whitespace-nowrap dark:text-white">
                                         {{ user.id }}
                                     </th>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 dark:text-white font-semibold">
                                         {{ user.name }}
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 dark:text-white font-semibold">
                                         {{ user.email }}
                                     </td>
-                                    <td class="px-6 py-4">
+                                    <td class="px-6 py-4 dark:text-white font-semibold">
                                         {{ createdAt(user.created_at) }}
                                     </td>
-                                    <td class="px-6 py-4 text-left">
-                                        <a :href="`/users/${user.id}`" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                                        <a href="#" @click="deleteUser(user.id)" class="font-medium text-red-600 dark:text-red-500 hover:underline me-4">Delete</a>
-                                        <a href="#" @click="$inertia.visit(route('register', {parent_user: user.id}))"  class="font-medium text-red-600 dark:text-blue-500 hover:underline me-4">Add User</a>
-                                        <a href="#" @click="$inertia.visit(route('profile.dashboard.view', {user: user.id}))"  class="font-medium text-red-600 dark:text-blue-500 hover:underline me-4">Dashboard</a>
+                                    <td class="px-6 py-4 text-left dark:text-white">
+                                        <Dropdown align="center">
+                                            <template #trigger>
+                                                <span class="inline-flex rounded-md">
+                                                    <button
+                                                        type="button"
+                                                        class="inline-flex items-center bg-white rounded-md dark:bg-gray-500
+                                                        font-semibold uppercase hover:text-gray-700 focus:outline-none transition p-0 rounded-full dark:text-white"
+                                                    >
+                                                        <svg fill="none" height="32" viewBox="0 0 24 24" width="32" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><path d="m12 8.29999c.718 0 1.3-.58202 1.3-1.29999s-.582-1.29999-1.3-1.29999-1.3.58202-1.3 1.29999.582 1.29999 1.3 1.29999z"/><path d="m12 13.3c.718 0 1.3-.582 1.3-1.3s-.582-1.3-1.3-1.3-1.3.582-1.3 1.3.582 1.3 1.3 1.3z"/><path d="m13.3 17c0 .718-.582 1.3-1.3 1.3s-1.3-.582-1.3-1.3.582-1.3 1.3-1.3 1.3.582 1.3 1.3z"/></g>
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            </template>
+
+                                            <template #content class="max-w-[50px]">
+                                                <DropdownLink align="center" :href="`/users/${user.id}`">Edit</DropdownLink>
+                                                <DropdownLink align="center" :href="`/users/${user.id}/logs`">Logs</DropdownLink>
+                                                <DropdownLink align="center" href="#" @click="deleteUser(user.id)">Delete</DropdownLink>
+                                                <DropdownLink align="center" href="#" @click="$inertia.visit(route('register', {parent_user: user.id}))">Add User</DropdownLink>
+                                                <DropdownLink align="center" href="#" @click="$inertia.visit(route('profile.dashboard.view', {user: user.id}))">Dashboard</DropdownLink>
+                                            </template>
+                                        </Dropdown>
                                     </td>
                                 </tr>
 
@@ -77,8 +95,26 @@
                                         {{ createdAt(subUser.created_at) }}
                                     </td>
                                     <td class="px-6 py-4 text-left">
-                                        <a :href="`/users/${subUser.id}`" class="font-medium text-blue-600 dark:text-blue-500 hover:underline">Edit</a>
-                                        <a href="#" @click="deleteUser(subUser.id)" class="font-medium text-red-600 dark:text-red-500 hover:underline me-4">Delete</a>
+                                        <Dropdown align="center">
+                                            <template #trigger>
+                                                <span class="inline-flex rounded-md">
+                                                    <button
+                                                        type="button"
+                                                        class="inline-flex items-center bg-white rounded-md dark:bg-gray-500
+                                                        font-semibold uppercase hover:text-gray-700 focus:outline-none transition p-0 rounded-full dark:text-white"
+                                                    >
+                                                        <svg fill="none" height="32" viewBox="0 0 24 24" width="32" xmlns="http://www.w3.org/2000/svg"><g fill="currentColor"><path d="m12 8.29999c.718 0 1.3-.58202 1.3-1.29999s-.582-1.29999-1.3-1.29999-1.3.58202-1.3 1.29999.582 1.29999 1.3 1.29999z"/><path d="m12 13.3c.718 0 1.3-.582 1.3-1.3s-.582-1.3-1.3-1.3-1.3.582-1.3 1.3.582 1.3 1.3 1.3z"/><path d="m13.3 17c0 .718-.582 1.3-1.3 1.3s-1.3-.582-1.3-1.3.582-1.3 1.3-1.3 1.3.582 1.3 1.3z"/></g>
+                                                        </svg>
+                                                    </button>
+                                                </span>
+                                            </template>
+
+                                            <template #content>
+                                                <DropdownLink align="center" :href="`/users/${subUser.id}`">Edit</DropdownLink>
+                                                <DropdownLink align="center" :href="`/users/${subUser.id}/logs`">Logs</DropdownLink>
+                                                <DropdownLink align="center" href="#" @click="deleteUser(subUser.id)">Delete</DropdownLink>
+                                            </template>
+                                        </Dropdown>
                                     </td>
                                 </tr>
                             </template>
@@ -116,13 +152,16 @@ import PrimaryButton from '@/Components/PrimaryButton.vue';
 import AuthenticatedLayout from '@/Layouts/AuthenticatedLayout.vue';
 import { Head } from '@inertiajs/vue3';
 import moment from "moment";
-
+import Dropdown from '@/Components/Dropdown.vue';
+import DropdownLink from '@/Components/DropdownLink.vue';
 export default {
     name: "Users",
     components: {
         AuthenticatedLayout,
         Head,
         PrimaryButton,
+        Dropdown,
+        DropdownLink
     },
     props:  {
         users: {

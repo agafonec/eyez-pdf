@@ -47,6 +47,8 @@ Route::middleware('auth')->group(function () {
         $router->get('/import-orders/clean-status')->uses('ImportController@cleanStatus')->name('orders.import.clean-status');
 
         $router->get('/download-file/{file}')->uses('ImportController@downloadFile')->name('orders.import.sample');
+
+        $router->get('/users/{user}/logs')->uses('LogsController@userSessions')->name('user.logs');
     });
 
     Route::group(['middleware' => ['role:admin'], 'namespace' => 'App\Http\Controllers'], function ($router) {

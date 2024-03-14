@@ -109,6 +109,11 @@ class User extends Authenticatable
         }
     }
 
+    public function logs()
+    {
+        return $this->hasMany(UserLogs::class);
+    }
+
     /**
      * @param $key
      * @param $value

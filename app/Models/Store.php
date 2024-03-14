@@ -386,7 +386,7 @@ class Store extends Model
 
             $generalWalkInCount = $this->getWalkInCount($from, $to);
 
-            return $generalWalkInCount ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;
+            return $generalWalkInCount !== 0 ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;
         }
 
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
@@ -451,6 +451,12 @@ class Store extends Model
         $firstAvailableDate = $this->orders()->orderBy('order_date')->pluck('order_date')->first()
             ?? $this->passengerFlow()->orderBy('time')->pluck('time')->first()
             ?? Carbon::now();
+
+        $startOfMonth = Carbon::now()->startOfMonth()->startOfDay();
+        $firstAvailableDate = Carbon::parse($firstAvailableDate);
+        $firstAvailableDate = $firstAvailableDate->greaterThanOrEqualTo($startOfMonth)
+            ? $firstAvailableDate : $startOfMonth;
+
         return Carbon::parse($firstAvailableDate);
     }
 }

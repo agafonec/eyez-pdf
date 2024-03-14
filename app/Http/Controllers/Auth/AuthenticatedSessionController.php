@@ -35,6 +35,10 @@ class AuthenticatedSessionController extends Controller
 
         $request->session()->regenerate();
 
+        $this->user()->logs()->create([
+            'type' => 'session',
+            'content' => 'Log In'
+        ]);
         if ($this->user()->hasRole('admin')) {
             return Redirect::to('/users');
         } else {
@@ -47,6 +51,11 @@ class AuthenticatedSessionController extends Controller
      */
     public function destroy(Request $request): RedirectResponse
     {
+        $this->user()->logs()->create([
+            'type' => 'session',
+            'content' => 'Log Out'
+        ]);
+
         Auth::guard('web')->logout();
 
         $request->session()->invalidate();
