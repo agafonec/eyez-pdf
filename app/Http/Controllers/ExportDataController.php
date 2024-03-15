@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\ReportExport;
 use App\Models\Store;
+use App\Models\User;
 use App\Traits\HasDateMap;
 use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
@@ -15,6 +16,7 @@ class ExportDataController extends Controller
     use HasDateMap;
     use HasStoreDateFilter;
     public string $reportType;
+    private User $user;
 
     /**
      * @param Request $request
@@ -23,6 +25,8 @@ class ExportDataController extends Controller
      */
     public function exportReport(Request $request, Store $store)
     {
+        $this->user = $store->user;
+
         $date = Carbon::parse($request->query('dateTo'))->format('Y-m-d');
         $dateFrom = Carbon::parse($request->query('dateFrom'))->setTimezone('Asia/Jerusalem');
         $dateTo = Carbon::parse($request->query('dateTo'))->setTimezone('Asia/Jerusalem');
@@ -40,14 +44,14 @@ class ExportDataController extends Controller
                 $date = $currentDate->format('Y-m-d');
                 $limitedDates = $this->modifyDate($date, $store);
 
-                \Log::info('Limited dates for export file', ['d' => $limitedDates]);
-
                 $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
                 $salesReport = $this->getSalesReport($store, $date, $limitedDates);
 
                 $result = $this->mapTableFields($result, $ageGenderFlow);
                 $result = $this->mapWalkInCount($result, $ageGenderFlow);
                 $result = $this->mapSalesReport($result, $salesReport);
+
+                $result = $this->getDailySummaryReport($result, $ageGenderFlow, $salesReport);
 
                 $dataToExport[$date] = array_values($result);
             }
@@ -60,6 +64,47 @@ class ExportDataController extends Controller
         $fileName = "report_$date.xlsx";
 
         return Excel::download(new ReportExport($dataToExport, $store), $fileName);
+    }
+
+    public function getDailySummaryReport($result, $ageGenderFlow, $salesReport)
+    {
+        $time = 'summary';
+
+        $result[$time] = $this->emptyTableObject('summary');
+
+        foreach ($ageGenderFlow as $entry) {
+            $walkInCount = $entry["walkInCount"];
+            $gender = $entry["gender"];
+            $ageGroup = $entry["ageGroup"];
+
+            $result[$time]['walkInCount'] += $walkInCount;
+            $result[$time][$gender] += $walkInCount;
+            $result[$time][$ageGroup] += $walkInCount;
+            $result[$time]["{$gender}_{$ageGroup}"] += $walkInCount;
+        }
+
+        foreach ($salesReport as $entry) {
+            $itemsCount = $entry["itemsCount"];
+            $orderTotal = $entry["orderTotal"];
+
+            $result[$time]['ordersCount'] += 1;
+            $result[$time]['itemsCount'] += $itemsCount;
+            $result[$time]['totalSales'] += $orderTotal;
+        }
+
+        $walkInCount = $this->user->disableChildFromConversion ? $result[$time]['walkInCount'] - $result[$time]['earlyYouth'] : $result[$time]['walkInCount'];
+
+        $averageItemsPerOrder = $result[$time]['ordersCount'] ? round($result[$time]['itemsCount'] / $result[$time]['ordersCount'], 1) : 0;
+        $averageItemPrice = $result[$time]['itemsCount'] ? round($result[$time]['totalSales'] / $result[$time]['itemsCount'], 0) : 0;
+        $conversion = $walkInCount ? round($result[$time]['ordersCount'] / $walkInCount * 100, 0) : 0;
+        $atv = $result[$time]['ordersCount'] ? round($result[$time]['totalSales'] / $result[$time]['ordersCount'], 0) : 0;
+
+        $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;
+        $result[$time]['averageItemPrice'] = (int) $averageItemPrice;
+        $result[$time]['conversion'] = $conversion;
+        $result[$time]['atv'] = (int) $atv;
+
+        return $result;
     }
 
     /**
@@ -90,9 +135,11 @@ class ExportDataController extends Controller
                 }
             }
 
+            $walkInCount = $this->user->disableChildFromConversion ?$summedObject->walkInCount - $summedObject->earlyYouth : $summedObject->walkInCount;
+
             $averageItemsPerOrder = $summedObject->ordersCount ? round($summedObject->itemsCount / $summedObject->ordersCount, 1) : 0;
             $averageItemPrice = $summedObject->itemsCount ? round($summedObject->totalSales / $summedObject->itemsCount, 0) : 0;
-            $conversion = $summedObject->walkInCount ? round($summedObject->ordersCount / $summedObject->walkInCount * 100, 0) : 0;
+            $conversion = $walkInCount ? round($summedObject->ordersCount / $walkInCount * 100, 0) : 0;
             $atv = $summedObject->ordersCount ? round($summedObject->totalSales / $summedObject->ordersCount, 0) : 0;
 
             $summedObject->averageItemsPerOrder = $averageItemsPerOrder;
@@ -188,17 +235,20 @@ class ExportDataController extends Controller
             $itemsCount = $entry["itemsCount"];
             $orderTotal = $entry["orderTotal"];
 
+
             if (isset($result[$time])) {
                 $result[$time]['ordersCount'] += 1;
-                $result[$time]['itemsCount'] += $itemsCount === 0 ? 1 : $itemsCount;
+                $result[$time]['itemsCount'] += $itemsCount;
                 $result[$time]['totalSales'] += $orderTotal;
             }
         }
 
         foreach ($result as $time => $value) {
+            $walkInCount = $this->user->disableChildFromConversion ? $value['walkInCount'] - $value['earlyYouth'] : $value['walkInCount'];
+
             $averageItemsPerOrder = $value['ordersCount'] ? round($value['itemsCount'] / $value['ordersCount'], 1) : 0;
             $averageItemPrice = $value['itemsCount'] ? round($value['totalSales'] / $value['itemsCount'], 0) : 0;
-            $conversion = $value['walkInCount'] ? round($value['ordersCount'] / $value['walkInCount'] * 100, 0) : 0;
+            $conversion = $walkInCount ? round($value['ordersCount'] / $walkInCount * 100, 0) : 0;
             $atv = $value['ordersCount'] ? round($value['totalSales'] / $value['ordersCount'], 0) : 0;
 
             $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;
@@ -206,7 +256,6 @@ class ExportDataController extends Controller
             $result[$time]['conversion'] = $conversion;
             $result[$time]['atv'] = (int) $atv;
         }
-
 
         return $result;
     }
@@ -245,7 +294,7 @@ class ExportDataController extends Controller
             'totalSales' => 0,
             'atv' => 0,
             'itemsCount' => 0,
-            'averageItemsPerOrder' => 1,
+            'averageItemsPerOrder' => 0,
             'averageItemPrice' => 0,
             'earlyYouth' => 0,
             'youth' => 0,

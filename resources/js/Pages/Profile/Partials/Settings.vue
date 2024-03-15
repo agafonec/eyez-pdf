@@ -93,6 +93,12 @@
 
     <div class="max-w-lg mt-4">
         <label class="flex items-center mb-4">
+            <Checkbox name="hide_age_description" @update:checked="disableChildFromConversion = !disableChildFromConversion" :checked="disableChildFromConversion" />
+
+            <span class="ms-2 text-sm text-gray-600">Disable children from conversion rate calculation.</span>
+        </label>
+
+        <label class="flex items-center mb-4">
             <Checkbox name="hide_age_description" @update:checked="hideAgeDescription = !hideAgeDescription" :checked="hideAgeDescription" />
 
             <span class="ms-2 text-sm text-gray-600">Hide age description. (age range)</span>
@@ -187,6 +193,7 @@ export default {
             hiddenStores: this.settings?.hiddenStores ?? [],
             workDays: this.settings?.workdays ?? [],
             hideAgeDescription: this.settings?.hideAgeDescription ?? false,
+            disableChildFromConversion: this.settings?.disableChildFromConversion ?? false,
             storesSettings: this.getStoreSettings(this.stores),
             ageGroups: this.settings?.ageGroups ?? {
                 earlyYouth: 'Early Youth',
@@ -233,6 +240,7 @@ export default {
                 storesSettings: this.storesSettings,
                 ageGroups: this.ageGroups,
                 hideAgeDescription: this.hideAgeDescription,
+                disableChildFromConversion: this.disableChildFromConversion,
                 hiddenStores: this.hiddenStores,
                 user: this.user
             })

@@ -58,6 +58,16 @@ class User extends Authenticatable
     }
 
     /**
+     * @return bool
+     */
+    public function getDisableChildFromConversionAttribute()
+    {
+        $settings = $this->attributes['settings'];
+        $settings = $settings ? json_decode($settings) : null;
+        return $settings->disableChildFromConversion ?? false;
+    }
+
+    /**
      * @return \Illuminate\Database\Eloquent\Relations\HasMany
      */
     public function subUsers()
