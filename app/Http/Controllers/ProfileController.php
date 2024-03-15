@@ -185,7 +185,9 @@ class ProfileController extends Controller
         $storesSettings = $request->json('storesSettings');
 
         $settings = $user->settings ?? [];
+
         $settings['hideAgeDescription'] = $request->json('hideAgeDescription');
+        $settings['disableChildFromConversion'] = $request->json('disableChildFromConversion');
         $settings['ageGroups'] = $request->json('ageGroups');
         $settings['hiddenStores'] = $request->json('hiddenStores');
 

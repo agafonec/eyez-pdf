@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Exports\ReportExport;
 use App\Models\Store;
+use App\Models\User;
 use App\Traits\HasDateMap;
 use App\Traits\HasStoreDateFilter;
 use Carbon\Carbon;
@@ -15,6 +16,7 @@ class ExportDataController extends Controller
     use HasDateMap;
     use HasStoreDateFilter;
     public string $reportType;
+    private User $user;
 
     /**
      * @param Request $request
@@ -23,6 +25,8 @@ class ExportDataController extends Controller
      */
     public function exportReport(Request $request, Store $store)
     {
+        $this->user = $store->user;
+
         $date = Carbon::parse($request->query('dateTo'))->format('Y-m-d');
         $dateFrom = Carbon::parse($request->query('dateFrom'))->setTimezone('Asia/Jerusalem');
         $dateTo = Carbon::parse($request->query('dateTo'))->setTimezone('Asia/Jerusalem');
@@ -88,9 +92,11 @@ class ExportDataController extends Controller
             $result[$time]['totalSales'] += $orderTotal;
         }
 
+        $walkInCount = $this->user->disableChildFromConversion ? $result[$time]['walkInCount'] - $result[$time]['earlyYouth'] : $result[$time]['walkInCount'];
+
         $averageItemsPerOrder = $result[$time]['ordersCount'] ? round($result[$time]['itemsCount'] / $result[$time]['ordersCount'], 1) : 0;
         $averageItemPrice = $result[$time]['itemsCount'] ? round($result[$time]['totalSales'] / $result[$time]['itemsCount'], 0) : 0;
-        $conversion = $result[$time]['walkInCount'] ? round($result[$time]['ordersCount'] / $result[$time]['walkInCount'] * 100, 0) : 0;
+        $conversion = $walkInCount ? round($result[$time]['ordersCount'] / $walkInCount * 100, 0) : 0;
         $atv = $result[$time]['ordersCount'] ? round($result[$time]['totalSales'] / $result[$time]['ordersCount'], 0) : 0;
 
         $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;
@@ -129,9 +135,11 @@ class ExportDataController extends Controller
                 }
             }
 
+            $walkInCount = $this->user->disableChildFromConversion ?$summedObject->walkInCount - $summedObject->earlyYouth : $summedObject->walkInCount;
+
             $averageItemsPerOrder = $summedObject->ordersCount ? round($summedObject->itemsCount / $summedObject->ordersCount, 1) : 0;
             $averageItemPrice = $summedObject->itemsCount ? round($summedObject->totalSales / $summedObject->itemsCount, 0) : 0;
-            $conversion = $summedObject->walkInCount ? round($summedObject->ordersCount / $summedObject->walkInCount * 100, 0) : 0;
+            $conversion = $walkInCount ? round($summedObject->ordersCount / $walkInCount * 100, 0) : 0;
             $atv = $summedObject->ordersCount ? round($summedObject->totalSales / $summedObject->ordersCount, 0) : 0;
 
             $summedObject->averageItemsPerOrder = $averageItemsPerOrder;
@@ -222,7 +230,6 @@ class ExportDataController extends Controller
      */
     protected function mapSalesReport($result, $salesReport)
     {
-
         foreach ($salesReport as $entry) {
             $time = $entry["orderDate"];
             $itemsCount = $entry["itemsCount"];
@@ -236,12 +243,12 @@ class ExportDataController extends Controller
             }
         }
 
-
-
         foreach ($result as $time => $value) {
+            $walkInCount = $this->user->disableChildFromConversion ? $value['walkInCount'] - $value['earlyYouth'] : $value['walkInCount'];
+
             $averageItemsPerOrder = $value['ordersCount'] ? round($value['itemsCount'] / $value['ordersCount'], 1) : 0;
             $averageItemPrice = $value['itemsCount'] ? round($value['totalSales'] / $value['itemsCount'], 0) : 0;
-            $conversion = $value['walkInCount'] ? round($value['ordersCount'] / $value['walkInCount'] * 100, 0) : 0;
+            $conversion = $walkInCount ? round($value['ordersCount'] / $walkInCount * 100, 0) : 0;
             $atv = $value['ordersCount'] ? round($value['totalSales'] / $value['ordersCount'], 0) : 0;
 
             $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;

@@ -184,9 +184,28 @@ class Store extends Model
      * @param $dateTo
      * @return mixed
      */
+    public function getWalkInCountFromAgeGender($dateFrom, $dateTo)
+    {
+        $store = $this;
+        $ageGroupId = $this->ageGroups()->where('group_id', 0)->first();
+
+        return $this->ageGenderFlow()
+            ->whereBetween('date', [$dateFrom, $dateTo])
+            ->where(function ($query) use ($store) {
+                $store->applyTimeRangeConstraints($query);
+            })
+            ->whereNot('age_group_id', $ageGroupId->id)
+            ->sum('people_count');
+    }
+
+
+    /**
+     * @param $dateFrom
+     * @param $dateTo
+     * @return mixed
+     */
     public function getWalkInCount($dateFrom, $dateTo)
     {
-//        $query = $this->getDateQuery($dateFrom, $dateTo, 'time');
         $store = $this;
         return $this->passengerFlow()
             ->whereBetween('time', [$dateFrom, $dateTo])
@@ -384,14 +403,22 @@ class Store extends Model
             $to = Carbon::now()->endOfDay();
             $totalOrders = $this->totalOrders($from, $to);
 
-            $generalWalkInCount = $this->getWalkInCount($from, $to);
+            $generalWalkInCount = $this->user->disableChildFromConversion
+                ? $this->getWalkInCountFromAgeGender($from, $to)
+                : $this->getWalkInCount($from, $to);
 
             return $generalWalkInCount !== 0 ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;
         }
 
         $totalOrders = $this->totalOrders($dateFrom, $dateTo);
 
-        return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
+        if ($this->user->disableChildFromConversion) {
+            $generalWalkInCount = $this->getWalkInCountFromAgeGender($dateFrom, $dateTo);
+
+            return $generalWalkInCount ? round($totalOrders / $generalWalkInCount * 100, 0) : 0;;
+        } else {
+            return $walkInCount ? round($totalOrders / $walkInCount * 100, 0) : 0;
+        }
     }
 
     /**

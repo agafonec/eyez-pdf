@@ -69,11 +69,11 @@
                                             </template>
 
                                             <template #content class="max-w-[50px]">
-                                                <DropdownLink align="center" :href="`/users/${user.id}`">Edit</DropdownLink>
-                                                <DropdownLink align="center" :href="`/users/${user.id}/logs`">Logs</DropdownLink>
-                                                <DropdownLink align="center" href="#" @click="deleteUser(user.id)">Delete</DropdownLink>
-                                                <DropdownLink align="center" href="#" @click="$inertia.visit(route('register', {parent_user: user.id}))">Add User</DropdownLink>
                                                 <DropdownLink align="center" href="#" @click="$inertia.visit(route('profile.dashboard.view', {user: user.id}))">Dashboard</DropdownLink>
+                                                <DropdownLink align="center" :href="`/users/${user.id}/logs`">Logs</DropdownLink>
+                                                <DropdownLink align="center" href="#" @click="$inertia.visit(route('register', {parent_user: user.id}))">Add User</DropdownLink>
+                                                <DropdownLink align="center" :href="`/users/${user.id}`">Edit</DropdownLink>
+                                                <DropdownLink align="center" href="#" @click="deleteUser(user.id)">Delete</DropdownLink>
                                             </template>
                                         </Dropdown>
                                     </td>
@@ -110,8 +110,8 @@
                                             </template>
 
                                             <template #content>
-                                                <DropdownLink align="center" :href="`/users/${subUser.id}`">Edit</DropdownLink>
                                                 <DropdownLink align="center" :href="`/users/${subUser.id}/logs`">Logs</DropdownLink>
+                                                <DropdownLink align="center" :href="`/users/${subUser.id}`">Edit</DropdownLink>
                                                 <DropdownLink align="center" href="#" @click="deleteUser(subUser.id)">Delete</DropdownLink>
                                             </template>
                                         </Dropdown>
