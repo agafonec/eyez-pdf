@@ -40,14 +40,14 @@ class ExportDataController extends Controller
                 $date = $currentDate->format('Y-m-d');
                 $limitedDates = $this->modifyDate($date, $store);
 
-                \Log::info('Limited dates for export file', ['d' => $limitedDates]);
-
                 $ageGenderFlow = $this->getWalkInReport($store, $date, $limitedDates);
                 $salesReport = $this->getSalesReport($store, $date, $limitedDates);
 
                 $result = $this->mapTableFields($result, $ageGenderFlow);
                 $result = $this->mapWalkInCount($result, $ageGenderFlow);
                 $result = $this->mapSalesReport($result, $salesReport);
+
+                $result = $this->getDailySummaryReport($result, $ageGenderFlow, $salesReport);
 
                 $dataToExport[$date] = array_values($result);
             }
@@ -60,6 +60,45 @@ class ExportDataController extends Controller
         $fileName = "report_$date.xlsx";
 
         return Excel::download(new ReportExport($dataToExport, $store), $fileName);
+    }
+
+    public function getDailySummaryReport($result, $ageGenderFlow, $salesReport)
+    {
+        $time = 'summary';
+
+        $result[$time] = $this->emptyTableObject('summary');
+
+        foreach ($ageGenderFlow as $entry) {
+            $walkInCount = $entry["walkInCount"];
+            $gender = $entry["gender"];
+            $ageGroup = $entry["ageGroup"];
+
+            $result[$time]['walkInCount'] += $walkInCount;
+            $result[$time][$gender] += $walkInCount;
+            $result[$time][$ageGroup] += $walkInCount;
+            $result[$time]["{$gender}_{$ageGroup}"] += $walkInCount;
+        }
+
+        foreach ($salesReport as $entry) {
+            $itemsCount = $entry["itemsCount"];
+            $orderTotal = $entry["orderTotal"];
+
+            $result[$time]['ordersCount'] += 1;
+            $result[$time]['itemsCount'] += $itemsCount;
+            $result[$time]['totalSales'] += $orderTotal;
+        }
+
+        $averageItemsPerOrder = $result[$time]['ordersCount'] ? round($result[$time]['itemsCount'] / $result[$time]['ordersCount'], 1) : 0;
+        $averageItemPrice = $result[$time]['itemsCount'] ? round($result[$time]['totalSales'] / $result[$time]['itemsCount'], 0) : 0;
+        $conversion = $result[$time]['walkInCount'] ? round($result[$time]['ordersCount'] / $result[$time]['walkInCount'] * 100, 0) : 0;
+        $atv = $result[$time]['ordersCount'] ? round($result[$time]['totalSales'] / $result[$time]['ordersCount'], 0) : 0;
+
+        $result[$time]['averageItemsPerOrder'] = $averageItemsPerOrder;
+        $result[$time]['averageItemPrice'] = (int) $averageItemPrice;
+        $result[$time]['conversion'] = $conversion;
+        $result[$time]['atv'] = (int) $atv;
+
+        return $result;
     }
 
     /**
@@ -183,17 +222,21 @@ class ExportDataController extends Controller
      */
     protected function mapSalesReport($result, $salesReport)
     {
+
         foreach ($salesReport as $entry) {
             $time = $entry["orderDate"];
             $itemsCount = $entry["itemsCount"];
             $orderTotal = $entry["orderTotal"];
 
+
             if (isset($result[$time])) {
                 $result[$time]['ordersCount'] += 1;
-                $result[$time]['itemsCount'] += $itemsCount === 0 ? 1 : $itemsCount;
+                $result[$time]['itemsCount'] += $itemsCount;
                 $result[$time]['totalSales'] += $orderTotal;
             }
         }
+
+
 
         foreach ($result as $time => $value) {
             $averageItemsPerOrder = $value['ordersCount'] ? round($value['itemsCount'] / $value['ordersCount'], 1) : 0;
@@ -206,7 +249,6 @@ class ExportDataController extends Controller
             $result[$time]['conversion'] = $conversion;
             $result[$time]['atv'] = (int) $atv;
         }
-
 
         return $result;
     }
@@ -245,7 +287,7 @@ class ExportDataController extends Controller
             'totalSales' => 0,
             'atv' => 0,
             'itemsCount' => 0,
-            'averageItemsPerOrder' => 1,
+            'averageItemsPerOrder' => 0,
             'averageItemPrice' => 0,
             'earlyYouth' => 0,
             'youth' => 0,

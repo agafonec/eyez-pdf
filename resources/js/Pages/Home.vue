@@ -28,18 +28,27 @@
                             </span>
                         </template>
 
+                        <template #search v-if="availableStores.length > 1">
+                            <TextInput
+                                id="storeSearch"
+                                type="text"
+                                class="mt-1 block  text-sm text-black w-full h-8"
+                                placeholder="חיפוש חנות"
+                                v-model="dropdownSearch"
+                            />
+                        </template>
                         <template #content>
                             <!--                            {{ store.name }}-->
                             <template v-if="roles.includes('admin')" v-for="(store, index) in availableStores">
                                 <DropdownLink
                                     :href="route('profile.dashboard.view', {user: store.user_id, stores: store.dep_id})"
-                                    v-if="!settings?.hiddenStores?.includes(store.dep_id)"
+                                    v-if="store.name.toLowerCase().includes(dropdownSearch.toLowerCase())"
                                     align="center">{{ store.name }}</DropdownLink>
                             </template>
                             <template v-else v-for="(store, index) in availableStores">
                                 <DropdownLink
                                     :href="route('home.show', {stores: store.dep_id})"
-                                    v-if="!settings?.hiddenStores?.includes(store.dep_id)"
+                                    v-if="store.name.toLowerCase().includes(dropdownSearch.toLowerCase())"
                                     align="center">{{ store.name }}</DropdownLink>
                             </template>
 
@@ -289,6 +298,7 @@ import {
     AgeGenderChart
 } from '@/_vendor/eyez/index'
 import moment from "moment";
+import TextInput from '@/Components/TextInput.vue';
 import Dropdown from '@/Components/Dropdown.vue';
 import DropdownLink from '@/Components/DropdownLink.vue';
 import { DatePicker } from 'v-calendar';
@@ -325,7 +335,8 @@ export default {
         AuthenticatedLayout,
         Head,
         Checkbox,
-        AgeGenderChart
+        AgeGenderChart,
+        TextInput
     },
     props: {
         reportType: {
@@ -377,6 +388,7 @@ export default {
                 start: this.storeData ? this.storeData?.dateFrom : new Date(),
                 end: this.storeData ? this.storeData?.dateTo : new Date()
             },
+            dropdownSearch: '',
             lineChart: {
                 chartOptions: {
                     animations: {
