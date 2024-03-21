@@ -65,8 +65,11 @@ class SyncOpretailJob implements ShouldQueue
     {
         $ageGenderFlow = $opretail->getAgeGenderData();
 
-        if (isset($ageGenderFlow['ageDistribution'])) {
-            $this->singlePeriodAgeGender($ageGenderFlow['ageDistribution'], $date);
+        if ($ageGenderFlow->getStatusCode() === 200) {
+            $ageGenderFlowData = $ageGenderFlow->getData();
+            if (isset($ageGenderFlowData->data->ageDistribution)) {
+                $this->singlePeriodAgeGender($ageGenderFlowData->data->ageDistribution, $date);
+            }
         }
     }
 
@@ -81,16 +84,16 @@ class SyncOpretailJob implements ShouldQueue
             $ageGroup = call_user_func([AgeGroup::class, 'updateOrCreate'],
                 [
                     'store_id' => $this->store->id,
-                    'group_id' => $flow['ageDivisionType']
+                    'group_id' => $flow->ageDivisionType
                 ],
                 [
-                    'ageFrom' => $flow['ageFrom'],
-                    'ageTo' => $flow['ageTo'],
+                    'ageFrom' => $flow->ageFrom,
+                    'ageTo' => $flow->ageTo,
                 ]
             );
 
-            foreach ($flow['genderDistribution'] as $genderFlow) {
-                if ($genderFlow['gender'] === 0 || $genderFlow['peopleNum'] === 0)
+            foreach ($flow->genderDistribution as $genderFlow) {
+                if ($genderFlow->gender === 0 || $genderFlow->peopleNum === 0)
                     continue;
 
                 call_user_func([AgeGenderFlow::class, $this->method],
@@ -98,10 +101,10 @@ class SyncOpretailJob implements ShouldQueue
                         'store_id' => $this->store->id,
                         'date' => $date,
                         'age_group_id' => $ageGroup->id,
-                        'gender' => $genderFlow['gender'] === 1 ? 'male' : 'female',
+                        'gender' => $genderFlow->gender === 1 ? 'male' : 'female',
                     ],
                     [
-                        'people_count' => $genderFlow['peopleNum']
+                        'people_count' => $genderFlow->peopleNum
                     ]
                 );
             }
@@ -114,24 +117,28 @@ class SyncOpretailJob implements ShouldQueue
     protected function setPassengerFlow(OpretailApi $opretail, $date)
     {
         $ageGenderFlow = $opretail->getAgeGenderData();
-        $hourlyWalkIn = $opretail->mapHourlyWalkInFromAgeGender($ageGenderFlow['genderDistribution'], $date);
+        \Log::info('Set passenger flow status', ['s' => $ageGenderFlow->getStatusCode()]);
+        if ($ageGenderFlow->getStatusCode() === 200) {
+            $ageGenderFlowData = $ageGenderFlow->getData();
+            $hourlyWalkIn = $opretail->mapHourlyWalkInFromAgeGender($ageGenderFlowData->data->genderDistribution, $date);
 
-        foreach ($hourlyWalkIn as $flow) {
-            if ($flow['passengerFlow'] > 0) {
-                $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
-                    [
-                        'store_id' => $this->store->id,
-                        'time' => $date->format('Y-m-d H:i:s')
-                    ],
-                    [
-                        'passengerFlow' => $flow['passengerFlow']
-                    ]
-                );
+            foreach ($hourlyWalkIn as $flow) {
+                if ($flow['passengerFlow'] > 0) {
+                    $hourlyFlowCreate = call_user_func([HourlyPassengerFlow::class, $this->method],
+                        [
+                            'store_id' => $this->store->id,
+                            'time' => $date->format('Y-m-d H:i:s')
+                        ],
+                        [
+                            'passengerFlow' => $flow['passengerFlow']
+                        ]
+                    );
 
-                \Log::info('HOURLY FLOW CREATE', [
-                    'timeAfterPArse' => $date->format('Y-m-d H:i:s'),
-                    'c' => $hourlyFlowCreate
-                ]);
+                    \Log::info('HOURLY FLOW CREATE', [
+                        'timeAfterPArse' => $date->format('Y-m-d H:i:s'),
+                        'c' => $hourlyFlowCreate
+                    ]);
+                }
             }
         }
     }

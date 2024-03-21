@@ -109,7 +109,7 @@ trait OpretailAuth
                 \Log::info('opretail.stores:: ERROR THROWN', ['error' => $status]);
 
                 $this->token = 'error';
-                return ['error' => "Empty data returned. err name {$status['codename']}"];
+                return response()->json(['error' => "Empty data returned. err name {$status['codename']}"]);
             }
 
             $this->token = $response->json('data.token');

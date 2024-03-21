@@ -166,9 +166,10 @@ class OpretailApi
         if ($response->successful()) {
             return $response->json('data.passengerFlow');
         } else {
-            \Log::info('Opretail error', ['error' => $response->status()] );
+            $response->json('stat');
+            \Log::info('Opretail error:: getSingleWalkInCount::', ['error' => $response->json('stat')] );
 
-            return ['error' => 'Opretail API request failed'];
+            return response()->json(['error' => 'Opretail API request failed'], $response->status());
         }
     }
 
@@ -187,7 +188,7 @@ class OpretailApi
 
             return $response->json('data.records');
         } else {
-            \Log::info('Opretail error', ['error' => $response->status()] );
+            \Log::info('Opretail error:: getStores:: ', ['error' => $response->json('stat')]);
 
             return response()->json(['error' => 'Opretail API request failed'], $response->status());
         }
@@ -237,14 +238,14 @@ class OpretailApi
 
             return $response->json();
         } else {
-            \Log::info('Opretail error', ['error' => $response->status()] );
+            \Log::info('Opretail error:: getStoreData ::', ['error' => $response->json('stat'), 'request' => $data]);
 
             return response()->json(['error' => 'Opretail API request failed'], $response->status());
         }
     }
 
     /**
-     * @return array|\Illuminate\Http\JsonResponse|mixed
+     * @return \Illuminate\Http\JsonResponse
      */
     public function getAgeGenderData()
     {
@@ -284,11 +285,11 @@ class OpretailApi
             $this->genderData = $this->mapGender($response->json('data.genderDistribution'));
             $this->ageData = $this->mapAge($response->json('data.ageDistribution'));
 
-            return $response->json('data');
+            return response()->json(['errors' => false, 'data' => $response->json('data')], 200);
         } else {
-            \Log::info('Opretail error', ['error' => $response->status()] );
+            \Log::info('Opretail error :: getAgeGenderData ::', ['error' => $response->json(), 'request' => $data]);
 
-            return response()->json(['error' => 'Opretail API request failed'], $response->status());
+            return response()->json(['errors' => true, 'message' => 'Opretail API request failed'], $response->status());
         }
     }
 }
