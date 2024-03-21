@@ -90,19 +90,19 @@ trait OpretailHelpers
     }
 
     /**
-     * @param array $data
+     * @param $data
      * @param $date
      * @return array
      */
-    public static function mapHourlyWalkInFromAgeGender(Array $data, $date)
+    public static function mapHourlyWalkInFromAgeGender($data, $date)
     {
         if (!$data) die('No hourly data has been received.');
         $return = [];
         $passengerFlow = 0;
 
         foreach ($data as $single) {
-            if (isset($single['gender']) && $single['gender'] !== 0) {
-                $passengerFlow += $single['peopleNum'];
+            if (isset($single->gender) && $single->gender !== 0) {
+                $passengerFlow += $single->peopleNum;
             }
         }
 

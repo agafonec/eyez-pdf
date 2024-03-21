@@ -83,7 +83,10 @@ class SyncOpretailController extends Controller
     {
         $batch = Bus::findBatch($batchId);
 
-        if ($batch?->pendingJobs === 0) {
+        $batchArray = $batch->toArray();
+        $jobsProcessed = $batchArray['processedJobs'] + $batchArray['pendingJobs'];
+
+        if ($batchArray['pendingJobs'] === 0 || $jobsProcessed === $batchArray['totalJobs']) {
             $user->forgetCached('syncBatchId');
         }
 
